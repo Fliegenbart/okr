@@ -43,13 +43,15 @@ export function ThinkingPartnerFloating() {
           aria-hidden
           className="pointer-events-none absolute -bottom-1 right-5 h-3 w-3 rotate-45 bg-secondary transition-colors group-hover:bg-primary"
         />
-        <Image
-          src="/logo.png"
-          alt="OKR fuer Paare"
-          width={52}
-          height={30}
-          className="h-7 w-auto"
-        />
+        <span className="relative h-8 w-10">
+          <Image
+            src="/logo.png"
+            alt="OKR fuer Paare"
+            fill
+            sizes="40px"
+            className="object-contain"
+          />
+        </span>
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
