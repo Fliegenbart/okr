@@ -109,11 +109,11 @@ export function PowerMoveCard({
   });
 
   return (
-    <Card className="rounded-2xl border-border shadow-sm">
+    <Card>
       <CardContent className="space-y-5 p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-1">
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">
+            <p className="text-sm font-semibold text-primary">
               Powermove fuers Quartal
             </p>
             <p className="text-sm text-muted-foreground">
@@ -133,7 +133,7 @@ export function PowerMoveCard({
         </div>
 
         {!hasObjectives ? (
-          <div className="rounded-2xl border border-white/60 bg-white/60 p-4 text-sm text-muted-foreground backdrop-blur-sm">
+          <div className="rounded-lg border border-border bg-muted/50 p-4 text-sm text-muted-foreground">
             Legt zuerst mindestens ein Objective an, dann kann ich den groessten
             Hebel fuer euer Quartal finden.
             <div className="mt-3">
@@ -146,8 +146,8 @@ export function PowerMoveCard({
 
         {hasObjectives && structured ? (
           <div className="space-y-4">
-            <div className="rounded-2xl border border-white/60 bg-white/70 p-5 shadow-sm backdrop-blur">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            <div className="rounded-lg bg-primary/5 p-5">
+              <p className="text-xs font-medium text-muted-foreground">
                 Powermove
               </p>
               <p className="mt-2 text-lg font-semibold text-foreground">
@@ -159,28 +159,28 @@ export function PowerMoveCard({
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <div className="rounded-2xl border border-white/60 bg-white/60 p-4 backdrop-blur-sm">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              <div className="rounded-lg border border-border bg-white p-4">
+                <p className="text-xs font-medium text-muted-foreground">
                   Impulse
                 </p>
                 <ul className="mt-3 space-y-2 text-sm text-foreground">
                   {structured.impulses.map((impulse) => (
                     <li key={impulse} className="flex gap-2">
-                      <span className="mt-1 h-1.5 w-1.5 flex-none rounded-full bg-primary" />
+                      <span className="mt-1.5 h-1 w-1 flex-none rounded-full bg-primary" />
                       <span>{impulse}</span>
                     </li>
                   ))}
                 </ul>
               </div>
 
-              <div className="rounded-2xl border border-white/60 bg-white/60 p-4 backdrop-blur-sm">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              <div className="rounded-lg border border-border bg-white p-4">
+                <p className="text-xs font-medium text-muted-foreground">
                   Rueckfragen
                 </p>
                 <ul className="mt-3 space-y-2 text-sm text-foreground">
                   {structured.questions.map((question) => (
                     <li key={question} className="flex gap-2">
-                      <span className="mt-1 h-1.5 w-1.5 flex-none rounded-full bg-secondary" />
+                      <span className="mt-1.5 h-1 w-1 flex-none rounded-full bg-primary/40" />
                       <span>{question}</span>
                     </li>
                   ))}
@@ -189,8 +189,8 @@ export function PowerMoveCard({
             </div>
 
             {structured.miniRitual ? (
-              <details className="rounded-2xl border border-white/60 bg-white/60 p-4 backdrop-blur-sm">
-                <summary className="cursor-pointer list-none text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              <details className="rounded-lg border border-border bg-white p-4">
+                <summary className="cursor-pointer list-none text-xs font-medium text-muted-foreground">
                   Mini-Ritual
                 </summary>
                 <div className="mt-3 space-y-2">
@@ -207,8 +207,8 @@ export function PowerMoveCard({
             ) : null}
 
             {sources.length ? (
-              <details className="rounded-2xl border border-white/60 bg-white/60 p-4 backdrop-blur-sm">
-                <summary className="cursor-pointer list-none text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              <details className="rounded-lg border border-border bg-white p-4">
+                <summary className="cursor-pointer list-none text-xs font-medium text-muted-foreground">
                   Quellen (Calls)
                 </summary>
                 <div className="mt-3 space-y-3">
@@ -233,13 +233,13 @@ export function PowerMoveCard({
         ) : null}
 
         {hasObjectives && !structured && reply ? (
-          <div className="rounded-2xl border border-white/60 bg-white/60 p-4 text-sm text-muted-foreground backdrop-blur-sm">
+          <div className="rounded-lg border border-border bg-muted/50 p-4 text-sm text-muted-foreground">
             {reply}
           </div>
         ) : null}
 
         {hasObjectives && !structured && !reply ? (
-          <div className="rounded-2xl border border-white/60 bg-white/60 p-4 text-sm text-muted-foreground backdrop-blur-sm">
+          <div className="rounded-lg border border-border bg-muted/50 p-4 text-sm text-muted-foreground">
             Ein Powermove ist der kleinste Schritt mit dem groessten Hebel.
             Klick auf <span className="font-medium">Powermove finden</span>.
           </div>

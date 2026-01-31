@@ -15,14 +15,14 @@ type ProgressDonutProps = {
 
 export function ProgressDonut({
   value,
-  size = 92,
-  strokeWidth = 10,
+  size = 80,
+  strokeWidth = 6,
   label = "Gesamt",
   showValue = true,
   showLabel = true,
   valueClassName,
   progressClassName = "text-primary",
-  trackClassName = "text-muted-foreground/20",
+  trackClassName = "text-muted/60",
   className,
 }: ProgressDonutProps) {
   const clamped = Math.max(0, Math.min(100, Math.round(value)));
@@ -75,7 +75,7 @@ export function ProgressDonut({
             </span>
           ) : null}
           {showLabel ? (
-            <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+            <span className="text-[10px] font-medium text-muted-foreground">
               {label}
             </span>
           ) : null}

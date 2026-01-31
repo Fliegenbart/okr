@@ -19,7 +19,7 @@ export function VisionHeader({ vision, coupleName }: VisionHeaderProps) {
         height={40}
         className="h-auto w-32"
       />
-      <p className="text-sm uppercase tracking-[0.3em] text-primary">
+      <p className="text-sm font-medium text-primary">
         {coupleName}
       </p>
       <blockquote className="text-2xl italic leading-snug text-foreground md:text-3xl">

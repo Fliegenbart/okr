@@ -40,7 +40,7 @@ export default async function DashboardPage({
   if (!session?.user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-6 py-12">
-        <Card className="w-full max-w-md rounded-2xl border-border shadow-sm">
+        <Card className="w-full max-w-md">
           <CardContent className="space-y-3 p-6 text-center">
             <p className="text-lg font-semibold text-foreground">
               Bitte melde dich an
@@ -50,7 +50,7 @@ export default async function DashboardPage({
             </p>
             <Link
               href="/api/auth/signin?callbackUrl=/dashboard"
-              className="inline-flex items-center justify-center rounded-2xl bg-secondary px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary hover:text-secondary"
+              className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
             >
               Zur Anmeldung
             </Link>
@@ -66,7 +66,7 @@ export default async function DashboardPage({
   if (!userId && !userEmail) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-6 py-12">
-        <Card className="w-full max-w-md rounded-2xl border-border shadow-sm">
+        <Card className="w-full max-w-md">
           <CardContent className="space-y-3 p-6 text-center">
             <p className="text-lg font-semibold text-foreground">
               Bitte melde dich an
@@ -76,7 +76,7 @@ export default async function DashboardPage({
             </p>
             <Link
               href="/api/auth/signin?callbackUrl=/dashboard"
-              className="inline-flex items-center justify-center rounded-2xl bg-secondary px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary hover:text-secondary"
+              className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
             >
               Zur Anmeldung
             </Link>
@@ -209,7 +209,7 @@ export default async function DashboardPage({
         <VisionHeader vision={couple.vision} coupleName={couple.name} />
 
         <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <Card className="rounded-2xl border-border shadow-sm">
+          <Card>
             <CardContent className="space-y-4 p-6">
               <InvitePartnerCard
                 latestInvite={
@@ -227,9 +227,9 @@ export default async function DashboardPage({
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl border-border shadow-sm">
+          <Card>
             <CardContent className="space-y-3 p-6">
-              <p className="text-sm uppercase tracking-[0.2em] text-primary">
+              <p className="text-sm font-medium text-primary">
                 Aktuelles Quartal
               </p>
               {activeQuarter ? (
@@ -250,9 +250,9 @@ export default async function DashboardPage({
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl border-border shadow-sm">
+          <Card>
             <CardContent className="flex flex-col items-start gap-4 p-6">
-              <p className="text-sm uppercase tracking-[0.2em] text-primary">
+              <p className="text-sm font-medium text-primary">
                 Durchschnittlicher Fortschritt
               </p>
               <p className="text-xs text-muted-foreground">
@@ -260,12 +260,12 @@ export default async function DashboardPage({
               </p>
               <ProgressDonut
                 value={averageProgress}
-                size={120}
-                strokeWidth={11}
+                size={100}
+                strokeWidth={8}
                 showValue={true}
                 showLabel={false}
-                progressClassName="text-secondary"
-                valueClassName="text-2xl"
+                progressClassName="text-primary"
+                valueClassName="text-xl"
               />
             </CardContent>
           </Card>
@@ -307,8 +307,8 @@ export default async function DashboardPage({
               ))}
             </div>
           ) : (
-            <Card className="rounded-2xl border-border shadow-sm">
-              <CardContent className="space-y-2 p-6">
+            <Card>
+              <CardContent className="space-y-3 p-6">
                 <p className="text-lg font-semibold text-foreground">
                   Noch keine Objectives
                 </p>
@@ -317,7 +317,7 @@ export default async function DashboardPage({
                 </p>
                 <Link
                   href="/dashboard/objectives/new"
-                  className="inline-flex items-center justify-center rounded-2xl bg-secondary px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary hover:text-secondary"
+                  className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
                 >
                   Objective erstellen
                 </Link>

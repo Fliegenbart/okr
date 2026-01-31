@@ -29,7 +29,7 @@ export async function DashboardHeader() {
   const coupleName = user?.couple?.name ?? "OKR fuer Paare";
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/60 bg-white/70 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 border-b border-border bg-white/95 backdrop-blur-sm">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-6 py-3 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center justify-between gap-4">
           <Link href="/dashboard" className="flex items-center gap-3">

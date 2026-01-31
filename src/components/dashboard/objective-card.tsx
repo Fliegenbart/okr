@@ -165,12 +165,12 @@ export function ObjectiveCard({
   const labelPosition = Math.min(Math.max(progress, 4), 96);
 
   return (
-    <Card className="relative rounded-2xl border-border shadow-sm">
+    <Card className="relative">
       <CelebrationOverlay show={showCelebration} />
       <CardContent className="relative space-y-6 p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/60 bg-white/70 text-primary shadow-sm backdrop-blur">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
               {objectiveIcon}
             </div>
             <div className="space-y-2">
@@ -184,11 +184,11 @@ export function ObjectiveCard({
                 <p className="text-sm text-muted-foreground">{description}</p>
               ) : null}
               {nextAction ? (
-                <div className="rounded-2xl border border-secondary bg-white px-4 py-3">
-                  <p className="text-xs uppercase tracking-[0.2em] text-primary">
+                <div className="rounded-lg bg-primary/5 px-3 py-2">
+                  <p className="text-xs font-medium text-primary/70">
                     Naechste Aktion
                   </p>
-                  <p className="mt-1 text-sm font-semibold text-primary">
+                  <p className="mt-0.5 text-sm font-medium text-primary">
                     {nextAction}
                   </p>
                 </div>
@@ -197,31 +197,31 @@ export function ObjectiveCard({
           </div>
           <div className="flex flex-col items-start gap-3 lg:items-end">
             <details className="group relative">
-              <summary className="list-none rounded-full border border-white/60 bg-white/60 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-primary transition hover:bg-white/80">
+              <summary className="list-none cursor-pointer rounded-lg bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-muted/80">
                 Aktionen
               </summary>
-              <div className="absolute right-0 z-10 mt-2 min-w-[180px] rounded-2xl border border-white/60 bg-white/85 p-2 shadow-lg backdrop-blur-lg">
+              <div className="absolute right-0 z-10 mt-2 min-w-[180px] rounded-lg border border-border bg-white p-1.5 shadow-lg">
                 <Link
                   href={`/dashboard/objectives/${objectiveId}`}
-                  className="flex items-center rounded-xl px-3 py-2 text-xs font-medium text-foreground transition hover:bg-muted"
+                  className="flex items-center rounded-md px-3 py-2 text-sm text-foreground transition hover:bg-muted"
                 >
                   Details ansehen
                 </Link>
                 <Link
                   href={`/dashboard/objectives/${objectiveId}/edit`}
-                  className="flex items-center rounded-xl px-3 py-2 text-xs font-medium text-foreground transition hover:bg-muted"
+                  className="flex items-center rounded-md px-3 py-2 text-sm text-foreground transition hover:bg-muted"
                 >
                   KR anlegen
                 </Link>
                 <Link
                   href={`/dashboard/objectives/${objectiveId}/edit`}
-                  className="flex items-center rounded-xl px-3 py-2 text-xs font-medium text-foreground transition hover:bg-muted"
+                  className="flex items-center rounded-md px-3 py-2 text-sm text-foreground transition hover:bg-muted"
                 >
                   Objective bearbeiten
                 </Link>
                 <Link
                   href={`/dashboard/thinking-partner?objectiveId=${objectiveId}`}
-                  className="flex items-center rounded-xl px-3 py-2 text-xs font-medium text-foreground transition hover:bg-muted"
+                  className="flex items-center rounded-md px-3 py-2 text-sm text-foreground transition hover:bg-muted"
                 >
                   Thinking Partner
                 </Link>
@@ -230,30 +230,27 @@ export function ObjectiveCard({
           </div>
         </div>
 
-        <div className="relative h-2 w-full rounded-full bg-border">
-          <motion.div
-            className="h-full rounded-full bg-primary"
-            animate={{ width: `${progress}%` }}
-            transition={{ type: "spring", stiffness: 120, damping: 18 }}
-          />
-          <motion.span
-            className="absolute top-1/2 rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-white shadow-sm"
-            animate={{ left: `${labelPosition}%` }}
-            transition={{ type: "spring", stiffness: 140, damping: 20 }}
-            style={{ transform: "translate(-50%, -50%)" }}
-          >
+        <div className="flex items-center gap-3">
+          <div className="relative h-1 flex-1 rounded-full bg-muted">
+            <motion.div
+              className="h-full rounded-full bg-primary"
+              animate={{ width: `${progress}%` }}
+              transition={{ type: "spring", stiffness: 120, damping: 18 }}
+            />
+          </div>
+          <span className="text-sm font-medium text-foreground tabular-nums">
             {progress}%
-          </motion.span>
+          </span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-          <span className="rounded-full bg-muted px-3 py-1">
+        <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+          <span>
             Letztes Update:{" "}
             {insights.lastUpdateAt
               ? dateFormatter.format(new Date(insights.lastUpdateAt))
               : "—"}
           </span>
-          <span className="rounded-full bg-muted px-3 py-1">
+          <span>
             Trend:{" "}
             {insights.trend === "up"
               ? `↑ +${insights.updatesLast7 - insights.updatesPrev7}`
@@ -261,17 +258,17 @@ export function ObjectiveCard({
                 ? `↓ -${insights.updatesPrev7 - insights.updatesLast7}`
                 : "→ 0"}
           </span>
-          <span className="rounded-full bg-muted px-3 py-1">
+          <span>
             Streak: {insights.streakDays} Tage
           </span>
         </div>
 
         <div className="space-y-3">
-          <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-muted-foreground">
+          <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
             <span>Key Results</span>
             <span>{optimisticKeyResults.length} KRs</span>
           </div>
-          <div className="divide-y divide-white/60 rounded-2xl border border-white/60 bg-white/60 backdrop-blur-sm">
+          <div className="divide-y divide-border rounded-lg border border-border bg-white">
             {visibleKeyResults.map((keyResult) => {
               const progressValue = keyResult.targetValue
                 ? Math.min(
@@ -311,7 +308,7 @@ export function ObjectiveCard({
                   <div className="flex flex-wrap items-center gap-2">
                     <Link
                       href={`/dashboard/key-results/${keyResult.id}`}
-                      className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary"
+                      className="text-xs font-medium text-primary hover:underline"
                     >
                       Details
                     </Link>
@@ -336,22 +333,14 @@ export function ObjectiveCard({
               <button
                 type="button"
                 onClick={() => setShowAllKeyResults((prev) => !prev)}
-                className="group flex h-10 w-10 items-center justify-center rounded-full border border-white/60 bg-white/60 text-primary shadow-sm backdrop-blur transition hover:bg-white/80"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80"
               >
                 <span
                   className={`inline-flex transition-transform ${
                     showAllKeyResults ? "rotate-180" : ""
                   }`}
                 >
-                  <span
-                    className={
-                      showAllKeyResults
-                        ? ""
-                        : "motion-safe:animate-chevron-nudge"
-                    }
-                  >
-                    <ChevronDown className="h-5 w-5" />
-                  </span>
+                  <ChevronDown className="h-4 w-4" />
                 </span>
                 <span className="sr-only">
                   {showAllKeyResults

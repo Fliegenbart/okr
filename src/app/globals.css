@@ -47,41 +47,41 @@
 }
 
 :root {
-  --radius: 1rem;
-  --background: #f5f6f9;
-  --foreground: #111111;
-  --card: rgba(255, 255, 255, 0.78);
-  --card-foreground: #111111;
-  --popover: rgba(255, 255, 255, 0.92);
-  --popover-foreground: #111111;
+  --radius: 0.75rem;
+  --background: #f5f5f7;
+  --foreground: #1d1d1f;
+  --card: #ffffff;
+  --card-foreground: #1d1d1f;
+  --popover: #ffffff;
+  --popover-foreground: #1d1d1f;
   --primary: #f20080;
   --primary-foreground: #ffffff;
-  --secondary: #3dffda;
-  --secondary-foreground: #111111;
-  --muted: rgba(255, 255, 255, 0.7);
-  --muted-foreground: #555555;
-  --accent: #52c1f3;
-  --accent-foreground: #111111;
-  --destructive: #f60;
-  --border: #e2e5ea;
-  --input: #e2e5ea;
+  --secondary: #f5f5f7;
+  --secondary-foreground: #1d1d1f;
+  --muted: #f5f5f7;
+  --muted-foreground: #6e6e73;
+  --accent: #f20080;
+  --accent-foreground: #ffffff;
+  --destructive: #ff3b30;
+  --border: #d2d2d7;
+  --input: #d2d2d7;
   --ring: #f20080;
   --chart-1: #f20080;
-  --chart-2: #3dffda;
-  --chart-3: #52c1f3;
-  --chart-4: #07f285;
-  --chart-5: #f60;
+  --chart-2: rgba(242, 0, 128, 0.7);
+  --chart-3: rgba(242, 0, 128, 0.5);
+  --chart-4: rgba(242, 0, 128, 0.3);
+  --chart-5: rgba(242, 0, 128, 0.15);
   --sidebar: #ffffff;
-  --sidebar-foreground: #111111;
+  --sidebar-foreground: #1d1d1f;
   --sidebar-primary: #f20080;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f7f7f7;
-  --sidebar-accent-foreground: #111111;
-  --sidebar-border: #ddd;
+  --sidebar-accent: #f5f5f7;
+  --sidebar-accent-foreground: #1d1d1f;
+  --sidebar-border: #d2d2d7;
   --sidebar-ring: #f20080;
-  --glass-bg: rgba(255, 255, 255, 0.72);
-  --glass-border: rgba(255, 255, 255, 0.65);
-  --glass-shadow: 0 20px 50px rgba(15, 23, 42, 0.12);
+  --glass-bg: #ffffff;
+  --glass-border: #e5e5e5;
+  --glass-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .dark {
@@ -126,19 +126,9 @@
     @apply bg-background text-foreground;
     background-image:
       radial-gradient(
-        900px 600px at 6% 0%,
-        rgba(242, 0, 128, 0.08),
-        transparent 60%
-      ),
-      radial-gradient(
-        1000px 700px at 100% 0%,
-        rgba(61, 255, 218, 0.12),
-        transparent 55%
-      ),
-      radial-gradient(
-        1100px 700px at 50% 100%,
-        rgba(82, 193, 243, 0.08),
-        transparent 60%
+        ellipse 80% 50% at 50% -20%,
+        rgba(242, 0, 128, 0.03),
+        transparent 70%
       );
     background-attachment: fixed;
   }
@@ -197,7 +187,5 @@
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
     box-shadow: var(--glass-shadow);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
   }
 }

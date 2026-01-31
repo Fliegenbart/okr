@@ -100,7 +100,7 @@ export function InvitePartnerCard({
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm uppercase tracking-[0.2em] text-primary">
+        <p className="text-sm font-medium text-primary">
           Partner einladen
         </p>
       </div>
@@ -112,11 +112,11 @@ export function InvitePartnerCard({
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           disabled={isCoupleFull}
-          className="rounded-2xl"
+          className="rounded-lg"
         />
         <Button
           type="button"
-          className="w-full rounded-2xl"
+          className="w-full"
           onClick={handleCreate}
           disabled={createAction.isPending || isCoupleFull}
         >
@@ -131,7 +131,7 @@ export function InvitePartnerCard({
 
       {invite ? (
         <div className="space-y-3">
-          <div className="rounded-2xl border border-border bg-card p-4">
+          <div className="rounded-lg border border-border bg-muted/50 p-4">
             <p className="text-sm text-muted-foreground">
               Einladung fuer <span className="font-medium">{invite.email}</span>
             </p>
@@ -141,20 +141,20 @@ export function InvitePartnerCard({
           </div>
 
           <div className="space-y-2">
-            <p className="text-xs uppercase tracking-[0.2em] text-primary">
+            <p className="text-xs font-medium text-primary">
               Einladungslink
             </p>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <Input
                 value={inviteUrl || "Link wird vorbereitet..."}
                 readOnly
-                className="rounded-2xl"
+                className="rounded-lg"
               />
               <div className="flex gap-2">
                 <Button
                   type="button"
                   variant="outline"
-                  className="rounded-2xl"
+                  className="rounded-lg"
                   onClick={handleCopy}
                   disabled={!inviteUrl}
                 >
@@ -162,7 +162,7 @@ export function InvitePartnerCard({
                 </Button>
                 <Button
                   type="button"
-                  className="rounded-2xl"
+                  className="rounded-lg"
                   onClick={handleShare}
                   disabled={!inviteUrl}
                 >
@@ -172,8 +172,8 @@ export function InvitePartnerCard({
             </div>
           </div>
 
-          <div className="flex flex-col items-start gap-3 rounded-2xl border border-border bg-card p-4 sm:flex-row sm:items-center">
-            <div className="rounded-2xl border border-border bg-background p-3">
+          <div className="flex flex-col items-start gap-3 rounded-lg border border-border bg-muted/50 p-4 sm:flex-row sm:items-center">
+            <div className="rounded-lg border border-border bg-white p-3">
               {inviteUrl ? (
                 <QRCodeSVG
                   value={inviteUrl}
