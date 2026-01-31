@@ -167,7 +167,7 @@ export function ObjectiveCard({
   return (
     <Card className="relative rounded-2xl border-border shadow-sm">
       <CelebrationOverlay show={showCelebration} />
-      <CardContent className="space-y-6 p-6">
+      <CardContent className="relative space-y-6 p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/60 bg-white/70 text-primary shadow-sm backdrop-blur">
@@ -221,13 +221,15 @@ export function ObjectiveCard({
         </div>
 
         {nextAction ? (
-          <div className="ml-auto max-w-[360px] rounded-2xl border border-primary/20 bg-secondary px-4 py-3 text-primary shadow-sm">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary/80">
-              Naechste Aktion
-            </p>
-            <p className="mt-1 text-sm font-semibold leading-snug">
-              {nextAction}
-            </p>
+          <div className="sm:absolute sm:-right-4 sm:top-6 sm:max-w-[220px]">
+            <div className="rounded-2xl border border-primary/20 bg-secondary px-4 py-3 text-primary shadow-lg">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary/80">
+                Naechste Aktion
+              </p>
+              <p className="mt-1 text-sm font-semibold leading-snug">
+                {nextAction}
+              </p>
+            </div>
           </div>
         ) : null}
 

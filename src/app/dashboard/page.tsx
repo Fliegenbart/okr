@@ -251,8 +251,8 @@ export default async function DashboardPage({
           </Card>
 
           <Card className="rounded-2xl border-border shadow-sm">
-            <CardContent className="flex items-center justify-between gap-4 p-6">
-              <div className="space-y-2">
+            <CardContent className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0 flex-1 space-y-2">
                 <p className="text-sm uppercase tracking-[0.2em] text-primary">
                   Durchschnittlicher Fortschritt
                 </p>
@@ -265,12 +265,12 @@ export default async function DashboardPage({
               </div>
               <ProgressDonut
                 value={averageProgress}
-                size={124}
-                strokeWidth={12}
+                size={120}
+                strokeWidth={11}
                 showValue={false}
                 showLabel={false}
                 progressClassName="text-secondary"
-                className="flex-none"
+                className="self-center sm:self-auto"
               />
             </CardContent>
           </Card>
