@@ -201,6 +201,7 @@ export function ObjectiveCard({
               size={64}
               strokeWidth={7}
               showLabel={false}
+              valueClassName="text-base"
             />
             <details className="group relative">
               <summary className="list-none rounded-full border border-white/60 bg-white/60 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-primary transition hover:bg-white/80">
@@ -330,22 +331,34 @@ export function ObjectiveCard({
             })}
           </div>
           {optimisticKeyResults.length > 2 ? (
-            <button
-              type="button"
-              onClick={() => setShowAllKeyResults((prev) => !prev)}
-              className="flex items-center justify-center text-primary transition hover:opacity-70"
-            >
-              <ChevronDown
-                className={`h-5 w-5 transition-transform ${
-                  showAllKeyResults ? "rotate-180" : ""
-                }`}
-              />
-              <span className="sr-only">
-                {showAllKeyResults
-                  ? "Key Results einklappen"
-                  : "Key Results ausklappen"}
-              </span>
-            </button>
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={() => setShowAllKeyResults((prev) => !prev)}
+                className="group flex h-10 w-10 items-center justify-center rounded-full border border-white/60 bg-white/60 text-primary shadow-sm backdrop-blur transition hover:bg-white/80"
+              >
+                <span
+                  className={`inline-flex transition-transform ${
+                    showAllKeyResults ? "rotate-180" : ""
+                  }`}
+                >
+                  <span
+                    className={
+                      showAllKeyResults
+                        ? ""
+                        : "motion-safe:animate-chevron-nudge"
+                    }
+                  >
+                    <ChevronDown className="h-5 w-5" />
+                  </span>
+                </span>
+                <span className="sr-only">
+                  {showAllKeyResults
+                    ? "Key Results einklappen"
+                    : "Key Results ausklappen"}
+                </span>
+              </button>
+            </div>
           ) : null}
         </div>
       </CardContent>

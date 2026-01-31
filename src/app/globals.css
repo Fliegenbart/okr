@@ -167,9 +167,30 @@
   }
 }
 
+@keyframes chevronNudge {
+  0%,
+  86%,
+  100% {
+    transform: translateY(0);
+  }
+  90% {
+    transform: translateY(2px);
+  }
+  94% {
+    transform: translateY(0);
+  }
+  97% {
+    transform: translateY(1px);
+  }
+}
+
 @layer utilities {
   .animate-bubble-float {
     animation: bubbleFloat 6.8s ease-in-out infinite;
+    will-change: transform;
+  }
+  .animate-chevron-nudge {
+    animation: chevronNudge 8.2s ease-in-out infinite;
     will-change: transform;
   }
   .glass-card {

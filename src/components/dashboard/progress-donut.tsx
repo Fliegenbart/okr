@@ -6,6 +6,7 @@ type ProgressDonutProps = {
   strokeWidth?: number;
   label?: string;
   showLabel?: boolean;
+  valueClassName?: string;
   className?: string;
 };
 
@@ -15,6 +16,7 @@ export function ProgressDonut({
   strokeWidth = 10,
   label = "Gesamt",
   showLabel = true,
+  valueClassName,
   className,
 }: ProgressDonutProps) {
   const clamped = Math.max(0, Math.min(100, Math.round(value)));
@@ -55,7 +57,7 @@ export function ProgressDonut({
         />
       </svg>
       <div className="absolute flex flex-col items-center">
-        <span className="text-lg font-semibold text-foreground">
+        <span className={cn("text-lg font-semibold text-foreground", valueClassName)}>
           {clamped}%
         </span>
         {showLabel ? (
