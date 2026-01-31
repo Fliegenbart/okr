@@ -4,6 +4,7 @@ import { getAuthSession } from "@/auth";
 import { InvitePartnerCard } from "@/components/dashboard/invite-partner-card";
 import { OnboardingCard } from "@/components/dashboard/onboarding-card";
 import { ObjectiveCard } from "@/components/dashboard/objective-card";
+import { PowerMoveCard } from "@/components/dashboard/power-move-card";
 import { ProgressDonut } from "@/components/dashboard/progress-donut";
 import { QuarterFilter } from "@/components/dashboard/quarter-filter";
 import { VisionHeader } from "@/components/dashboard/vision-header";
@@ -140,6 +141,13 @@ export default async function DashboardPage({
           (objective) => objective.quarterId === selectedQuarterId
         );
 
+  const selectedQuarter =
+    selectedQuarterId === "all"
+      ? activeQuarter ?? null
+      : couple.quarters.find((quarter) => quarter.id === selectedQuarterId) ??
+        activeQuarter ??
+        null;
+
   const objectiveProgressValues = filteredObjectives.map((objective) =>
     calculateProgress(
       objective.keyResults.map((keyResult) => ({
@@ -258,6 +266,13 @@ export default async function DashboardPage({
 
           {objectiveCards.length ? (
             <div className="grid gap-6 md:grid-cols-2">
+              <div className="md:col-span-2">
+                <PowerMoveCard
+                  quarterId={selectedQuarter?.id ?? null}
+                  quarterTitle={selectedQuarter?.title ?? null}
+                  hasObjectives={objectiveCards.length > 0}
+                />
+              </div>
               {objectiveCards.map((objective) => (
                 <ObjectiveCard
                   key={objective.id}
