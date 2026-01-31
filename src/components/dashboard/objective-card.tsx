@@ -19,7 +19,6 @@ import { motion } from "framer-motion";
 
 import { CelebrationOverlay } from "@/components/dashboard/celebration-overlay";
 import { KeyResultQuickUpdateDialog } from "@/components/dashboard/key-result-quick-update-dialog";
-import { ProgressDonut } from "@/components/dashboard/progress-donut";
 import { Card, CardContent } from "@/components/ui/card";
 import { useObjectiveProgress } from "@/hooks/use-objective-progress";
 import { calculateProgress } from "@/lib/progress";
@@ -161,8 +160,9 @@ export function ObjectiveCard({
 
   const visibleKeyResults = showAllKeyResults
     ? optimisticKeyResults
-    : optimisticKeyResults.slice(0, 2);
+    : optimisticKeyResults.slice(0, 1);
   const objectiveIcon = getObjectiveIconNode(title, "h-5 w-5");
+  const labelPosition = Math.min(Math.max(progress, 4), 96);
 
   return (
     <Card className="relative rounded-2xl border-border shadow-sm">
@@ -186,13 +186,6 @@ export function ObjectiveCard({
             </div>
           </div>
           <div className="flex flex-col items-start gap-3 lg:items-end">
-            <ProgressDonut
-              value={progress}
-              size={64}
-              strokeWidth={7}
-              showLabel={false}
-              valueClassName="text-base"
-            />
             <details className="group relative">
               <summary className="list-none rounded-full border border-white/60 bg-white/60 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-primary transition hover:bg-white/80">
                 Aktionen
@@ -238,12 +231,20 @@ export function ObjectiveCard({
           </div>
         ) : null}
 
-        <div className="h-2 w-full rounded-full bg-border">
+        <div className="relative h-2 w-full rounded-full bg-border">
           <motion.div
             className="h-full rounded-full bg-primary"
             animate={{ width: `${progress}%` }}
             transition={{ type: "spring", stiffness: 120, damping: 18 }}
           />
+          <motion.span
+            className="absolute top-1/2 rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-white shadow-sm"
+            animate={{ left: `${labelPosition}%` }}
+            transition={{ type: "spring", stiffness: 140, damping: 20 }}
+            style={{ transform: "translate(-50%, -50%)" }}
+          >
+            {progress}%
+          </motion.span>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
@@ -331,7 +332,7 @@ export function ObjectiveCard({
               );
             })}
           </div>
-          {optimisticKeyResults.length > 2 ? (
+          {optimisticKeyResults.length > 1 ? (
             <div className="flex justify-center">
               <button
                 type="button"
