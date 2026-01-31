@@ -115,7 +115,7 @@ export function ObjectiveCard({
               <p className="text-sm text-muted-foreground">{description}</p>
             ) : null}
             {nextAction ? (
-              <div className="rounded-2xl border border-border bg-background px-4 py-3">
+              <div className="rounded-2xl border border-white/60 bg-white/60 px-4 py-3 backdrop-blur-sm">
                 <p className="text-xs uppercase tracking-[0.2em] text-primary">
                   Naechste Aktion
                 </p>
@@ -130,10 +130,10 @@ export function ObjectiveCard({
               Fortschritt {progress}%
             </div>
             <details className="group relative">
-              <summary className="list-none rounded-full border border-border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-primary transition hover:bg-muted">
+              <summary className="list-none rounded-full border border-white/60 bg-white/60 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-primary transition hover:bg-white/80">
                 Aktionen
               </summary>
-              <div className="absolute right-0 z-10 mt-2 min-w-[180px] rounded-2xl border border-border bg-background p-2 shadow-lg">
+              <div className="absolute right-0 z-10 mt-2 min-w-[180px] rounded-2xl border border-white/60 bg-white/85 p-2 shadow-lg backdrop-blur-lg">
                 <Link
                   href={`/dashboard/objectives/${objectiveId}`}
                   className="flex items-center rounded-xl px-3 py-2 text-xs font-medium text-foreground transition hover:bg-muted"
@@ -196,7 +196,7 @@ export function ObjectiveCard({
             <span>Key Results</span>
             <span>{optimisticKeyResults.length} KRs</span>
           </div>
-          <div className="divide-y divide-border rounded-2xl border border-border bg-background">
+          <div className="divide-y divide-white/60 rounded-2xl border border-white/60 bg-white/60 backdrop-blur-sm">
             {visibleKeyResults.map((keyResult) => {
               const progressValue = keyResult.targetValue
                 ? Math.min(

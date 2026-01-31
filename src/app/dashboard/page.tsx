@@ -183,29 +183,7 @@ export default async function DashboardPage({
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto w-full max-w-5xl px-6 py-10">
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <VisionHeader vision={couple.vision} coupleName={couple.name} />
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href="/dashboard/objectives/new"
-              className="inline-flex items-center justify-center rounded-2xl bg-secondary px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary hover:text-secondary"
-            >
-              Objective erstellen
-            </Link>
-            <Link
-              href="/dashboard/thinking-partner"
-              className="inline-flex items-center justify-center rounded-2xl border border-border px-4 py-2 text-sm font-medium text-foreground"
-            >
-              Thinking Partner
-            </Link>
-            <Link
-              href="/dashboard/settings"
-              className="inline-flex items-center justify-center rounded-2xl border border-border px-4 py-2 text-sm font-medium text-foreground"
-            >
-              Einstellungen
-            </Link>
-          </div>
-        </div>
+        <VisionHeader vision={couple.vision} coupleName={couple.name} />
 
         <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <Card className="rounded-2xl border-border shadow-sm">

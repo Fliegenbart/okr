@@ -1,3 +1,4 @@
+import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { ThinkingPartnerFloating } from "@/components/dashboard/thinking-partner-floating";
 
 export default function DashboardLayout({
@@ -7,9 +8,9 @@ export default function DashboardLayout({
 }) {
   return (
     <>
+      <DashboardHeader />
       {children}
       <ThinkingPartnerFloating />
     </>
   );
 }
-
