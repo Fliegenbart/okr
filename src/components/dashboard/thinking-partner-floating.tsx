@@ -21,13 +21,19 @@ export function ThinkingPartnerFloating() {
     return null;
   }
 
+  const segments = pathname?.split("/") ?? [];
+  const objectiveId =
+    segments[2] === "objectives" ? segments[3] ?? null : null;
+  const keyResultId =
+    segments[2] === "key-results" ? segments[3] ?? null : null;
+
   return (
     <>
       <button
         type="button"
         aria-label="Thinking Partner oeffnen"
         onClick={() => setOpen(true)}
-        className="group fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-secondary text-primary shadow-lg transition-colors hover:bg-primary hover:text-secondary"
+        className="group fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full border border-primary/20 bg-secondary text-primary shadow-lg transition-colors hover:bg-primary hover:text-secondary"
       >
         <span className="pointer-events-none absolute -bottom-1 right-4 h-3 w-3 rotate-45 bg-secondary transition-colors group-hover:bg-primary" />
         <Image
@@ -48,11 +54,13 @@ export function ThinkingPartnerFloating() {
             </DialogDescription>
           </DialogHeader>
           <div className="mt-4">
-            <ThinkingPartnerChat />
+            <ThinkingPartnerChat
+              objectiveId={objectiveId}
+              keyResultId={keyResultId}
+            />
           </div>
         </DialogContent>
       </Dialog>
     </>
   );
 }
-
