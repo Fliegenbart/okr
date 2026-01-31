@@ -183,6 +183,16 @@ export function ObjectiveCard({
               {description ? (
                 <p className="text-sm text-muted-foreground">{description}</p>
               ) : null}
+              {nextAction ? (
+                <div className="rounded-2xl border border-secondary bg-white px-4 py-3">
+                  <p className="text-xs uppercase tracking-[0.2em] text-primary">
+                    Naechste Aktion
+                  </p>
+                  <p className="mt-1 text-sm font-semibold text-primary">
+                    {nextAction}
+                  </p>
+                </div>
+              ) : null}
             </div>
           </div>
           <div className="flex flex-col items-start gap-3 lg:items-end">
@@ -219,19 +229,6 @@ export function ObjectiveCard({
             </details>
           </div>
         </div>
-
-        {nextAction ? (
-          <div className="sm:absolute sm:-right-4 sm:top-6 sm:max-w-[220px]">
-            <div className="rounded-2xl border border-primary/20 bg-secondary px-4 py-3 text-primary shadow-lg">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary/80">
-                Naechste Aktion
-              </p>
-              <p className="mt-1 text-sm font-semibold leading-snug">
-                {nextAction}
-              </p>
-            </div>
-          </div>
-        ) : null}
 
         <div className="relative h-2 w-full rounded-full bg-border">
           <motion.div
