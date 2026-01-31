@@ -262,13 +262,11 @@ export default async function DashboardPage({
                 value={averageProgress}
                 size={120}
                 strokeWidth={11}
-                showValue={false}
+                showValue={true}
                 showLabel={false}
                 progressClassName="text-secondary"
+                valueClassName="text-2xl"
               />
-              <p className="text-3xl font-semibold text-foreground">
-                {averageProgress}%
-              </p>
             </CardContent>
           </Card>
         </div>
