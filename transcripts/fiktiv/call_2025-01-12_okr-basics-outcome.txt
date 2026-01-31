@@ -1,0 +1,15 @@
+Title: OKR Basics: Outcome statt Aktivitaet
+Date: 2025-01-12
+Participants: Paar (fiktiv)
+[00:00] Coach: Willkommen zur Q&A. Fokus heute: Outcome vs Output.
+
+[01:10] Frage (Paar): Wir schreiben Objectives wie "Mehr Zeit zu zweit planen" und KRs wie "Jeden Samstag Date Night". Ist das OK?
+[02:05] Coach: Fast. Euer Objective ist eher eine Absicht. Formuliert es als Zustand/Ergebnis: "Wir erleben unsere Beziehung im Alltag wieder als leicht und verbunden." Das KR ist dann messbar, aber nicht nur Termin: z.B. "Wir haben 8 von 12 Wochen einen verbindlichen 60-Minuten-Check-in gemacht" plus "Wir bewerten unsere Verbundenheit im Wochencheck im Schnitt mit >=4/5".
+
+[04:00] Frage (Paar): Wir haben 12 Ziele pro Quartal, sonst fuehlen wir uns unproduktiv.
+[04:35] Coach: Das ist die klassische Falle: Aktivitaet = Sicherheit. Setzt ein Limit. Max 5 Objectives. Wenn ihr mehr habt, dann fehlt Priorisierung. OKR ist ein Nein-Tool.
+
+[06:10] Frage (Paar): Was tun, wenn ein KR "zu weich" ist?
+[06:45] Coach: Kombiniert weiche Indikatoren mit harten Signalen. Beispiel: "Konflikte eskalieren weniger" (weich) + "Wir machen bei 80% der Spannungen innerhalb von 24h ein Repair-Gespraech" (hart).
+
+[08:20] Coach: Mikro-Ritual: 3-Minuten-"Wie bin ich gerade da?" pro Person, bevor ihr ueber KRs sprecht.

@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:15
+    container_name: okr_postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: okr
+      POSTGRES_PASSWORD: okr
+      POSTGRES_DB: okr
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

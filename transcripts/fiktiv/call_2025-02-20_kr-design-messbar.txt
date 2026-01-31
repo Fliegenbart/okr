@@ -1,0 +1,14 @@
+Title: Key Results designen: Messbar ohne Buerokratie
+Date: 2025-02-20
+Participants: Paar (fiktiv)
+[00:00] Coach: KRs sollen leicht zu tracken sein.
+
+[01:05] Frage (Paar): Wir verlieren Motivation, wenn wir staendig Zahlen eintragen.
+[01:45] Coach: Dann ist das Tracking zu schwer. Nutzt "low-friction KRs": Prozent, Score 1-5, Streak. Beispiel: "Verbundenheit-Score im Wochencheck >=4/5" oder "Repair innerhalb 24h: 8 von 12 Faellen".
+
+[03:20] Frage (Paar): Wie berechnen wir Fortschritt, wenn es kein klares Ziel gibt?
+[03:55] Coach: Setzt ein Proxy-Ziel. Wenn es wirklich nicht geht, nehmt SCORE-KR: 1-5 mit Definition. 1 = "wir reden kaum", 3 = "wir klaeren Spannungen in 1-2 Tagen", 5 = "wir klaeren in <24h und fuehlen Naehe".
+
+[05:10] Coach: Achtung Falle: KRs als To-do-Liste ("Wir kaufen..., wir buchen..."). KRs sind Ergebnisindikatoren. To-dos gehoeren ins Wochenplanen, nicht ins KR.
+
+[06:30] Mikro-Ritual: "KR-Check in 90 Sekunden": Jede Person sagt nur: aktueller Wert, ein Hindernis, ein naechster kleinster Schritt.
