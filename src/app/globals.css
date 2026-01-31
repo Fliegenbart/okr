@@ -48,23 +48,23 @@
 
 :root {
   --radius: 1rem;
-  --background: #ffffff;
+  --background: #f5f6f9;
   --foreground: #111111;
-  --card: #ffffff;
+  --card: rgba(255, 255, 255, 0.78);
   --card-foreground: #111111;
-  --popover: #ffffff;
+  --popover: rgba(255, 255, 255, 0.92);
   --popover-foreground: #111111;
   --primary: #f20080;
   --primary-foreground: #ffffff;
   --secondary: #3dffda;
   --secondary-foreground: #111111;
-  --muted: #f7f7f7;
+  --muted: rgba(255, 255, 255, 0.7);
   --muted-foreground: #555555;
   --accent: #52c1f3;
   --accent-foreground: #111111;
   --destructive: #f60;
-  --border: #ddd;
-  --input: #ddd;
+  --border: #e2e5ea;
+  --input: #e2e5ea;
   --ring: #f20080;
   --chart-1: #f20080;
   --chart-2: #3dffda;
@@ -79,6 +79,9 @@
   --sidebar-accent-foreground: #111111;
   --sidebar-border: #ddd;
   --sidebar-ring: #f20080;
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.65);
+  --glass-shadow: 0 20px 50px rgba(15, 23, 42, 0.12);
 }
 
 .dark {
@@ -121,6 +124,23 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-image:
+      radial-gradient(
+        900px 600px at 6% 0%,
+        rgba(242, 0, 128, 0.08),
+        transparent 60%
+      ),
+      radial-gradient(
+        1000px 700px at 100% 0%,
+        rgba(61, 255, 218, 0.12),
+        transparent 55%
+      ),
+      radial-gradient(
+        1100px 700px at 50% 100%,
+        rgba(82, 193, 243, 0.08),
+        transparent 60%
+      );
+    background-attachment: fixed;
   }
   h2 {
     font-family: var(--font-source-sans);
@@ -151,5 +171,12 @@
   .animate-bubble-float {
     animation: bubbleFloat 6.8s ease-in-out infinite;
     will-change: transform;
+  }
+  .glass-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
   }
 }
