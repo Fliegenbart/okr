@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 
 import { getAuthSession } from "@/auth";
 import { CoupleSettingsForm } from "@/components/dashboard/couple-settings-form";
@@ -15,6 +16,19 @@ const dateFormatter = new Intl.DateTimeFormat("de-DE", {
 });
 
 export default async function SettingsPage() {
+  const headerList = await headers();
+  const forwardedProto = headerList.get("x-forwarded-proto") ?? "http";
+  const forwardedHost =
+    headerList.get("x-forwarded-host") ?? headerList.get("host");
+  const requestOrigin = forwardedHost
+    ? `${forwardedProto}://${forwardedHost}`
+    : "";
+  const appUrl = (
+    process.env.NEXT_PUBLIC_APP_URL ??
+    process.env.NEXTAUTH_URL ??
+    requestOrigin
+  ).replace(/\/$/, "");
+
   const session = await getAuthSession();
 
   if (!session?.user?.email && !session?.user?.id) {
@@ -99,6 +113,7 @@ export default async function SettingsPage() {
                     : null
                 }
                 isCoupleFull={couple.users.length >= 2}
+                appUrl={appUrl}
               />
             </CardContent>
           </Card>

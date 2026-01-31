@@ -12,12 +12,13 @@ import { Input } from "@/components/ui/input";
 
 export type InviteCodeCardProps = {
   inviteCode: string;
+  appUrl?: string | null;
 };
 
-export function InviteCodeCard({ inviteCode }: InviteCodeCardProps) {
+export function InviteCodeCard({ inviteCode, appUrl }: InviteCodeCardProps) {
   const router = useRouter();
   const [code, setCode] = useState(inviteCode.toUpperCase());
-  const origin = (process.env.NEXT_PUBLIC_APP_URL ?? "").replace(/\/$/, "");
+  const origin = (appUrl ?? "").replace(/\/$/, "");
 
   const inviteUrl = useMemo(() => {
     if (!origin) return "";

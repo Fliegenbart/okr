@@ -17,6 +17,7 @@ export type InvitePartnerCardProps = {
     expiresAt: string;
   } | null;
   isCoupleFull?: boolean;
+  appUrl?: string | null;
 };
 
 const dateFormatter = new Intl.DateTimeFormat("de-DE", {
@@ -27,12 +28,14 @@ const dateFormatter = new Intl.DateTimeFormat("de-DE", {
 export function InvitePartnerCard({
   latestInvite,
   isCoupleFull = false,
+  appUrl,
 }: InvitePartnerCardProps) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [invite, setInvite] = useState(latestInvite ?? null);
 
-  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "").replace(/\/$/, "");
+  const baseUrl = (appUrl ?? "").replace(/\/$/, "");
+
   const inviteUrl = useMemo(() => {
     if (!invite || !baseUrl) return "";
     return `${baseUrl}/join?token=${invite.token}`;
@@ -195,7 +198,7 @@ export function InvitePartnerCard({
 
       {!baseUrl ? (
         <p className="text-xs text-primary">
-          Hinweis: NEXT_PUBLIC_APP_URL fehlt, Link kann nicht erzeugt werden.
+          Hinweis: App-URL fehlt, Link kann nicht erzeugt werden.
         </p>
       ) : null}
     </div>

@@ -5,8 +5,11 @@ type ProgressDonutProps = {
   size?: number;
   strokeWidth?: number;
   label?: string;
+  showValue?: boolean;
   showLabel?: boolean;
   valueClassName?: string;
+  progressClassName?: string;
+  trackClassName?: string;
   className?: string;
 };
 
@@ -15,8 +18,11 @@ export function ProgressDonut({
   size = 92,
   strokeWidth = 10,
   label = "Gesamt",
+  showValue = true,
   showLabel = true,
   valueClassName,
+  progressClassName = "text-primary",
+  trackClassName = "text-muted-foreground/20",
   className,
 }: ProgressDonutProps) {
   const clamped = Math.max(0, Math.min(100, Math.round(value)));
@@ -26,7 +32,10 @@ export function ProgressDonut({
 
   return (
     <div
-      className={cn("relative flex items-center justify-center", className)}
+      className={cn(
+        "relative flex shrink-0 items-center justify-center",
+        className
+      )}
       style={{ width: size, height: size }}
       aria-label={`Fortschritt ${clamped}%`}
     >
@@ -35,7 +44,7 @@ export function ProgressDonut({
         viewBox={`0 0 ${size} ${size}`}
       >
         <circle
-          className="text-muted-foreground/20"
+          className={trackClassName}
           stroke="currentColor"
           strokeWidth={strokeWidth}
           fill="transparent"
@@ -44,7 +53,7 @@ export function ProgressDonut({
           cy={size / 2}
         />
         <circle
-          className="text-primary"
+          className={progressClassName}
           stroke="currentColor"
           strokeWidth={strokeWidth}
           strokeLinecap="round"
@@ -56,16 +65,22 @@ export function ProgressDonut({
           strokeDashoffset={offset}
         />
       </svg>
-      <div className="absolute flex flex-col items-center">
-        <span className={cn("text-lg font-semibold text-foreground", valueClassName)}>
-          {clamped}%
-        </span>
-        {showLabel ? (
-          <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-            {label}
-          </span>
-        ) : null}
-      </div>
+      {showValue || showLabel ? (
+        <div className="absolute flex flex-col items-center">
+          {showValue ? (
+            <span
+              className={cn("text-lg font-semibold text-foreground", valueClassName)}
+            >
+              {clamped}%
+            </span>
+          ) : null}
+          {showLabel ? (
+            <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              {label}
+            </span>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }

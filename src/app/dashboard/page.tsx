@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 
 import { getAuthSession } from "@/auth";
 import { InvitePartnerCard } from "@/components/dashboard/invite-partner-card";
@@ -20,6 +21,19 @@ export default async function DashboardPage({
 }: {
   searchParams?: Promise<{ quarter?: string; invite?: string }>;
 }) {
+  const headerList = await headers();
+  const forwardedProto = headerList.get("x-forwarded-proto") ?? "http";
+  const forwardedHost =
+    headerList.get("x-forwarded-host") ?? headerList.get("host");
+  const requestOrigin = forwardedHost
+    ? `${forwardedProto}://${forwardedHost}`
+    : "";
+  const appUrl = (
+    process.env.NEXT_PUBLIC_APP_URL ??
+    process.env.NEXTAUTH_URL ??
+    requestOrigin
+  ).replace(/\/$/, "");
+
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const session = await getAuthSession();
 
@@ -208,6 +222,7 @@ export default async function DashboardPage({
                     : null
                 }
                 isCoupleFull={couple.users.length >= 2}
+                appUrl={appUrl}
               />
             </CardContent>
           </Card>
@@ -244,8 +259,19 @@ export default async function DashboardPage({
                 <p className="text-xs text-muted-foreground">
                   Mittelwert ueber alle Objectives im gewaehlten Quartal.
                 </p>
+                <p className="text-3xl font-semibold text-foreground">
+                  {averageProgress}%
+                </p>
               </div>
-              <ProgressDonut value={averageProgress} label="Quartal" />
+              <ProgressDonut
+                value={averageProgress}
+                size={124}
+                strokeWidth={12}
+                showValue={false}
+                showLabel={false}
+                progressClassName="text-secondary"
+                className="flex-none"
+              />
             </CardContent>
           </Card>
         </div>
