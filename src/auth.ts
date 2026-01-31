@@ -6,25 +6,30 @@ import EmailProvider from "next-auth/providers/email";
 
 import { prisma } from "@/lib/db";
 
-const enableDevLogin =
-  process.env.NODE_ENV !== "production" &&
-  process.env.DEV_LOGIN_ENABLED === "true";
+const enableDevLogin = process.env.DEV_LOGIN_ENABLED === "true";
+const enableEmailProvider = Boolean(
+  process.env.EMAIL_SERVER_HOST && process.env.EMAIL_FROM
+);
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
   providers: [
-    EmailProvider({
-      server: {
-        host: process.env.EMAIL_SERVER_HOST,
-        port: Number(process.env.EMAIL_SERVER_PORT ?? 587),
-        auth: {
-          user: process.env.EMAIL_SERVER_USER,
-          pass: process.env.EMAIL_SERVER_PASSWORD,
-        },
-      },
-      from: process.env.EMAIL_FROM,
-    }),
+    ...(enableEmailProvider
+      ? [
+          EmailProvider({
+            server: {
+              host: process.env.EMAIL_SERVER_HOST,
+              port: Number(process.env.EMAIL_SERVER_PORT ?? 587),
+              auth: {
+                user: process.env.EMAIL_SERVER_USER,
+                pass: process.env.EMAIL_SERVER_PASSWORD,
+              },
+            },
+            from: process.env.EMAIL_FROM,
+          }),
+        ]
+      : []),
     ...(enableDevLogin
       ? [
           CredentialsProvider({
