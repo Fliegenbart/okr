@@ -46,6 +46,7 @@ export function ObjectiveCard({
   insights,
 }: ObjectiveCardProps) {
   const [showCelebration, setShowCelebration] = useState(false);
+  const [showAllKeyResults, setShowAllKeyResults] = useState(false);
   const celebrationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null
   );
@@ -94,6 +95,10 @@ export function ObjectiveCard({
     applyOptimistic({ id, value });
   };
 
+  const visibleKeyResults = showAllKeyResults
+    ? optimisticKeyResults
+    : optimisticKeyResults.slice(0, 2);
+
   return (
     <Card className="relative rounded-2xl border-border shadow-sm">
       <CelebrationOverlay show={showCelebration} />
@@ -124,17 +129,37 @@ export function ObjectiveCard({
             <div className="inline-flex items-center rounded-full bg-secondary px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
               Fortschritt {progress}%
             </div>
-            <div className="flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.2em] text-primary">
-              <Link href={`/dashboard/objectives/${objectiveId}`}>
-                Details
-              </Link>
-              <Link href={`/dashboard/objectives/${objectiveId}/edit`}>
-                KR anlegen
-              </Link>
-              <Link href={`/dashboard/objectives/${objectiveId}/edit`}>
-                Bearbeiten
-              </Link>
-            </div>
+            <details className="group relative">
+              <summary className="list-none rounded-full border border-border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-primary transition hover:bg-muted">
+                Aktionen
+              </summary>
+              <div className="absolute right-0 z-10 mt-2 min-w-[180px] rounded-2xl border border-border bg-background p-2 shadow-lg">
+                <Link
+                  href={`/dashboard/objectives/${objectiveId}`}
+                  className="flex items-center rounded-xl px-3 py-2 text-xs font-medium text-foreground transition hover:bg-muted"
+                >
+                  Details ansehen
+                </Link>
+                <Link
+                  href={`/dashboard/objectives/${objectiveId}/edit`}
+                  className="flex items-center rounded-xl px-3 py-2 text-xs font-medium text-foreground transition hover:bg-muted"
+                >
+                  KR anlegen
+                </Link>
+                <Link
+                  href={`/dashboard/objectives/${objectiveId}/edit`}
+                  className="flex items-center rounded-xl px-3 py-2 text-xs font-medium text-foreground transition hover:bg-muted"
+                >
+                  Objective bearbeiten
+                </Link>
+                <Link
+                  href={`/dashboard/thinking-partner?objectiveId=${objectiveId}`}
+                  className="flex items-center rounded-xl px-3 py-2 text-xs font-medium text-foreground transition hover:bg-muted"
+                >
+                  Thinking Partner
+                </Link>
+              </div>
+            </details>
           </div>
         </div>
 
@@ -172,7 +197,7 @@ export function ObjectiveCard({
             <span>{optimisticKeyResults.length} KRs</span>
           </div>
           <div className="divide-y divide-border rounded-2xl border border-border bg-background">
-            {optimisticKeyResults.map((keyResult) => {
+            {visibleKeyResults.map((keyResult) => {
               const progressValue = keyResult.targetValue
                 ? Math.min(
                     Math.round(
@@ -231,6 +256,17 @@ export function ObjectiveCard({
               );
             })}
           </div>
+          {optimisticKeyResults.length > 2 ? (
+            <button
+              type="button"
+              onClick={() => setShowAllKeyResults((prev) => !prev)}
+              className="text-xs font-semibold uppercase tracking-[0.2em] text-primary"
+            >
+              {showAllKeyResults
+                ? "Weniger anzeigen"
+                : `Alle ${optimisticKeyResults.length} Key Results anzeigen`}
+            </button>
+          ) : null}
         </div>
       </CardContent>
     </Card>
