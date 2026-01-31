@@ -251,18 +251,13 @@ export default async function DashboardPage({
           </Card>
 
           <Card className="rounded-2xl border-border shadow-sm">
-            <CardContent className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center sm:justify-between">
-              <div className="min-w-0 flex-1 space-y-2">
-                <p className="text-sm uppercase tracking-[0.2em] text-primary">
-                  Durchschnittlicher Fortschritt
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Mittelwert ueber alle Objectives im gewaehlten Quartal.
-                </p>
-                <p className="text-3xl font-semibold text-foreground">
-                  {averageProgress}%
-                </p>
-              </div>
+            <CardContent className="flex flex-col items-start gap-4 p-6">
+              <p className="text-sm uppercase tracking-[0.2em] text-primary">
+                Durchschnittlicher Fortschritt
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Mittelwert ueber alle Objectives im gewaehlten Quartal.
+              </p>
               <ProgressDonut
                 value={averageProgress}
                 size={120}
@@ -270,8 +265,10 @@ export default async function DashboardPage({
                 showValue={false}
                 showLabel={false}
                 progressClassName="text-secondary"
-                className="self-center sm:self-auto"
               />
+              <p className="text-3xl font-semibold text-foreground">
+                {averageProgress}%
+              </p>
             </CardContent>
           </Card>
         </div>
