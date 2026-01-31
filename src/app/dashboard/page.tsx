@@ -4,6 +4,7 @@ import { getAuthSession } from "@/auth";
 import { InvitePartnerCard } from "@/components/dashboard/invite-partner-card";
 import { OnboardingCard } from "@/components/dashboard/onboarding-card";
 import { ObjectiveCard } from "@/components/dashboard/objective-card";
+import { ProgressDonut } from "@/components/dashboard/progress-donut";
 import { QuarterFilter } from "@/components/dashboard/quarter-filter";
 import { VisionHeader } from "@/components/dashboard/vision-header";
 import { Card, CardContent } from "@/components/ui/card";
@@ -227,16 +228,16 @@ export default async function DashboardPage({
           </Card>
 
           <Card className="rounded-2xl border-border shadow-sm">
-            <CardContent className="space-y-3 p-6">
-              <p className="text-sm uppercase tracking-[0.2em] text-primary">
-                Durchschnittlicher Fortschritt
-              </p>
-              <p className="text-3xl font-semibold text-foreground">
-                {averageProgress}%
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Mittelwert ueber alle Objectives im gewaehlten Quartal.
-              </p>
+            <CardContent className="flex items-center justify-between gap-4 p-6">
+              <div className="space-y-2">
+                <p className="text-sm uppercase tracking-[0.2em] text-primary">
+                  Durchschnittlicher Fortschritt
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Mittelwert ueber alle Objectives im gewaehlten Quartal.
+                </p>
+              </div>
+              <ProgressDonut value={averageProgress} label="Quartal" />
             </CardContent>
           </Card>
         </div>

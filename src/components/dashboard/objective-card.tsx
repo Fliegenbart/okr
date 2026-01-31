@@ -2,10 +2,24 @@
 
 import { useOptimistic, useRef, useState } from "react";
 import Link from "next/link";
+import {
+  Activity,
+  Compass,
+  Dumbbell,
+  HeartPulse,
+  Home,
+  Map,
+  PiggyBank,
+  Shield,
+  Sparkles,
+  Target,
+  ChevronDown,
+} from "lucide-react";
 import { motion } from "framer-motion";
 
 import { CelebrationOverlay } from "@/components/dashboard/celebration-overlay";
 import { KeyResultQuickUpdateDialog } from "@/components/dashboard/key-result-quick-update-dialog";
+import { ProgressDonut } from "@/components/dashboard/progress-donut";
 import { Card, CardContent } from "@/components/ui/card";
 import { useObjectiveProgress } from "@/hooks/use-objective-progress";
 import { calculateProgress } from "@/lib/progress";
@@ -36,6 +50,56 @@ type ObjectiveCardProps = {
 };
 
 type OptimisticUpdate = { id: string; value: number };
+
+const iconMatchers: Array<{
+  keywords: string[];
+  render: (className?: string) => React.ReactNode;
+}> = [
+  {
+    keywords: ["gesund", "fitness", "sport", "beweg", "wasser"],
+    render: (className) => <HeartPulse className={className} />,
+  },
+  {
+    keywords: ["abenteuer", "reise", "ort", "trip", "entdecken"],
+    render: (className) => <Compass className={className} />,
+  },
+  {
+    keywords: ["haushalt", "ordnung", "home", "alltag"],
+    render: (className) => <Home className={className} />,
+  },
+  {
+    keywords: ["nahe", "intim", "liebe", "verbund", "beziehung"],
+    render: (className) => <Sparkles className={className} />,
+  },
+  {
+    keywords: ["konflikt", "repair", "streit", "sicherheit"],
+    render: (className) => <Shield className={className} />,
+  },
+  {
+    keywords: ["finanz", "geld", "budget", "spar"],
+    render: (className) => <PiggyBank className={className} />,
+  },
+  {
+    keywords: ["zeit", "kalender", "planung", "balance"],
+    render: (className) => <Activity className={className} />,
+  },
+  {
+    keywords: ["orte", "reisen", "urlaub", "erlebnis"],
+    render: (className) => <Map className={className} />,
+  },
+  {
+    keywords: ["streak", "serie", "routine"],
+    render: (className) => <Dumbbell className={className} />,
+  },
+];
+
+function getObjectiveIconNode(title: string, className?: string) {
+  const normalized = title.toLowerCase();
+  const matched = iconMatchers.find((matcher) =>
+    matcher.keywords.some((keyword) => normalized.includes(keyword))
+  );
+  return matched?.render(className) ?? <Target className={className} />;
+}
 
 export function ObjectiveCard({
   objectiveId,
@@ -98,37 +162,46 @@ export function ObjectiveCard({
   const visibleKeyResults = showAllKeyResults
     ? optimisticKeyResults
     : optimisticKeyResults.slice(0, 2);
+  const objectiveIcon = getObjectiveIconNode(title, "h-5 w-5");
 
   return (
     <Card className="relative rounded-2xl border-border shadow-sm">
       <CelebrationOverlay show={showCelebration} />
       <CardContent className="space-y-6 p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="space-y-2">
-            <Link
-              href={`/dashboard/objectives/${objectiveId}`}
-              className="text-xl font-semibold text-foreground hover:underline"
-            >
-              {title}
-            </Link>
-            {description ? (
-              <p className="text-sm text-muted-foreground">{description}</p>
-            ) : null}
-            {nextAction ? (
-              <div className="rounded-2xl border border-white/60 bg-white/60 px-4 py-3 backdrop-blur-sm">
-                <p className="text-xs uppercase tracking-[0.2em] text-primary">
-                  Naechste Aktion
-                </p>
-                <p className="mt-1 text-sm font-medium text-foreground">
-                  {nextAction}
-                </p>
-              </div>
-            ) : null}
+          <div className="flex gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/60 bg-white/70 text-primary shadow-sm backdrop-blur">
+              {objectiveIcon}
+            </div>
+            <div className="space-y-2">
+              <Link
+                href={`/dashboard/objectives/${objectiveId}`}
+                className="text-xl font-semibold text-foreground hover:underline"
+              >
+                {title}
+              </Link>
+              {description ? (
+                <p className="text-sm text-muted-foreground">{description}</p>
+              ) : null}
+              {nextAction ? (
+                <div className="rounded-2xl border border-white/60 bg-white/60 px-4 py-3 backdrop-blur-sm">
+                  <p className="text-xs uppercase tracking-[0.2em] text-primary">
+                    Naechste Aktion
+                  </p>
+                  <p className="mt-1 text-sm font-medium text-foreground">
+                    {nextAction}
+                  </p>
+                </div>
+              ) : null}
+            </div>
           </div>
           <div className="flex flex-col items-start gap-3 lg:items-end">
-            <div className="inline-flex items-center rounded-full bg-secondary px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-              Fortschritt {progress}%
-            </div>
+            <ProgressDonut
+              value={progress}
+              size={64}
+              strokeWidth={7}
+              showLabel={false}
+            />
             <details className="group relative">
               <summary className="list-none rounded-full border border-white/60 bg-white/60 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-primary transition hover:bg-white/80">
                 Aktionen
@@ -260,11 +333,18 @@ export function ObjectiveCard({
             <button
               type="button"
               onClick={() => setShowAllKeyResults((prev) => !prev)}
-              className="text-xs font-semibold uppercase tracking-[0.2em] text-primary"
+              className="flex items-center justify-center text-primary transition hover:opacity-70"
             >
-              {showAllKeyResults
-                ? "Weniger anzeigen"
-                : `Alle ${optimisticKeyResults.length} Key Results anzeigen`}
+              <ChevronDown
+                className={`h-5 w-5 transition-transform ${
+                  showAllKeyResults ? "rotate-180" : ""
+                }`}
+              />
+              <span className="sr-only">
+                {showAllKeyResults
+                  ? "Key Results einklappen"
+                  : "Key Results ausklappen"}
+              </span>
             </button>
           ) : null}
         </div>
