@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 export type KeyResultQuickUpdateDialogProps = {
   keyResultId: string;
@@ -25,6 +26,8 @@ export type KeyResultQuickUpdateDialogProps = {
   currentValue: number;
   unit?: string | null;
   onOptimisticUpdate?: (value: number) => void;
+  buttonSize?: "default" | "sm";
+  buttonClassName?: string;
 };
 
 export function KeyResultQuickUpdateDialog({
@@ -33,6 +36,8 @@ export function KeyResultQuickUpdateDialog({
   currentValue,
   unit,
   onOptimisticUpdate,
+  buttonSize = "default",
+  buttonClassName,
 }: KeyResultQuickUpdateDialogProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -72,7 +77,12 @@ export function KeyResultQuickUpdateDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button type="button" variant="outline" className="rounded-2xl">
+        <Button
+          type="button"
+          variant="outline"
+          size={buttonSize}
+          className={cn("rounded-2xl", buttonClassName)}
+        >
           Aktualisieren
         </Button>
       </DialogTrigger>

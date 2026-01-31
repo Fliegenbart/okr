@@ -126,3 +126,30 @@
     font-family: var(--font-source-sans);
   }
 }
+
+@keyframes bubbleFloat {
+  0%,
+  84%,
+  100% {
+    transform: translateY(0);
+  }
+  88% {
+    transform: translateY(-6px);
+  }
+  92% {
+    transform: translateY(0);
+  }
+  95% {
+    transform: translateY(-3px);
+  }
+  98% {
+    transform: translateY(0);
+  }
+}
+
+@layer utilities {
+  .animate-bubble-float {
+    animation: bubbleFloat 6.8s ease-in-out infinite;
+    will-change: transform;
+  }
+}

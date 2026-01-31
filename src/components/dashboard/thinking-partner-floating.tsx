@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 
 export function ThinkingPartnerFloating() {
   const pathname = usePathname();
@@ -33,15 +34,21 @@ export function ThinkingPartnerFloating() {
         type="button"
         aria-label="Thinking Partner oeffnen"
         onClick={() => setOpen(true)}
-        className="group fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full border border-primary/20 bg-secondary text-primary shadow-lg transition-colors hover:bg-primary hover:text-secondary"
+        className={cn(
+          "group fixed bottom-6 right-6 z-40 flex h-16 w-16 items-center justify-center rounded-full border border-primary/20 bg-secondary p-3 text-primary shadow-lg transition-colors hover:bg-primary hover:text-secondary",
+          !open && "motion-safe:animate-bubble-float"
+        )}
       >
-        <span className="pointer-events-none absolute -bottom-1 right-4 h-3 w-3 rotate-45 bg-secondary transition-colors group-hover:bg-primary" />
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -bottom-1 right-5 h-3 w-3 rotate-45 bg-secondary transition-colors group-hover:bg-primary"
+        />
         <Image
           src="/logo.png"
           alt="OKR fuer Paare"
-          width={44}
-          height={24}
-          className="h-6 w-auto"
+          width={52}
+          height={30}
+          className="h-7 w-auto"
         />
       </button>
 

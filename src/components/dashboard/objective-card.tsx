@@ -97,22 +97,34 @@ export function ObjectiveCard({
   return (
     <Card className="relative rounded-2xl border-border shadow-sm">
       <CelebrationOverlay show={showCelebration} />
-      <CardContent className="space-y-5 p-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
+      <CardContent className="space-y-6 p-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="space-y-2">
             <Link
               href={`/dashboard/objectives/${objectiveId}`}
-              className="text-lg font-semibold text-foreground hover:underline"
+              className="text-xl font-semibold text-foreground hover:underline"
             >
               {title}
             </Link>
             {description ? (
               <p className="text-sm text-muted-foreground">{description}</p>
             ) : null}
+            {nextAction ? (
+              <div className="rounded-2xl border border-border bg-background px-4 py-3">
+                <p className="text-xs uppercase tracking-[0.2em] text-primary">
+                  Naechste Aktion
+                </p>
+                <p className="mt-1 text-sm font-medium text-foreground">
+                  {nextAction}
+                </p>
+              </div>
+            ) : null}
           </div>
-          <div className="flex flex-col items-end gap-2 text-sm font-medium text-foreground">
-            <span>{progress}%</span>
-            <div className="flex items-center gap-3 text-xs uppercase tracking-[0.2em] text-primary">
+          <div className="flex flex-col items-start gap-3 lg:items-end">
+            <div className="inline-flex items-center rounded-full bg-secondary px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+              Fortschritt {progress}%
+            </div>
+            <div className="flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.2em] text-primary">
               <Link href={`/dashboard/objectives/${objectiveId}`}>
                 Details
               </Link>
@@ -134,25 +146,14 @@ export function ObjectiveCard({
           />
         </div>
 
-        {nextAction ? (
-          <div className="rounded-2xl border border-border bg-background px-4 py-3">
-            <p className="text-xs uppercase tracking-[0.2em] text-primary">
-              Naechste Aktion
-            </p>
-            <p className="mt-1 text-sm font-medium text-foreground">
-              {nextAction}
-            </p>
-          </div>
-        ) : null}
-
-        <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-          <span>
+        <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+          <span className="rounded-full bg-muted px-3 py-1">
             Letztes Update:{" "}
             {insights.lastUpdateAt
               ? dateFormatter.format(new Date(insights.lastUpdateAt))
               : "—"}
           </span>
-          <span>
+          <span className="rounded-full bg-muted px-3 py-1">
             Trend:{" "}
             {insights.trend === "up"
               ? `↑ +${insights.updatesLast7 - insights.updatesPrev7}`
@@ -160,39 +161,57 @@ export function ObjectiveCard({
                 ? `↓ -${insights.updatesPrev7 - insights.updatesLast7}`
                 : "→ 0"}
           </span>
-          <span>Streak: {insights.streakDays} Tage</span>
+          <span className="rounded-full bg-muted px-3 py-1">
+            Streak: {insights.streakDays} Tage
+          </span>
         </div>
 
-        <div className="space-y-4">
-          {optimisticKeyResults.map((keyResult) => {
-            const progressValue = keyResult.targetValue
-              ? Math.min(
-                  Math.round(
-                    (keyResult.currentValue / keyResult.targetValue) * 100
-                  ),
-                  100
-                )
-              : 0;
+        <div className="space-y-3">
+          <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-muted-foreground">
+            <span>Key Results</span>
+            <span>{optimisticKeyResults.length} KRs</span>
+          </div>
+          <div className="divide-y divide-border rounded-2xl border border-border bg-background">
+            {optimisticKeyResults.map((keyResult) => {
+              const progressValue = keyResult.targetValue
+                ? Math.min(
+                    Math.round(
+                      (keyResult.currentValue / keyResult.targetValue) * 100
+                    ),
+                    100
+                  )
+                : 0;
 
-            return (
-              <div
-                key={keyResult.id}
-                className="rounded-2xl border border-border bg-card p-4 shadow-sm"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="font-medium text-foreground">
-                      {keyResult.title}
-                    </p>
+              return (
+                <div
+                  key={keyResult.id}
+                  className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="flex-1 space-y-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-medium text-foreground">
+                        {keyResult.title}
+                      </p>
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
+                        {progressValue}%
+                      </span>
+                    </div>
                     <p className="text-xs text-muted-foreground">
                       {keyResult.currentValue} / {keyResult.targetValue}
                       {keyResult.unit ? ` ${keyResult.unit}` : ""}
                     </p>
+                    <div className="h-1.5 w-full rounded-full bg-border">
+                      <motion.div
+                        className="h-full rounded-full bg-primary"
+                        animate={{ width: `${progressValue}%` }}
+                        transition={{ type: "spring", stiffness: 140, damping: 18 }}
+                      />
+                    </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <Link
                       href={`/dashboard/key-results/${keyResult.id}`}
-                      className="text-xs font-semibold uppercase tracking-[0.2em] text-primary"
+                      className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary"
                     >
                       Details
                     </Link>
@@ -201,24 +220,17 @@ export function ObjectiveCard({
                       title={keyResult.title}
                       currentValue={keyResult.currentValue}
                       unit={keyResult.unit}
+                      buttonSize="sm"
+                      buttonClassName="text-xs"
                       onOptimisticUpdate={(value) =>
                         handleOptimisticUpdate(keyResult.id, value)
                       }
                     />
                   </div>
                 </div>
-
-                <div className="mt-3 h-2 w-full rounded-full bg-border">
-                  <motion.div
-                    className="h-full rounded-full bg-primary"
-                    animate={{ width: `${progressValue}%` }}
-                    transition={{ type: "spring", stiffness: 140, damping: 18 }}
-                  />
-                </div>
-
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </CardContent>
     </Card>
