@@ -36,6 +36,7 @@ export function PowerMoveCard({
   hasObjectives,
 }: PowerMoveCardProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [reply, setReply] = useState<string | null>(null);
   const [structured, setStructured] = useState<StructuredAnswer | null>(null);
   const [actions, setActions] = useState<Action[]>([]);
   const [sources, setSources] = useState<Source[]>([]);
@@ -70,10 +71,12 @@ export function PowerMoveCard({
       const nextSources = Array.isArray(data?.sources)
         ? (data.sources as Source[])
         : [];
+      const nextReply = typeof data?.reply === "string" ? data.reply : null;
 
       setStructured(nextStructured);
       setActions(nextActions);
       setSources(nextSources);
+      setReply(nextReply);
 
       if (!nextStructured) {
         toast.message("Powermove geladen");
@@ -229,7 +232,13 @@ export function PowerMoveCard({
           </div>
         ) : null}
 
-        {hasObjectives && !structured ? (
+        {hasObjectives && !structured && reply ? (
+          <div className="rounded-2xl border border-white/60 bg-white/60 p-4 text-sm text-muted-foreground backdrop-blur-sm">
+            {reply}
+          </div>
+        ) : null}
+
+        {hasObjectives && !structured && !reply ? (
           <div className="rounded-2xl border border-white/60 bg-white/60 p-4 text-sm text-muted-foreground backdrop-blur-sm">
             Ein Powermove ist der kleinste Schritt mit dem groessten Hebel.
             Klick auf <span className="font-medium">Powermove finden</span>.
@@ -243,4 +252,3 @@ export function PowerMoveCard({
     </Card>
   );
 }
-
