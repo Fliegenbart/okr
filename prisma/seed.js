@@ -74,6 +74,17 @@ async function main() {
     },
   });
 
+  await prisma.betaAccessInvite.upsert({
+    where: { email: "beta1@example.com" },
+    update: {
+      note: "Testzugang Person 1",
+    },
+    create: {
+      email: "beta1@example.com",
+      note: "Testzugang Person 1",
+    },
+  });
+
   await prisma.user.updateMany({
     where: { id: { in: [demoUser1.id, demoUser2.id] } },
     data: { coupleId: couple.id },

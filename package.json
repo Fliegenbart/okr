@@ -10,6 +10,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "db:seed": "node prisma/seed.js",
+    "beta:invite": "node scripts/create-beta-invite.js",
     "transcripts:import": "node scripts/import-transcripts.js",
     "test:e2e": "playwright test"
   },

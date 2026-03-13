@@ -3,16 +3,20 @@ import { headers } from "next/headers";
 
 import { getAuthSession } from "@/auth";
 import { InvitePartnerCard } from "@/components/dashboard/invite-partner-card";
+import { ObjectiveProgressMiniChart } from "@/components/dashboard/objective-progress-mini-chart";
 import { OnboardingCard } from "@/components/dashboard/onboarding-card";
 import { ObjectiveCard } from "@/components/dashboard/objective-card";
 import { PowerMoveCard } from "@/components/dashboard/power-move-card";
 import { ProgressDonut } from "@/components/dashboard/progress-donut";
+import { QuarterProgressChart } from "@/components/dashboard/quarter-progress-chart";
 import { QuarterFilter } from "@/components/dashboard/quarter-filter";
 import { VisionHeader } from "@/components/dashboard/vision-header";
 import { Card, CardContent } from "@/components/ui/card";
+import { canEmailCreateCouple } from "@/lib/beta-access";
 import { prisma } from "@/lib/db";
 import { getObjectiveInsights } from "@/lib/insights";
 import { calculateProgress } from "@/lib/progress";
+import { buildQuarterProgressSnapshot } from "@/lib/quarter-progress";
 
 const dateFormatter = new Intl.DateTimeFormat("de-DE", { dateStyle: "medium" });
 
@@ -49,7 +53,7 @@ export default async function DashboardPage({
               Deine Sitzung ist abgelaufen oder ungültig.
             </p>
             <Link
-              href="/api/auth/signin?callbackUrl=/dashboard"
+              href="/auth/signin?callbackUrl=/dashboard"
               className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
             >
               Zur Anmeldung
@@ -75,7 +79,7 @@ export default async function DashboardPage({
               Deine Sitzung ist abgelaufen oder ungültig.
             </p>
             <Link
-              href="/api/auth/signin?callbackUrl=/dashboard"
+              href="/auth/signin?callbackUrl=/dashboard"
               className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
             >
               Zur Anmeldung
@@ -113,8 +117,12 @@ export default async function DashboardPage({
                 where: { archivedAt: null },
                 include: {
                   updates: {
-                    select: { createdAt: true },
-                    orderBy: { createdAt: "desc" },
+                    select: {
+                      value: true,
+                      previousValue: true,
+                      createdAt: true,
+                    },
+                    orderBy: { createdAt: "asc" },
                   },
                 },
               },
@@ -130,11 +138,16 @@ export default async function DashboardPage({
   });
 
   if (!user?.couple) {
+    const canCreateCouple = session.user.email
+      ? await canEmailCreateCouple(session.user.email)
+      : false;
+
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-6 py-12">
         <OnboardingCard
           userEmail={session.user.email}
           initialInviteToken={resolvedSearchParams?.invite}
+          canCreateCouple={canCreateCouple}
         />
       </div>
     );
@@ -161,6 +174,30 @@ export default async function DashboardPage({
       : couple.quarters.find((quarter) => quarter.id === selectedQuarterId) ??
         activeQuarter ??
         null;
+  const quarterProgressObjectives = selectedQuarter
+    ? couple.objectives.filter((objective) => objective.quarterId === selectedQuarter.id)
+    : [];
+  const quarterProgressSnapshot = selectedQuarter
+    ? buildQuarterProgressSnapshot({
+        quarter: selectedQuarter,
+        objectives: quarterProgressObjectives.map((objective) => ({
+          id: objective.id,
+          title: objective.title,
+          createdAt: objective.createdAt,
+          keyResults: objective.keyResults.map((keyResult) => ({
+            id: keyResult.id,
+            currentValue: keyResult.currentValue,
+            targetValue: keyResult.targetValue,
+            updates: keyResult.updates.map((update) => ({
+              value: update.value,
+              previousValue: update.previousValue,
+              createdAt: update.createdAt,
+            })),
+          })),
+        })),
+        now,
+      })
+    : null;
 
   const objectiveProgressValues = filteredObjectives.map((objective) =>
     calculateProgress(
@@ -271,6 +308,137 @@ export default async function DashboardPage({
           </Card>
         </div>
 
+        <section
+          className="mt-10 space-y-4"
+          data-testid="quarter-progress-section"
+        >
+          <div className="space-y-2">
+            <h2 className="text-xl font-semibold text-foreground">
+              Quartalsverlauf
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Verlauf der Objectives von der Anlage bis heute, mit Soll-Linie bis
+              zum Quartalsende.
+            </p>
+          </div>
+
+          {quarterProgressSnapshot ? (
+            <>
+              <div className="grid gap-6 lg:grid-cols-[1.35fr,0.65fr]">
+                <Card className="rounded-2xl border-border shadow-sm">
+                  <CardContent className="space-y-5 p-6">
+                    <div className="space-y-1">
+                      <p className="text-sm uppercase tracking-[0.2em] text-primary">
+                        Gesamtverlauf Quartal
+                      </p>
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                        <span className="font-semibold text-foreground">
+                          {quarterProgressSnapshot.quarterTitle}
+                        </span>
+                        <span className="text-muted-foreground">
+                          {dateFormatter.format(
+                            new Date(quarterProgressSnapshot.quarterStartsAt)
+                          )}{" "}
+                          –{" "}
+                          {dateFormatter.format(
+                            new Date(quarterProgressSnapshot.quarterEndsAt)
+                          )}
+                        </span>
+                      </div>
+                    </div>
+
+                    <QuarterProgressChart
+                      data={quarterProgressSnapshot.aggregateSeries}
+                      todayKey={quarterProgressSnapshot.todayKey}
+                    />
+                  </CardContent>
+                </Card>
+
+                <Card className="rounded-2xl border-border shadow-sm">
+                  <CardContent className="space-y-4 p-6">
+                    <p className="text-sm uppercase tracking-[0.2em] text-primary">
+                      Quartals-Health
+                    </p>
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+                      <div className="rounded-2xl border border-border bg-card p-4">
+                        <p className="text-xs uppercase tracking-[0.2em] text-primary">
+                          Durchschnitt
+                        </p>
+                        <p className="mt-2 text-2xl font-semibold text-foreground">
+                          {quarterProgressSnapshot.averageProgress}%
+                        </p>
+                      </div>
+                      <div className="rounded-2xl border border-border bg-card p-4">
+                        <p className="text-xs uppercase tracking-[0.2em] text-primary">
+                          Objectives
+                        </p>
+                        <p className="mt-2 text-2xl font-semibold text-foreground">
+                          {quarterProgressSnapshot.totalObjectives}
+                        </p>
+                      </div>
+                      <div className="rounded-2xl border border-border bg-card p-4">
+                        <p className="text-xs uppercase tracking-[0.2em] text-primary">
+                          Ohne Update
+                        </p>
+                        <p className="mt-2 text-2xl font-semibold text-foreground">
+                          {quarterProgressSnapshot.objectivesWithoutUpdates}
+                        </p>
+                      </div>
+                      <div className="rounded-2xl border border-border bg-card p-4">
+                        <p className="text-xs uppercase tracking-[0.2em] text-primary">
+                          Tage bis Ende
+                        </p>
+                        <p className="mt-2 text-2xl font-semibold text-foreground">
+                          {quarterProgressSnapshot.daysRemaining}
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Tag {quarterProgressSnapshot.daysElapsed} im Quartal
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {quarterProgressSnapshot.objectiveSeries.length ? (
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                  {quarterProgressSnapshot.objectiveSeries.map((objective) => (
+                    <ObjectiveProgressMiniChart
+                      key={objective.id}
+                      objective={objective}
+                      href={`/dashboard/objectives/${objective.id}`}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <Card className="rounded-2xl border-border shadow-sm">
+                  <CardContent className="space-y-3 p-6">
+                    <p className="text-lg font-semibold text-foreground">
+                      Noch keine Objectives in diesem Quartal
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Sobald ihr in {quarterProgressSnapshot.quarterTitle} das erste
+                      Objective anlegt, erscheint hier der Verlauf.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </>
+          ) : (
+            <Card className="rounded-2xl border-border shadow-sm">
+              <CardContent className="space-y-3 p-6">
+                <p className="text-lg font-semibold text-foreground">
+                  Noch kein Quartal vorhanden
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Lege zuerst ein Quartal an, damit wir den Verlauf eurer OKRs
+                  anzeigen können.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </section>
+
         <section className="mt-10 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold text-foreground">
@@ -325,6 +493,7 @@ export default async function DashboardPage({
             </Card>
           )}
         </section>
+
       </div>
     </div>
   );

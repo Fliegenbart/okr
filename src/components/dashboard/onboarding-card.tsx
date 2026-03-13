@@ -25,11 +25,13 @@ type Step = "choose" | "create" | "join";
 type OnboardingCardProps = {
   userEmail?: string | null;
   initialInviteToken?: string | null;
+  canCreateCouple?: boolean;
 };
 
 export function OnboardingCard({
   userEmail,
   initialInviteToken,
+  canCreateCouple = true,
 }: OnboardingCardProps) {
   const router = useRouter();
   const normalizedInviteToken = initialInviteToken?.trim() ?? "";
@@ -125,12 +127,19 @@ export function OnboardingCard({
       <CardContent className="pt-6">
         {step === "choose" ? (
           <div className="space-y-4">
-            <Button
-              className="w-full rounded-2xl"
-              onClick={() => handleStepChange("create")}
-            >
-              Couple gründen
-            </Button>
+            {canCreateCouple ? (
+              <Button
+                className="w-full rounded-2xl"
+                onClick={() => handleStepChange("create")}
+              >
+                Couple gründen
+              </Button>
+            ) : (
+              <div className="rounded-2xl bg-muted px-4 py-4 text-sm text-muted-foreground">
+                Diese Beta ist aktuell nur auf Einladung verfügbar. Melde dich mit
+                der eingeladenen E-Mail-Adresse an oder nutze euren Partner-Link.
+              </div>
+            )}
             <Button
               className="w-full rounded-2xl"
               variant="outline"
@@ -141,7 +150,7 @@ export function OnboardingCard({
           </div>
         ) : null}
 
-        {step === "create" ? (
+        {step === "create" && canCreateCouple ? (
           <form className="space-y-5" onSubmit={handleCreate}>
             <div className="space-y-2">
               <Label htmlFor="couple-name">Couple-Name</Label>

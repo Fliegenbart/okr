@@ -47,9 +47,31 @@ DEV_LOGIN_ENABLED="true"
 ```
 Then you can sign in via the Developer Login form using any email.
 
+## Closed Beta Auth MVP
+
+For a production-style MVP with 10-20 couples:
+
+```bash
+BETA_MODE="closed"
+ALLOW_SELF_SERVE_SIGNUP="false"
+DEV_LOGIN_ENABLED="false"
+```
+
+Use a real SMTP-capable provider for `EMAIL_*`, set `NEXTAUTH_URL` and `NEXT_PUBLIC_APP_URL` to your production domain, and create access for Person 1 manually:
+
+```bash
+npm run beta:invite -- person1@example.com "Couple 01"
+```
+
+Flow:
+- Person 1 signs in via `/auth/signin` using the invited email.
+- Person 1 creates the couple in onboarding.
+- Person 2 joins via the existing couple invite flow.
+
 ## Key Commands
 - `npm run dev` - start the app
 - `npm run db:seed` - seed demo data
+- `npm run beta:invite -- <email>` - whitelist Person 1 for the closed beta
 - `npm run test:e2e` - run Playwright tests
 - `npm run lint` - lint
 - `npm run format` - format with Prettier

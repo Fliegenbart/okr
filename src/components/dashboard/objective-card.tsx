@@ -162,7 +162,6 @@ export function ObjectiveCard({
     ? optimisticKeyResults
     : optimisticKeyResults.slice(0, 1);
   const objectiveIcon = getObjectiveIconNode(title, "h-5 w-5");
-  const labelPosition = Math.min(Math.max(progress, 4), 96);
 
   return (
     <Card className="relative">
