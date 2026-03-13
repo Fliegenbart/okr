@@ -68,6 +68,28 @@ Flow:
 - Person 1 creates the couple in onboarding.
 - Person 2 joins via the existing couple invite flow.
 
+## Vercel Deploy
+
+The app now expects Prisma migrations to be applied during the build. On Vercel, make sure these environment variables exist in the target environment:
+
+- `DATABASE_URL`
+- `NEXTAUTH_SECRET`
+- `NEXTAUTH_URL`
+- `NEXT_PUBLIC_APP_URL`
+
+For closed beta and magic-link emails also set:
+
+- `BETA_MODE`
+- `ALLOW_SELF_SERVE_SIGNUP`
+- `DEV_LOGIN_ENABLED`
+- `EMAIL_SERVER_HOST`
+- `EMAIL_SERVER_PORT`
+- `EMAIL_SERVER_USER`
+- `EMAIL_SERVER_PASSWORD`
+- `EMAIL_FROM`
+
+If the Board page shows a setup error, the production database is still missing the latest Prisma migrations.
+
 ## Key Commands
 - `npm run dev` - start the app
 - `npm run db:seed` - seed demo data
