@@ -110,7 +110,7 @@ export function OnboardingCard({
     <Card className="mx-auto w-full max-w-xl rounded-2xl border-border shadow-sm">
       <CardHeader>
         <CardTitle className="text-2xl text-foreground">
-          Willkommen bei OKR fuer Paare
+          Willkommen bei OKR für Paare
         </CardTitle>
         <CardDescription className="text-muted-foreground">
           Erstellt euer Couple oder tretet mit einem Einladungslink bei.
@@ -129,7 +129,7 @@ export function OnboardingCard({
               className="w-full rounded-2xl"
               onClick={() => handleStepChange("create")}
             >
-              Couple gruenden
+              Couple gründen
             </Button>
             <Button
               className="w-full rounded-2xl"
@@ -197,7 +197,7 @@ export function OnboardingCard({
                 className="rounded-2xl"
                 onClick={() => handleStepChange("choose")}
               >
-                Zurueck
+                Zurück
               </Button>
             </div>
           </form>
@@ -222,7 +222,7 @@ export function OnboardingCard({
             </div>
             {normalizedInviteToken ? (
               <p className="text-xs text-muted-foreground">
-                Einladung aus dem Link uebernommen.
+                Einladung aus dem Link übernommen.
               </p>
             ) : null}
             {joinAction.result.serverError ? (
@@ -249,7 +249,7 @@ export function OnboardingCard({
                 className="rounded-2xl"
                 onClick={() => handleStepChange("choose")}
               >
-                Zurueck
+                Zurück
               </Button>
             </div>
           </form>

@@ -6,7 +6,7 @@ const dateFromInput = z.preprocess(
     if (!value) return value;
     return new Date(`${value}T00:00:00`);
   },
-  z.date({ message: "Bitte gib ein gueltiges Datum an." })
+  z.date({ message: "Bitte gib ein gültiges Datum an." })
 );
 
 const optionalText = z.preprocess(

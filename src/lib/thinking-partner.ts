@@ -130,7 +130,7 @@ export function buildCoupleContext(couple: {
       .join("\n");
 
     const nextAction = objective.nextAction
-      ? `\nNaechste Aktion: ${objective.nextAction}`
+      ? `\nNächste Aktion: ${objective.nextAction}`
       : "";
 
     return `Objective: ${objective.title} (${objective.quarter.title}) - ${progress}%${nextAction}\n${keyResults}`;

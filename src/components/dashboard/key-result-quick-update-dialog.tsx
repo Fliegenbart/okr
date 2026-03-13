@@ -66,7 +66,7 @@ export function KeyResultQuickUpdateDialog({
     const note = typeof rawNote === "string" ? rawNote : "";
 
     if (Number.isNaN(value)) {
-      toast.error("Bitte gib einen gueltigen Wert ein.");
+      toast.error("Bitte gib einen gültigen Wert ein.");
       return;
     }
 

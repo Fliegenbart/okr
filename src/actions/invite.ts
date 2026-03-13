@@ -39,7 +39,7 @@ async function sendInviteEmail(to: string, inviteUrl: string) {
     },
   });
 
-  const subject = "Einladung: OKR fuer Paare";
+  const subject = "Einladung: OKR für Paare";
   const text = `Du wurdest eingeladen, einem Couple beizutreten. \n\nHier ist dein Link: ${inviteUrl}`;
   const html = `<p>Du wurdest eingeladen, einem Couple beizutreten.</p><p><a href="${inviteUrl}">Zum Couple beitreten</a></p>`;
 

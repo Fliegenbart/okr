@@ -55,7 +55,7 @@ export function InviteCodeCard({ inviteCode, appUrl }: InviteCodeCardProps) {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: "OKR fuer Paare",
+          title: "OKR für Paare",
           text: "Komm in unser Couple!",
           url: inviteUrl,
         });

@@ -186,7 +186,7 @@ export function ObjectiveCard({
               {nextAction ? (
                 <div className="rounded-lg bg-primary/5 px-3 py-2">
                   <p className="text-xs font-medium text-primary/70">
-                    Naechste Aktion
+                    Nächste Aktion
                   </p>
                   <p className="mt-0.5 text-sm font-medium text-primary">
                     {nextAction}

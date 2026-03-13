@@ -28,7 +28,7 @@ export default async function JoinPage({
               Kein Einladungscode gefunden
             </p>
             <p className="text-sm text-muted-foreground">
-              Bitte pruefe den Link oder starte von der Startseite aus.
+              Bitte prüfe den Link oder starte von der Startseite aus.
             </p>
             <Link
               href="/"
@@ -59,7 +59,7 @@ export default async function JoinPage({
         <CardContent className="space-y-4 p-8 text-center">
           <Image
             src="/logo.png"
-            alt="OKR fuer Paare"
+            alt="OKR für Paare"
             width={180}
             height={50}
             className="mx-auto h-auto w-36"

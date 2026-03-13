@@ -55,7 +55,7 @@ export function VisionMissionForm({
           id="vision-text"
           value={vision}
           onChange={(event) => setVision(event.target.value)}
-          placeholder="1-3 Saetze: Was wollt ihr gemeinsam leben?"
+          placeholder="1-3 Sätze: Was wollt ihr gemeinsam leben?"
           rows={4}
         />
         {validationErrors?.fieldErrors?.vision?.[0] ? (
@@ -71,7 +71,7 @@ export function VisionMissionForm({
           id="mission-text"
           value={mission}
           onChange={(event) => setMission(event.target.value)}
-          placeholder="1-3 Saetze: Wie wollt ihr das erreichen?"
+          placeholder="1-3 Sätze: Wie wollt ihr das erreichen?"
           rows={4}
         />
         {validationErrors?.fieldErrors?.mission?.[0] ? (

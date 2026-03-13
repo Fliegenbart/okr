@@ -36,7 +36,7 @@ export function ObjectiveDeleteCard({ objectiveId }: ObjectiveDeleteCardProps) {
   return (
     <div className="space-y-3">
       <p className="text-sm text-muted-foreground">
-        Dieses Objective und alle zugehoerigen Key Results werden archiviert.
+        Dieses Objective und alle zugehörigen Key Results werden archiviert.
       </p>
       <Button
         type="button"

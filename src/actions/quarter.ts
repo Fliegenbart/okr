@@ -30,7 +30,7 @@ export const createQuarter = action
     });
 
     if (overlap) {
-      throw new Error("Dieses Quartal ueberschneidet sich mit einem bestehenden.");
+      throw new Error("Dieses Quartal überschneidet sich mit einem bestehenden.");
     }
 
     const title = parsedInput.title?.trim() || getQuarterInfo(startsAt).title;

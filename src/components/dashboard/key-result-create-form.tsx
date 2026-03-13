@@ -28,7 +28,7 @@ export function KeyResultCreateForm({
 
   const createAction = useAction(createKeyResult, {
     onSuccess: () => {
-      toast.success("Key Result hinzugefuegt");
+      toast.success("Key Result hinzugefügt");
       setTitle("");
       setTargetValue("");
       setUnit("");
@@ -95,7 +95,7 @@ export function KeyResultCreateForm({
         className="rounded-2xl"
         disabled={createAction.isPending || disabled}
       >
-        Hinzufuegen
+        Hinzufügen
       </Button>
     </form>
   );

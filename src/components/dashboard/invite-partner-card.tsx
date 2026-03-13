@@ -84,7 +84,7 @@ export function InvitePartnerCard({
     if (navigator.share) {
       try {
         await navigator.share({
-          title: "OKR fuer Paare",
+          title: "OKR für Paare",
           text: "Komm in unser Couple!",
           url: inviteUrl,
         });
@@ -133,7 +133,7 @@ export function InvitePartnerCard({
         <div className="space-y-3">
           <div className="rounded-lg border border-border bg-muted/50 p-4">
             <p className="text-sm text-muted-foreground">
-              Einladung fuer <span className="font-medium">{invite.email}</span>
+              Einladung für <span className="font-medium">{invite.email}</span>
             </p>
             <p className="text-xs text-muted-foreground">
               Gueltig bis {dateFormatter.format(new Date(invite.expiresAt))}

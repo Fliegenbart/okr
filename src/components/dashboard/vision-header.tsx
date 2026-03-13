@@ -14,7 +14,7 @@ export function VisionHeader({ vision, coupleName }: VisionHeaderProps) {
     <header className="space-y-3">
       <Image
         src="/logo.png"
-        alt="OKR fuer Paare"
+        alt="OKR für Paare"
         width={160}
         height={40}
         className="h-auto w-32"

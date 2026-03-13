@@ -9,11 +9,11 @@ test("core flow with seeded data", async ({ page }) => {
   await expect(page.getByText("Aktuelle Objectives")).toBeVisible();
 
   await page
-    .getByRole("link", { name: /Gesundheit: Wir fuehlen uns fit/i })
+    .getByRole("link", { name: /Gesundheit: Wir fühlen uns fit/i })
     .click();
 
   await expect(
-    page.getByRole("heading", { name: /Gesundheit: Wir fuehlen uns fit/i })
+    page.getByRole("heading", { name: /Gesundheit: Wir fühlen uns fit/i })
   ).toBeVisible();
 
   await page.getByRole("link", { name: "Details" }).first().click();
@@ -39,9 +39,9 @@ test("onboarding flow", async ({ page }) => {
   await page.getByPlaceholder("dev@example.com").fill(email);
   await page.getByRole("button", { name: /developer login/i }).click();
 
-  await expect(page.getByText("Willkommen bei OKR fuer Paare")).toBeVisible();
+  await expect(page.getByText("Willkommen bei OKR für Paare")).toBeVisible();
   await expect(
-    page.getByRole("button", { name: /couple gruenden/i })
+    page.getByRole("button", { name: /couple gründen/i })
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: /einladungslink eingeben/i })

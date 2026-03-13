@@ -80,7 +80,7 @@ function buildIcs({
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//OKR fuer Paare//Check-in//DE",
+    "PRODID:-//OKR für Paare//Check-in//DE",
     "CALSCALE:GREGORIAN",
     "BEGIN:VEVENT",
     `UID:${crypto.randomUUID()}`,
@@ -202,7 +202,7 @@ export function CheckInScheduleCard({
 
   const calendarTitle = `Weekly Check-in (${coupleName})`;
   const calendarDetails =
-    "15 Minuten Struktur: Wertschaetzung, was war schwer, KR updaten, eine Sache fuer naechste Woche.";
+    "15 Minuten Struktur: Wertschätzung, was war schwer, KR updaten, eine Sache für nächste Woche.";
 
   const googleUrl = isEnabled
     ? buildGoogleCalendarUrl({
@@ -245,7 +245,7 @@ export function CheckInScheduleCard({
           </p>
           <p className="text-sm text-muted-foreground">
             Tragt euren Check-in als wiederkehrenden Termin ein - das ist die beste
-            Reminder-Logik fuer Smartphone.
+            Reminder-Logik für Smartphone.
           </p>
         </div>
         <label className="flex items-center gap-2 text-sm text-foreground">

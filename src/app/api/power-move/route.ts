@@ -80,7 +80,7 @@ function formatStructuredAsText(answer: ThinkingPartnerResponse) {
     "",
     `Powermove: ${answer.nextStep}`,
     "",
-    "Rueckfragen:",
+    "Rückfragen:",
     ...answer.questions.map((item) => `- ${item}`),
   ];
 
@@ -314,7 +314,7 @@ export async function POST(req: Request) {
         .join("\n");
 
       const nextAction = objective.nextAction
-        ? `\nNaechste Aktion: ${objective.nextAction}`
+        ? `\nNächste Aktion: ${objective.nextAction}`
         : "";
 
       return `Objective: ${objective.title} - ${objective.progress}%${nextAction}\n${krLines}`;
@@ -343,13 +343,13 @@ export async function POST(req: Request) {
   const ritualCandidates = extractMiniRitualCandidates(knowledgeContext);
 
   const systemPrompt = [
-    "Du bist ein Thinking Partner fuer Paare (OKR fuer Paare).",
-    "Ziel: Liefere genau EINEN Powermove, der in den naechsten 7 Tagen den groessten Hebel fuer dieses Quartal hat.",
+    "Du bist ein Thinking Partner für Paare (OKR für Paare).",
+    "Ziel: Liefere genau EINEN Powermove, der in den nächsten 7 Tagen den größten Hebel für dieses Quartal hat.",
     "Powermove = eine konkrete Intervention, die man sofort planen kann (<= 15 Minuten Aufwand, low-friction).",
-    "Nutze die Daten (Progress, stale KRs, Check-in Status) fuer deinen Vorschlag.",
+    "Nutze die Daten (Progress, stale KRs, Check-in Status) für deinen Vorschlag.",
     "Antworte warm, klar, nicht wertend. Kein Therapie-Setting, keine Diagnosen.",
     "WICHTIG: Du MUSST deine Antwort als JSON via Tool-Aufruf liefern (kein Freitext).",
-    "Format: summary (1-3 Saetze) -> 2-4 impulses -> nextStep = Powermove (konkret) -> 1-2 questions.",
+    "Format: summary (1-3 Sätze) -> 2-4 impulses -> nextStep = Powermove (konkret) -> 1-2 questions.",
     ritualCandidates.length
       ? "Wenn sinnvoll: schlage 1 Mini-Ritual vor (kurz), bevorzugt basierend auf den Call-Snippets."
       : "Mini-Ritual optional, wenn es ohne Snippets sinnvoll ist.",
@@ -369,14 +369,14 @@ export async function POST(req: Request) {
     {
       role: "user",
       content:
-        "Was ist unser EIN Powermove (groesster Hebel) fuer dieses Quartal?",
+        "Was ist unser EIN Powermove (größter Hebel) für dieses Quartal?",
     },
   ];
 
   const toolResult = await generateToolCallCompletion(messages, {
     name: "power_move_answer",
     description:
-      "Erzeuge genau eine powermove Empfehlung fuer das Quartal als strukturierte Antwort.",
+      "Erzeuge genau eine Powermove-Empfehlung für das Quartal als strukturierte Antwort.",
     parameters: toolSchema,
   });
 
@@ -432,4 +432,3 @@ export async function POST(req: Request) {
     fallback,
   });
 }
-

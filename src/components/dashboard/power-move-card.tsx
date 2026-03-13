@@ -114,7 +114,7 @@ export function PowerMoveCard({
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-1">
             <p className="text-sm font-semibold text-primary">
-              Powermove fuers Quartal
+              Powermove fürs Quartal
             </p>
             <p className="text-sm text-muted-foreground">
               {quarterTitle ? quarterTitle : "Aktuelles Quartal"}
@@ -134,8 +134,8 @@ export function PowerMoveCard({
 
         {!hasObjectives ? (
           <div className="rounded-lg border border-border bg-muted/50 p-4 text-sm text-muted-foreground">
-            Legt zuerst mindestens ein Objective an, dann kann ich den groessten
-            Hebel fuer euer Quartal finden.
+            Legt zuerst mindestens ein Objective an, dann kann ich den größten
+            Hebel für euer Quartal finden.
             <div className="mt-3">
               <Button asChild size="sm" variant="outline">
                 <Link href="/dashboard/objectives/new">Objective erstellen</Link>
@@ -175,7 +175,7 @@ export function PowerMoveCard({
 
               <div className="rounded-lg border border-border bg-white p-4">
                 <p className="text-xs font-medium text-muted-foreground">
-                  Rueckfragen
+                  Rückfragen
                 </p>
                 <ul className="mt-3 space-y-2 text-sm text-foreground">
                   {structured.questions.map((question) => (
@@ -240,7 +240,7 @@ export function PowerMoveCard({
 
         {hasObjectives && !structured && !reply ? (
           <div className="rounded-lg border border-border bg-muted/50 p-4 text-sm text-muted-foreground">
-            Ein Powermove ist der kleinste Schritt mit dem groessten Hebel.
+            Ein Powermove ist der kleinste Schritt mit dem größten Hebel.
             Klick auf <span className="font-medium">Powermove finden</span>.
           </div>
         ) : null}

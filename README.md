@@ -1,4 +1,4 @@
-# OKR fuer Paare
+# OKR für Paare
 
 Production-ready MVP PWA for couples to track quarterly objectives and key results.
 

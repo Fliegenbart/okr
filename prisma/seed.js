@@ -41,12 +41,12 @@ async function main() {
     update: {
       name: "Demo Couple",
       vision: "Wir wachsen gemeinsam und feiern kleine Schritte.",
-      mission: "Wir planen woechentliche Mini-Check-ins und bleiben dran.",
+      mission: "Wir planen wöchentliche Mini-Check-ins und bleiben dran.",
     },
     create: {
       name: "Demo Couple",
       vision: "Wir wachsen gemeinsam und feiern kleine Schritte.",
-      mission: "Wir planen woechentliche Mini-Check-ins und bleiben dran.",
+      mission: "Wir planen wöchentliche Mini-Check-ins und bleiben dran.",
       inviteCode: "DEMO2026",
     },
   });
@@ -100,7 +100,7 @@ async function main() {
   const objectives = [
     {
       quarterId: quarterCurrent.id,
-      title: "Gesundheit: Wir fuehlen uns fit",
+      title: "Gesundheit: Wir fühlen uns fit",
       description: "Staerke, Energie und gute Routinen im Alltag.",
       keyResults: [
         {
@@ -126,7 +126,7 @@ async function main() {
           updates: makeDates("2026-01-04T09:30:00.000Z", 3, 6).map(
             (date, index) => ({
               value: [1.2, 1.6, 2.0][index],
-              note: ["Mehr Flaschen", "Routine laeuft", "Ziel erreicht"][
+              note: ["Mehr Flaschen", "Routine läuft", "Ziel erreicht"][
                 index
               ],
               createdAt: date,
@@ -260,15 +260,15 @@ async function main() {
               note: [
                 "Erstes Money-Date",
                 "Budget grob geklaert",
-                "Ruecklagen besprochen",
-                "Naechster Fokus definiert",
+                "Rücklagen besprochen",
+                "Nächster Fokus definiert",
               ][index],
               createdAt: date,
             })
           ),
         },
         {
-          title: "1-Seite Budget Uebersicht",
+          title: "1-Seite Budget Übersicht",
           targetValue: 1,
           unit: "Done",
           startValue: 0,
@@ -306,7 +306,7 @@ async function main() {
       nextAction: "Heute 15 Minuten Haushalts-Sync + 3 Aufgaben klar zuordnen.",
       keyResults: [
         {
-          title: "Woechentlicher Haushalts-Sync (15 Min)",
+          title: "Wöchentlicher Haushalts-Sync (15 Min)",
           targetValue: 12,
           unit: "Wochen",
           startValue: 0,

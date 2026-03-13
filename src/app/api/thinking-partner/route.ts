@@ -77,9 +77,9 @@ function formatStructuredAsText(answer: ThinkingPartnerResponse) {
     "Impulse:",
     ...answer.impulses.map((item) => `- ${item}`),
     "",
-    `Naechster Schritt: ${answer.nextStep}`,
+    `Nächster Schritt: ${answer.nextStep}`,
     "",
-    "Rueckfragen:",
+    "Rückfragen:",
     ...answer.questions.map((item) => `- ${item}`),
   ];
 
@@ -160,16 +160,16 @@ export async function POST(req: Request) {
   const ritualCandidates = extractMiniRitualCandidates(knowledgeContext);
 
   const systemPrompt = [
-    "Du bist ein Thinking Partner fuer Paare. Du hilfst, gemeinsame Objectives und Key Results zu erreichen.",
+    "Du bist ein Thinking Partner für Paare. Du hilfst, gemeinsame Objectives und Key Results zu erreichen.",
     "Antworte auf Deutsch, klar, warm, handlungsorientiert. Kein Therapie-Setting, keine Diagnosen.",
     "WICHTIG: Du MUSST deine Antwort als JSON via Tool-Aufruf liefern (kein Freitext).",
-    "Format: Kurzfassung (1-3 Saetze) -> 2-4 Impulse -> 1 naechster Schritt -> 1-2 Rueckfragen.",
-    "Wenn moeglich: schlage 1 Mini-Ritual vor (kurz, niedrigschwellig), bevorzugt basierend auf den Call-Snippets.",
+    "Format: Kurzfassung (1-3 Sätze) -> 2-4 Impulse -> 1 nächster Schritt -> 1-2 Rückfragen.",
+    "Wenn möglich: schlage 1 Mini-Ritual vor (kurz, niedrigschwellig), bevorzugt basierend auf den Call-Snippets.",
     objectiveId
-      ? "Wenn es sinnvoll ist, liefere zusaetzlich objectiveRewrite (neuer Titel + optional Beschreibung) fuer das fokussierte Objective."
+      ? "Wenn es sinnvoll ist, liefere zusätzlich objectiveRewrite (neuer Titel + optional Beschreibung) für das fokussierte Objective."
       : "",
     keyResultId
-      ? "Wenn es sinnvoll ist, liefere zusaetzlich keyResultRewrite (Titel + optional targetValue/unit) fuer das fokussierte Key Result."
+      ? "Wenn es sinnvoll ist, liefere zusätzlich keyResultRewrite (Titel + optional targetValue/unit) für das fokussierte Key Result."
       : "",
   ]
     .filter(Boolean)
@@ -247,7 +247,7 @@ export async function POST(req: Request) {
   }
 
   if (objectiveId) {
-    actions.push({ type: "SAVE_NEXT_ACTION", label: "Naechste Aktion speichern" });
+    actions.push({ type: "SAVE_NEXT_ACTION", label: "Nächste Aktion speichern" });
   }
 
   if (objectiveId && structured?.objectiveRewrite) {

@@ -57,7 +57,7 @@ type Source = {
 };
 
 const starterPrompts = [
-  "Wir haengen gerade an einem Objective. Was waere ein kleiner naechster Schritt?",
+  "Wir hängen gerade an einem Objective. Was wäre ein kleiner nächster Schritt?",
   "Unser Fortschritt stagniert. Wie koennen wir wieder Momentum gewinnen?",
   "Wie koennen wir unsere gemeinsamen Routinen besser halten?",
 ];
@@ -86,7 +86,7 @@ export function ThinkingPartnerChat({
     {
       role: "assistant",
       content:
-        "Hi! Ich bin euer Thinking Partner. Erzaehlt mir kurz, was euch gerade beschaeftigt.",
+        "Hi! Ich bin euer Thinking Partner. Erzählt mir kurz, was euch gerade beschäftigt.",
     },
   ]);
   const [input, setInput] = useState("");
@@ -118,12 +118,12 @@ export function ThinkingPartnerChat({
 
   const saveNextAction = useAction(setObjectiveNextAction, {
     onSuccess: () => {
-      toast.success("Naechste Aktion gespeichert");
+      toast.success("Nächste Aktion gespeichert");
       router.refresh();
       setDialog(null);
     },
     onError: ({ error }) => {
-      toast.error("Naechste Aktion konnte nicht gespeichert werden", {
+      toast.error("Nächste Aktion konnte nicht gespeichert werden", {
         description:
           error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
       });
@@ -321,7 +321,7 @@ export function ThinkingPartnerChat({
 
                     <div className="rounded-2xl border border-border bg-card px-4 py-3">
                       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-                        Naechster Schritt
+                        Nächster Schritt
                       </p>
                       <p className="mt-1 text-sm font-medium text-foreground">
                         {message.structured.nextStep}
@@ -346,7 +346,7 @@ export function ThinkingPartnerChat({
 
                     <div className="space-y-2">
                       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-                        Rueckfragen
+                        Rückfragen
                       </p>
                       <ul className="list-disc space-y-1 pl-5 text-sm text-foreground">
                         {message.structured.questions.map((question) => (
@@ -453,13 +453,13 @@ export function ThinkingPartnerChat({
           {dialog?.kind === "saveNextAction" ? (
             <>
               <DialogHeader>
-                <DialogTitle>Naechste Aktion speichern</DialogTitle>
+                <DialogTitle>Nächste Aktion speichern</DialogTitle>
                 <DialogDescription>
                   Speichert diesen Schritt direkt am Objective, damit ihr dranbleibt.
                 </DialogDescription>
               </DialogHeader>
               <div className="mt-4 space-y-2">
-                <Label htmlFor="next-action-text">Naechste Aktion</Label>
+                <Label htmlFor="next-action-text">Nächste Aktion</Label>
                 <Textarea
                   id="next-action-text"
                   value={dialog.text}

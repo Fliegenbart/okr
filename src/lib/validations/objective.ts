@@ -57,7 +57,7 @@ const nextActionText = z.preprocess(
     const trimmed = value.trim();
     return trimmed.length === 0 ? null : trimmed;
   },
-  z.string().min(2, "Bitte gib eine naechste Aktion an.").max(220).nullable()
+  z.string().min(2, "Bitte gib eine nächste Aktion an.").max(220).nullable()
 );
 
 export const setObjectiveNextActionSchema = z.object({

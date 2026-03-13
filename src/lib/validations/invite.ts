@@ -4,10 +4,10 @@ export const createInviteSchema = z.object({
   email: z
     .string()
     .trim()
-    .email("Bitte gib eine gueltige E-Mail ein.")
+    .email("Bitte gib eine gültige E-Mail ein.")
     .transform((value) => value.toLowerCase()),
 });
 
 export const acceptInviteSchema = z.object({
-  token: z.string().trim().min(10, "Token ist ungueltig."),
+  token: z.string().trim().min(10, "Token ist ungültig."),
 });

@@ -33,7 +33,7 @@ export default async function VisionMissionPage() {
           href="/dashboard/settings"
           className="text-xs font-semibold uppercase tracking-[0.2em] text-primary"
         >
-          Zurueck zu den Einstellungen
+          Zurück zu den Einstellungen
         </Link>
 
         <div className="mt-6 space-y-2">

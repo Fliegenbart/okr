@@ -114,7 +114,7 @@ export default async function KeyResultDetailPage({
           href="/dashboard"
           className="text-xs font-semibold uppercase tracking-[0.2em] text-primary"
         >
-          Zurueck zum Dashboard
+          Zurück zum Dashboard
         </Link>
 
         <div className="mt-6 space-y-2">

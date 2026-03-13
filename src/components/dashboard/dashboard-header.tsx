@@ -26,7 +26,7 @@ export async function DashboardHeader() {
     },
   });
 
-  const coupleName = user?.couple?.name ?? "OKR fuer Paare";
+  const coupleName = user?.couple?.name ?? "OKR für Paare";
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-white/95 backdrop-blur-sm">
@@ -36,7 +36,7 @@ export async function DashboardHeader() {
             <span className="relative h-8 w-10">
               <Image
                 src="/logo.png"
-                alt="OKR fuer Paare"
+                alt="OKR für Paare"
                 fill
                 sizes="40px"
                 className="object-contain"

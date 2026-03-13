@@ -165,7 +165,7 @@ export async function generateToolCallCompletion(
     return {
       toolArgumentsJson: null,
       isFallback,
-      error: "Strukturierte Antwort war kein gueltiges JSON.",
+      error: "Strukturierte Antwort war kein gültiges JSON.",
     };
   }
 }

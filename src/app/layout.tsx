@@ -20,8 +20,8 @@ const sourceSans = Source_Sans_3({
 });
 
 export const metadata: Metadata = {
-  title: "OKR fuer Paare",
-  description: "Gemeinsame Ziele, klare Fortschritte, echte Naehe.",
+  title: "OKR für Paare",
+  description: "Gemeinsame Ziele, klare Fortschritte, echte Nähe.",
   manifest: "/manifest.json",
   icons: {
     icon: "/icons/icon-192.png",

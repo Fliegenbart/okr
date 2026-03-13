@@ -46,7 +46,7 @@ export default async function DashboardPage({
               Bitte melde dich an
             </p>
             <p className="text-sm text-muted-foreground">
-              Deine Sitzung ist abgelaufen oder ungueltig.
+              Deine Sitzung ist abgelaufen oder ungültig.
             </p>
             <Link
               href="/api/auth/signin?callbackUrl=/dashboard"
@@ -72,7 +72,7 @@ export default async function DashboardPage({
               Bitte melde dich an
             </p>
             <p className="text-sm text-muted-foreground">
-              Deine Sitzung ist abgelaufen oder ungueltig.
+              Deine Sitzung ist abgelaufen oder ungültig.
             </p>
             <Link
               href="/api/auth/signin?callbackUrl=/dashboard"
@@ -256,7 +256,7 @@ export default async function DashboardPage({
                 Durchschnittlicher Fortschritt
               </p>
               <p className="text-xs text-muted-foreground">
-                Mittelwert ueber alle Objectives im gewaehlten Quartal.
+                Mittelwert über alle Objectives im gewählten Quartal.
               </p>
               <ProgressDonut
                 value={averageProgress}

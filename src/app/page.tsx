@@ -7,14 +7,14 @@ export default function Home() {
       <div className="w-full max-w-2xl rounded-2xl border border-border bg-card p-10 shadow-sm">
         <Image
           src="/logo.png"
-          alt="OKR fuer Paare"
+          alt="OKR für Paare"
           width={220}
           height={60}
           className="mb-6 h-auto w-44"
           priority
         />
         <p className="text-sm uppercase tracking-[0.2em] text-primary">
-          OKR fuer Paare
+          OKR für Paare
         </p>
         <h1 className="mt-3 text-3xl font-semibold leading-tight text-foreground">
           Gemeinsame Ziele, gemeinsam wachsen.

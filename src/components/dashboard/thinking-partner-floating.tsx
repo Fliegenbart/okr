@@ -31,14 +31,14 @@ export function ThinkingPartnerFloating() {
     <>
       <button
         type="button"
-        aria-label="Thinking Partner oeffnen"
+        aria-label="Thinking Partner öffnen"
         onClick={() => setOpen(true)}
         className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl"
       >
         <span className="relative h-7 w-8">
           <Image
             src="/logo.png"
-            alt="OKR fuer Paare"
+            alt="OKR für Paare"
             fill
             sizes="32px"
             className="object-contain brightness-0 invert"
@@ -51,7 +51,7 @@ export function ThinkingPartnerFloating() {
           <DialogHeader>
             <DialogTitle>Thinking Partner</DialogTitle>
             <DialogDescription>
-              Schnelle Impulse, klare naechste Schritte, kleine Rituale.
+              Schnelle Impulse, klare nächste Schritte, kleine Rituale.
             </DialogDescription>
           </DialogHeader>
           <div className="mt-4">

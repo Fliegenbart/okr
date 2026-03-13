@@ -12,7 +12,7 @@ const optionalNote = z.preprocess(
 export const updateKeyResultSchema = z.object({
   keyResultId: z.string().min(1),
   value: z
-    .number({ message: "Bitte gib einen gueltigen Wert ein." })
+    .number({ message: "Bitte gib einen gültigen Wert ein." })
     .min(0, "Der Wert muss positiv sein."),
   note: optionalNote,
 });

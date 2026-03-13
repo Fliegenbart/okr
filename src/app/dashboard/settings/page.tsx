@@ -78,7 +78,7 @@ export default async function SettingsPage() {
           href="/dashboard"
           className="text-xs font-semibold uppercase tracking-[0.2em] text-primary"
         >
-          Zurueck zum Dashboard
+          Zurück zum Dashboard
         </Link>
 
         <div className="mt-6 space-y-2">
@@ -168,7 +168,7 @@ export default async function SettingsPage() {
               Vision & Mission
             </p>
             <p className="text-sm text-muted-foreground">
-              Ein kurzer, emotionaler Anker fuer euer Quartal.
+              Ein kurzer, emotionaler Anker für euer Quartal.
             </p>
             <Link
               href="/dashboard/vision-mission"
