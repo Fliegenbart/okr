@@ -49,7 +49,7 @@ export default async function JoinPage({
   }
 
   const callbackUrl = `/join?token=${inviteToken}`;
-  const signInUrl = `/api/auth/signin?callbackUrl=${encodeURIComponent(
+  const signInUrl = `/auth/signin?callbackUrl=${encodeURIComponent(
     callbackUrl
   )}`;
 

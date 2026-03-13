@@ -6,6 +6,14 @@ test("core flow with seeded data", async ({ page }) => {
   await page.getByPlaceholder("dev@example.com").fill("demo1@example.com");
   await page.getByRole("button", { name: /developer login/i }).click();
 
+  const quarterProgressSection = page.getByTestId("quarter-progress-section");
+
+  await expect(quarterProgressSection).toBeVisible();
+  await expect(page.getByTestId("quarter-progress-chart")).toBeVisible();
+  await expect(
+    quarterProgressSection.getByText("Gesundheit: Wir fühlen uns fit")
+  ).toBeVisible();
+
   await expect(page.getByText("Aktuelle Objectives")).toBeVisible();
 
   await page

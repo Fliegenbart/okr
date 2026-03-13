@@ -9,8 +9,11 @@ export default async function middleware(req: NextRequest) {
   });
 
   if (!token) {
-    const signInUrl = new URL("/api/auth/signin", req.nextUrl);
-    signInUrl.searchParams.set("callbackUrl", req.nextUrl.href);
+    const signInUrl = new URL("/auth/signin", req.nextUrl);
+    signInUrl.searchParams.set(
+      "callbackUrl",
+      `${req.nextUrl.pathname}${req.nextUrl.search}`
+    );
     return NextResponse.redirect(signInUrl);
   }
 

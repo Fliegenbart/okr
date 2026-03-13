@@ -4,16 +4,26 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 
+import { canEmailSignIn } from "@/lib/beta-access";
 import { prisma } from "@/lib/db";
+import { isEmailConfigured, sendLoginLinkEmail } from "@/lib/email";
+import { logEvent } from "@/lib/monitoring";
+import { assertRateLimit } from "@/lib/rate-limit";
+import { isDevLoginEnabled } from "@/lib/runtime-flags";
 
-const enableDevLogin = process.env.DEV_LOGIN_ENABLED === "true";
-const enableEmailProvider = Boolean(
-  process.env.EMAIL_SERVER_HOST && process.env.EMAIL_FROM
-);
+const enableDevLogin = isDevLoginEnabled();
+const enableEmailProvider = isEmailConfigured();
+
+function normalizeEmail(email?: string | null) {
+  return email?.trim().toLowerCase() ?? "";
+}
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
+  pages: {
+    signIn: "/auth/signin",
+  },
   providers: [
     ...(enableEmailProvider
       ? [
@@ -27,6 +37,18 @@ export const authOptions: NextAuthOptions = {
               },
             },
             from: process.env.EMAIL_FROM,
+            async sendVerificationRequest({ identifier, url }) {
+              try {
+                await sendLoginLinkEmail(identifier, url);
+                logEvent("info", "auth_magic_link_sent", { email: identifier });
+              } catch (error) {
+                logEvent("error", "auth_magic_link_send_failed", {
+                  email: identifier,
+                  message: error instanceof Error ? error.message : "unknown",
+                });
+                throw error;
+              }
+            },
           }),
         ]
       : []),
@@ -62,6 +84,66 @@ export const authOptions: NextAuthOptions = {
       : []),
   ],
   callbacks: {
+    async signIn({ user, account, email }) {
+      const provider = account?.provider ?? "";
+
+      if (provider === "dev-login") {
+        return enableDevLogin;
+      }
+
+      if (provider !== "email") {
+        return false;
+      }
+
+      const normalizedEmail = normalizeEmail(
+        user?.email ?? account?.providerAccountId ?? null
+      );
+
+      if (!normalizedEmail) {
+        return "/auth/signin?error=MissingEmail";
+      }
+
+      if (email?.verificationRequest) {
+        try {
+          await assertRateLimit({
+            action: "auth_magic_link_request",
+            key: normalizedEmail,
+            limit: 5,
+            windowMs: 15 * 60 * 1000,
+          });
+        } catch {
+          return "/auth/signin?error=RateLimit";
+        }
+
+        const allowed = await canEmailSignIn(normalizedEmail);
+
+        if (!allowed) {
+          logEvent("warn", "auth_magic_link_denied", {
+            email: normalizedEmail,
+          });
+          return "/auth/signin?error=BetaAccessRequired";
+        }
+
+        logEvent("info", "auth_magic_link_requested", {
+          email: normalizedEmail,
+        });
+
+        return true;
+      }
+
+      const allowed = await canEmailSignIn(normalizedEmail);
+
+      if (!allowed) {
+        return "/auth/signin?error=BetaAccessRequired";
+      }
+
+      logEvent("info", "auth_sign_in_completed", {
+        email: normalizedEmail,
+        provider,
+      });
+
+      return true;
+    },
     async jwt({ token, user }) {
       if (user) {
         token.sub = user.id;

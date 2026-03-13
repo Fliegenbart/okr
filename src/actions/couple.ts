@@ -4,8 +4,10 @@ import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
 import { getAuthSession } from "@/auth";
+import { canEmailCreateCouple, markBetaAccessActivated } from "@/lib/beta-access";
 import { prisma } from "@/lib/db";
 import { generateInviteCode } from "@/lib/invite";
+import { logEvent } from "@/lib/monitoring";
 import { action } from "@/lib/safe-action";
 import {
   createCoupleSchema,
@@ -25,18 +27,43 @@ async function requireUserId() {
   return userId;
 }
 
+async function requireUserIdentity() {
+  const session = await getAuthSession();
+
+  if (!session?.user?.id) {
+    throw new Error("Bitte melde dich an.");
+  }
+
+  return {
+    id: session.user.id,
+    email: session.user.email?.trim().toLowerCase() ?? "",
+  };
+}
+
 export const createCouple = action
   .schema(createCoupleSchema)
   .action(async ({ parsedInput }) => {
-    const userId = await requireUserId();
+    const user = await requireUserIdentity();
 
     const existingUser = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { id: user.id },
       select: { coupleId: true },
     });
 
     if (existingUser?.coupleId) {
       throw new Error("Du bist bereits in einem Couple.");
+    }
+
+    if (!user.email) {
+      throw new Error("Für die Couple-Erstellung brauchen wir eine gültige E-Mail.");
+    }
+
+    const canCreateCouple = await canEmailCreateCouple(user.email);
+
+    if (!canCreateCouple) {
+      throw new Error(
+        "Diese Beta ist aktuell nur auf Einladung verfügbar. Bitte melde dich mit der eingeladenen E-Mail-Adresse an."
+      );
     }
 
     let couple = null;
@@ -51,7 +78,7 @@ export const createCouple = action
             vision: parsedInput.vision ?? null,
             inviteCode,
             users: {
-              connect: { id: userId },
+              connect: { id: user.id },
             },
           },
         });
@@ -70,6 +97,13 @@ export const createCouple = action
     if (!couple) {
       throw new Error("Bitte versuche es erneut.");
     }
+
+    await markBetaAccessActivated(user.email);
+    logEvent("info", "couple_created", {
+      userId: user.id,
+      email: user.email,
+      coupleId: couple.id,
+    });
 
     revalidatePath("/dashboard");
 

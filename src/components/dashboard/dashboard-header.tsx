@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { getAuthSession } from "@/auth";
+import { LogoutButton } from "@/components/auth/logout-button";
 import { DashboardHeaderNav } from "@/components/dashboard/dashboard-header-nav";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/db";
@@ -52,6 +53,7 @@ export async function DashboardHeader() {
           className="flex-wrap gap-2"
           items={[
             { href: "/dashboard", label: "Dashboard" },
+            { href: "/dashboard/board", label: "Board" },
             { href: "/dashboard/thinking-partner", label: "Thinking Partner" },
             { href: "/dashboard/vision-mission", label: "Vision & Mission" },
             { href: "/dashboard/settings", label: "Einstellungen" },
@@ -64,6 +66,7 @@ export async function DashboardHeader() {
               Objective erstellen
             </Link>
           </Button>
+          <LogoutButton />
         </div>
       </div>
     </header>

@@ -1,62 +1,32 @@
 "use server";
 
-import nodemailer from "nodemailer";
 import { revalidatePath } from "next/cache";
 
 import { getAuthSession } from "@/auth";
 import { prisma } from "@/lib/db";
+import { getBaseUrl, isEmailConfigured, sendPartnerInviteEmail } from "@/lib/email";
 import { generateInviteToken } from "@/lib/invite";
+import { logEvent } from "@/lib/monitoring";
+import { assertRateLimit } from "@/lib/rate-limit";
 import { action } from "@/lib/safe-action";
 import { acceptInviteSchema, createInviteSchema } from "@/lib/validations/invite";
 import { requireUserWithCouple } from "@/actions/utils";
 
 const INVITE_EXPIRY_DAYS = 7;
 
-function getBaseUrl() {
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? process.env.NEXTAUTH_URL ?? "";
-  return base.replace(/\/$/, "");
-}
-
-function isEmailConfigured() {
-  const host = process.env.EMAIL_SERVER_HOST;
-  if (!host || host === "smtp.example.com") return false;
-  return Boolean(
-    process.env.EMAIL_FROM &&
-      process.env.EMAIL_SERVER_USER &&
-      process.env.EMAIL_SERVER_PASSWORD
-  );
-}
-
-async function sendInviteEmail(to: string, inviteUrl: string) {
-  if (!isEmailConfigured()) return;
-
-  const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_SERVER_HOST,
-    port: Number(process.env.EMAIL_SERVER_PORT ?? 587),
-    auth: {
-      user: process.env.EMAIL_SERVER_USER,
-      pass: process.env.EMAIL_SERVER_PASSWORD,
-    },
-  });
-
-  const subject = "Einladung: OKR für Paare";
-  const text = `Du wurdest eingeladen, einem Couple beizutreten. \n\nHier ist dein Link: ${inviteUrl}`;
-  const html = `<p>Du wurdest eingeladen, einem Couple beizutreten.</p><p><a href="${inviteUrl}">Zum Couple beitreten</a></p>`;
-
-  await transporter.sendMail({
-    from: process.env.EMAIL_FROM,
-    to,
-    subject,
-    text,
-    html,
-  });
-}
-
 export const createInvite = action
   .schema(createInviteSchema)
   .action(async ({ parsedInput }) => {
     const user = await requireUserWithCouple();
     const email = parsedInput.email.toLowerCase();
+    const now = new Date();
+
+    await assertRateLimit({
+      action: "couple_invite_create",
+      key: `${user.coupleId}:${email}`,
+      limit: 4,
+      windowMs: 60 * 60 * 1000,
+    });
 
     const memberCount = await prisma.user.count({
       where: { coupleId: user.coupleId },
@@ -76,29 +46,63 @@ export const createInvite = action
     }
 
     await prisma.invite.deleteMany({
-      where: { coupleId: user.coupleId, email, acceptedAt: null },
-    });
-
-    const token = generateInviteToken();
-    const expiresAt = new Date(
-      Date.now() + INVITE_EXPIRY_DAYS * 24 * 60 * 60 * 1000
-    );
-
-    const invite = await prisma.invite.create({
-      data: {
+      where: {
         coupleId: user.coupleId,
         email,
-        token,
-        expiresAt,
+        acceptedAt: null,
+        expiresAt: { lte: now },
       },
     });
 
+    const existingInvite = await prisma.invite.findFirst({
+      where: {
+        coupleId: user.coupleId,
+        email,
+        acceptedAt: null,
+        expiresAt: { gt: now },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    const invite =
+      existingInvite ??
+      (await prisma.invite.create({
+        data: {
+          coupleId: user.coupleId,
+          email,
+          token: generateInviteToken(),
+          expiresAt: new Date(
+            Date.now() + INVITE_EXPIRY_DAYS * 24 * 60 * 60 * 1000
+          ),
+        },
+      }));
+
     const baseUrl = getBaseUrl();
-    const inviteUrl = baseUrl ? `${baseUrl}/join?token=${token}` : "";
+    const inviteUrl = baseUrl ? `${baseUrl}/join?token=${invite.token}` : "";
 
     if (inviteUrl) {
-      await sendInviteEmail(email, inviteUrl);
+      try {
+        await sendPartnerInviteEmail(email, inviteUrl);
+      } catch (error) {
+        logEvent("error", "couple_invite_email_failed", {
+          email,
+          coupleId: user.coupleId,
+          message: error instanceof Error ? error.message : "unknown",
+        });
+        throw new Error(
+          "Die Einladungs-Mail konnte gerade nicht verschickt werden. Bitte versuche es in ein paar Minuten erneut."
+        );
+      }
     }
+
+    logEvent("info", "couple_invite_created", {
+      email,
+      coupleId: user.coupleId,
+      reused: Boolean(existingInvite),
+      emailConfigured: isEmailConfigured(),
+    });
 
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/settings");
@@ -119,9 +123,16 @@ export const acceptInvite = action
       throw new Error("Bitte melde dich an.");
     }
 
+    await assertRateLimit({
+      action: "couple_invite_accept",
+      key: `${session.user.id}:${parsedInput.token}`,
+      limit: 6,
+      windowMs: 30 * 60 * 1000,
+    });
+
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { id: true, coupleId: true },
+      select: { id: true, coupleId: true, email: true },
     });
 
     if (!user) {
@@ -130,6 +141,10 @@ export const acceptInvite = action
 
     if (user.coupleId) {
       throw new Error("Du bist bereits in einem Couple.");
+    }
+
+    if (!user.email) {
+      throw new Error("Für den Beitritt brauchen wir eine gültige E-Mail.");
     }
 
     const invite = await prisma.invite.findUnique({
@@ -151,6 +166,16 @@ export const acceptInvite = action
       throw new Error("Diese Einladung ist abgelaufen.");
     }
 
+    if (invite.email.toLowerCase() !== user.email.toLowerCase()) {
+      logEvent("warn", "couple_invite_email_mismatch", {
+        inviteEmail: invite.email.toLowerCase(),
+        signedInEmail: user.email.toLowerCase(),
+      });
+      throw new Error(
+        "Diese Einladung gehört zu einer anderen E-Mail-Adresse. Bitte melde dich mit der eingeladenen E-Mail an."
+      );
+    }
+
     const memberCount = await prisma.user.count({
       where: { coupleId: invite.coupleId },
     });
@@ -169,6 +194,11 @@ export const acceptInvite = action
         data: { coupleId: invite.coupleId },
       }),
     ]);
+
+    logEvent("info", "couple_invite_accepted", {
+      email: user.email.toLowerCase(),
+      coupleId: invite.coupleId,
+    });
 
     revalidatePath("/dashboard");
 

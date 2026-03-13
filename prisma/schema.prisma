@@ -38,6 +38,7 @@ model Couple {
   users      User[]
   quarters   Quarter[]
   objectives Objective[]
+  boards     Board[]
   invites    Invite[]
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
@@ -51,9 +52,56 @@ model Quarter {
   coupleId  String
   couple    Couple      @relation(fields: [coupleId], references: [id], onDelete: Cascade)
   objectives Objective[]
+  boards    Board[]
   preferredBy User[]    @relation("PreferredQuarter")
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
+}
+
+enum BoardScope {
+  MASTER
+  QUARTER
+}
+
+enum BoardElementType {
+  NOTE
+  TEXT
+  FRAME
+}
+
+model Board {
+  id        String      @id @default(cuid())
+  coupleId  String
+  quarterId String?
+  scope     BoardScope
+  boardKey  String
+  title     String
+  version   Int         @default(1)
+  couple    Couple      @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  quarter   Quarter?    @relation(fields: [quarterId], references: [id], onDelete: Cascade)
+  elements  BoardElement[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@unique([coupleId, boardKey])
+}
+
+model BoardElement {
+  id        String           @id @default(cuid())
+  boardId   String
+  type      BoardElementType
+  title     String?
+  content   String?
+  color     String?
+  x         Float
+  y         Float
+  width     Float
+  height    Float
+  zIndex    Int              @default(0)
+  meta      Json?
+  board     Board            @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
 }
 
 model Objective {
@@ -109,6 +157,24 @@ model Invite {
   createdAt DateTime @default(now())
 
   couple    Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+}
+
+model BetaAccessInvite {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  note       String?
+  activatedAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model RateLimitEvent {
+  id        String   @id @default(cuid())
+  action    String
+  key       String
+  createdAt DateTime @default(now())
+
+  @@index([action, key, createdAt])
 }
 
 model Transcript {

@@ -20,13 +20,13 @@ export default function Home() {
           Gemeinsame Ziele, gemeinsam wachsen.
         </h1>
         <p className="mt-4 text-base leading-7 text-muted-foreground">
-          Starte dein gemeinsames OKR und halte eure Fortschritte fest.
+          Einladung annehmen, gemeinsam Ziele schärfen und eure Fortschritte festhalten.
         </p>
         <Link
-          href="/dashboard"
+          href="/auth/signin"
           className="mt-6 inline-flex items-center justify-center rounded-2xl bg-secondary px-6 py-3 text-sm font-medium text-primary shadow-sm transition-colors hover:bg-primary hover:text-secondary"
         >
-          Zum Dashboard
+          Mit Einladung anmelden
         </Link>
       </div>
     </div>

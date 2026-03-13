@@ -3,11 +3,13 @@ import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 
 import { getAuthSession } from "@/auth";
+import { LogoutButton } from "@/components/auth/logout-button";
 import { CoupleSettingsForm } from "@/components/dashboard/couple-settings-form";
 import { CheckInScheduleCard } from "@/components/dashboard/check-in-schedule-card";
 import { InvitePartnerCard } from "@/components/dashboard/invite-partner-card";
 import { ObjectiveRestoreButton } from "@/components/dashboard/objective-restore-button";
 import { QuarterForm } from "@/components/dashboard/quarter-form";
+import { UserManagementCard } from "@/components/dashboard/user-management-card";
 import { Card, CardContent } from "@/components/ui/card";
 import { prisma } from "@/lib/db";
 
@@ -44,7 +46,11 @@ export default async function SettingsPage() {
       couple: {
         include: {
           users: {
-            select: { id: true },
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
           },
           invites: {
             where: {
@@ -70,6 +76,14 @@ export default async function SettingsPage() {
   }
 
   const { couple } = user;
+  const currentUserId = session.user.id ?? user.id;
+  const latestInvite = couple.invites[0];
+  const pendingInvite = latestInvite
+    ? {
+        email: latestInvite.email,
+        expiresAt: latestInvite.expiresAt.toISOString(),
+      }
+    : null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -86,8 +100,34 @@ export default async function SettingsPage() {
             Einstellungen
           </h1>
           <p className="text-sm text-muted-foreground">
-            Verwalte euer Couple, Quartale und Einladungen.
+            Verwalte euer Couple, Nutzer, Quartale und Einladungen.
           </p>
+        </div>
+
+        <div className="mt-8 grid gap-6 lg:grid-cols-[1.2fr,0.8fr]">
+          <UserManagementCard
+            currentUserId={currentUserId}
+            members={couple.users}
+            pendingInvite={pendingInvite}
+          />
+
+          <Card className="rounded-2xl border-border shadow-sm">
+            <CardContent className="space-y-4 p-6">
+              <InvitePartnerCard
+                latestInvite={
+                  latestInvite
+                    ? {
+                        email: latestInvite.email,
+                        token: latestInvite.token,
+                        expiresAt: latestInvite.expiresAt.toISOString(),
+                      }
+                    : null
+                }
+                isCoupleFull={couple.users.length >= 2}
+                appUrl={appUrl}
+              />
+            </CardContent>
+          </Card>
         </div>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-[1.2fr,0.8fr]">
@@ -102,19 +142,16 @@ export default async function SettingsPage() {
 
           <Card className="rounded-2xl border-border shadow-sm">
             <CardContent className="space-y-4 p-6">
-              <InvitePartnerCard
-                latestInvite={
-                  couple.invites[0]
-                    ? {
-                        email: couple.invites[0].email,
-                        token: couple.invites[0].token,
-                        expiresAt: couple.invites[0].expiresAt.toISOString(),
-                      }
-                    : null
-                }
-                isCoupleFull={couple.users.length >= 2}
-                appUrl={appUrl}
-              />
+              <div className="space-y-1">
+                <p className="text-sm uppercase tracking-[0.2em] text-primary">
+                  Konto & Sitzung
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Du bist aktuell als{" "}
+                  {user.email ?? "unbekannter Nutzer"} angemeldet.
+                </p>
+              </div>
+              <LogoutButton className="w-full sm:w-auto" />
             </CardContent>
           </Card>
         </div>
