@@ -6,6 +6,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
 } from "react";
@@ -15,7 +16,11 @@ import {
   Edit3,
   Frame,
   Grip,
+  LocateFixed,
+  Minus,
+  Plus,
   RefreshCw,
+  ScanSearch,
   StickyNote,
   Type,
 } from "lucide-react";
@@ -41,6 +46,17 @@ type BoardWorkspaceProps = {
 
 type BoardElementSnapshot = BoardSnapshot["elements"][number];
 
+type ViewportState = {
+  x: number;
+  y: number;
+  scale: number;
+};
+
+type ViewportSize = {
+  width: number;
+  height: number;
+};
+
 type DialogState =
   | { mode: "create"; type: BoardElementType }
   | { mode: "edit"; elementId: string }
@@ -55,6 +71,7 @@ type DragState = {
   width: number;
   height: number;
   zIndex: number;
+  scale: number;
   currentX: number;
   currentY: number;
 };
@@ -68,7 +85,14 @@ type PanState = {
 
 const CANVAS_WIDTH = 3200;
 const CANVAS_HEIGHT = 2000;
-const INITIAL_VIEWPORT = { x: 48, y: 40 };
+const INITIAL_VIEWPORT: ViewportState = { x: 48, y: 40, scale: 1 };
+const GRID_SIZE = 32;
+const MIN_SCALE = 0.5;
+const MAX_SCALE = 1.6;
+const MINI_MAP_WIDTH = 220;
+const MINI_MAP_HEIGHT = 140;
+const VIEWPORT_PADDING = 80;
+const ELEMENT_PADDING = 24;
 
 const defaultDrafts: Record<BoardElementType, BoardElementDraft> = {
   NOTE: {
@@ -99,6 +123,38 @@ const defaultSizes: Record<BoardElementType, { width: number; height: number }> 
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
+}
+
+function snapToGrid(value: number) {
+  return Math.round(value / GRID_SIZE) * GRID_SIZE;
+}
+
+function constrainViewport(viewport: ViewportState, size: ViewportSize) {
+  const scaledBoardWidth = CANVAS_WIDTH * viewport.scale;
+  const scaledBoardHeight = CANVAS_HEIGHT * viewport.scale;
+
+  const x =
+    scaledBoardWidth <= size.width - VIEWPORT_PADDING * 2
+      ? (size.width - scaledBoardWidth) / 2
+      : clamp(
+          viewport.x,
+          size.width - scaledBoardWidth - VIEWPORT_PADDING,
+          VIEWPORT_PADDING
+        );
+  const y =
+    scaledBoardHeight <= size.height - VIEWPORT_PADDING * 2
+      ? (size.height - scaledBoardHeight) / 2
+      : clamp(
+          viewport.y,
+          size.height - scaledBoardHeight - VIEWPORT_PADDING,
+          VIEWPORT_PADDING
+        );
+
+  return {
+    x,
+    y,
+    scale: clamp(viewport.scale, MIN_SCALE, MAX_SCALE),
+  };
 }
 
 function getElementLabel(type: BoardElementType) {
@@ -152,24 +208,111 @@ function getElementStyles(element: BoardElementSnapshot) {
   }
 }
 
+function getViewportForScale(
+  viewport: ViewportState,
+  nextScale: number,
+  origin: { x: number; y: number }
+) {
+  const canvasX = (origin.x - viewport.x) / viewport.scale;
+  const canvasY = (origin.y - viewport.y) / viewport.scale;
+
+  return {
+    x: origin.x - canvasX * nextScale,
+    y: origin.y - canvasY * nextScale,
+    scale: nextScale,
+  };
+}
+
+function getFitViewport(size: ViewportSize): ViewportState {
+  const scale = clamp(
+    Math.min(
+      (size.width - VIEWPORT_PADDING * 2) / CANVAS_WIDTH,
+      (size.height - VIEWPORT_PADDING * 2) / CANVAS_HEIGHT
+    ),
+    MIN_SCALE,
+    1
+  );
+
+  return constrainViewport(
+    {
+      x: (size.width - CANVAS_WIDTH * scale) / 2,
+      y: (size.height - CANVAS_HEIGHT * scale) / 2,
+      scale,
+    },
+    size
+  );
+}
+
 export function BoardWorkspace({ initialBoard }: BoardWorkspaceProps) {
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const dragStateRef = useRef<DragState | null>(null);
   const panStateRef = useRef<PanState | null>(null);
+  const viewportStateRef = useRef<ViewportState>(INITIAL_VIEWPORT);
+  const viewportSizeRef = useRef<ViewportSize>({ width: 1200, height: 720 });
+  const moveActionExecuteRef = useRef<(args: {
+    elementId: string;
+    x: number;
+    y: number;
+    zIndex: number;
+  }) => void>(() => undefined);
 
   const [board, setBoard] = useState(initialBoard);
-  const [viewport, setViewport] = useState(INITIAL_VIEWPORT);
+  const [viewport, setViewport] = useState<ViewportState>(INITIAL_VIEWPORT);
+  const [viewportSize, setViewportSize] = useState<ViewportSize>({
+    width: 1200,
+    height: 720,
+  });
   const [dialogState, setDialogState] = useState<DialogState>(null);
   const [draft, setDraft] = useState<BoardElementDraft>(defaultDrafts.NOTE);
   const [connectionStatus, setConnectionStatus] = useState<
     "live" | "reconnecting" | "offline"
   >("live");
   const [isInteracting, setIsInteracting] = useState(false);
+  const isHydrated = useSyncExternalStore(
+    () => () => undefined,
+    () => true,
+    () => false
+  );
 
   const sortedElements = useMemo(
     () => [...board.elements].sort((left, right) => left.zIndex - right.zIndex),
     [board.elements]
   );
+
+  const miniMapMetrics = useMemo(() => {
+    const scale = Math.min(MINI_MAP_WIDTH / CANVAS_WIDTH, MINI_MAP_HEIGHT / CANVAS_HEIGHT);
+    const width = CANVAS_WIDTH * scale;
+    const height = CANVAS_HEIGHT * scale;
+    const visibleWidth = viewportSize.width / viewport.scale;
+    const visibleHeight = viewportSize.height / viewport.scale;
+
+    return {
+      scale,
+      width,
+      height,
+      viewportLeft: clamp((-viewport.x / viewport.scale) * scale, 0, width),
+      viewportTop: clamp((-viewport.y / viewport.scale) * scale, 0, height),
+      viewportWidth: Math.min(visibleWidth * scale, width),
+      viewportHeight: Math.min(visibleHeight * scale, height),
+    };
+  }, [viewport, viewportSize]);
+
+  const setViewportConstrained = (
+    next:
+      | ViewportState
+      | ((currentViewport: ViewportState) => ViewportState)
+  ) => {
+    setViewport((currentViewport) => {
+      const resolved =
+        typeof next === "function" ? next(currentViewport) : next;
+      const constrained = constrainViewport(
+        resolved,
+        viewportSizeRef.current
+      );
+      viewportStateRef.current = constrained;
+      return constrained;
+    });
+  };
 
   async function refreshBoardSnapshot() {
     const response = await fetch(`/api/boards/${board.id}`, {
@@ -194,6 +337,45 @@ export function BoardWorkspace({ initialBoard }: BoardWorkspaceProps) {
     setBoard(nextBoard);
     setConnectionStatus("live");
   });
+
+  useEffect(() => {
+    viewportStateRef.current = viewport;
+  }, [viewport]);
+
+  useEffect(() => {
+    viewportSizeRef.current = viewportSize;
+  }, [viewportSize]);
+
+  useEffect(() => {
+    if (!viewportRef.current) {
+      return;
+    }
+
+    const updateSize = () => {
+      if (!viewportRef.current) return;
+
+      const rect = viewportRef.current.getBoundingClientRect();
+      const nextSize = {
+        width: rect.width,
+        height: rect.height,
+      };
+
+      setViewportSize(nextSize);
+      viewportSizeRef.current = nextSize;
+      setViewportConstrained((currentViewport) =>
+        constrainViewport(currentViewport, nextSize)
+      );
+    };
+
+    updateSize();
+
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(viewportRef.current);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
     document.body.classList.toggle("select-none", isInteracting);
@@ -272,7 +454,6 @@ export function BoardWorkspace({ initialBoard }: BoardWorkspaceProps) {
       void refreshBoardSnapshot();
     },
   });
-  const moveActionExecuteRef = useRef(moveAction.execute);
 
   useEffect(() => {
     moveActionExecuteRef.current = moveAction.execute;
@@ -320,6 +501,32 @@ export function BoardWorkspace({ initialBoard }: BoardWorkspaceProps) {
     },
   });
 
+  const fitBoardToViewport = () => {
+    setViewportConstrained(getFitViewport(viewportSizeRef.current));
+  };
+
+  const resetViewport = () => {
+    setViewportConstrained(INITIAL_VIEWPORT);
+  };
+
+  const zoomAt = (nextScale: number, origin?: { x: number; y: number }) => {
+    const safeScale = clamp(nextScale, MIN_SCALE, MAX_SCALE);
+    const fallbackOrigin = {
+      x: viewportSizeRef.current.width / 2,
+      y: viewportSizeRef.current.height / 2,
+    };
+
+    setViewportConstrained((currentViewport) =>
+      getViewportForScale(currentViewport, safeScale, origin ?? fallbackOrigin)
+    );
+  };
+
+  const zoomByStep = (direction: "in" | "out") => {
+    const nextScale =
+      viewportStateRef.current.scale + (direction === "in" ? 0.15 : -0.15);
+    zoomAt(nextScale);
+  };
+
   const beginElementDrag = (
     event: ReactPointerEvent<HTMLDivElement> | ReactMouseEvent<HTMLDivElement>,
     element: BoardElementSnapshot
@@ -345,6 +552,7 @@ export function BoardWorkspace({ initialBoard }: BoardWorkspaceProps) {
       width: element.width,
       height: element.height,
       zIndex: topZIndex,
+      scale: viewportStateRef.current.scale,
       currentX: element.x,
       currentY: element.y,
     };
@@ -369,8 +577,8 @@ export function BoardWorkspace({ initialBoard }: BoardWorkspaceProps) {
     panStateRef.current = {
       pointerStartX: event.clientX,
       pointerStartY: event.clientY,
-      viewportStartX: viewport.x,
-      viewportStartY: viewport.y,
+      viewportStartX: viewportStateRef.current.x,
+      viewportStartY: viewportStateRef.current.y,
     };
 
     setIsInteracting(true);
@@ -379,17 +587,23 @@ export function BoardWorkspace({ initialBoard }: BoardWorkspaceProps) {
   useEffect(() => {
     const handleMove = (event: MouseEvent | PointerEvent) => {
       if (dragStateRef.current) {
-        const nextX = clamp(
+        const rawX =
           dragStateRef.current.elementStartX +
-            (event.clientX - dragStateRef.current.pointerStartX),
-          24,
-          CANVAS_WIDTH - dragStateRef.current.width - 24
+          (event.clientX - dragStateRef.current.pointerStartX) /
+            dragStateRef.current.scale;
+        const rawY =
+          dragStateRef.current.elementStartY +
+          (event.clientY - dragStateRef.current.pointerStartY) /
+            dragStateRef.current.scale;
+        const nextX = clamp(
+          snapToGrid(rawX),
+          ELEMENT_PADDING,
+          CANVAS_WIDTH - dragStateRef.current.width - ELEMENT_PADDING
         );
         const nextY = clamp(
-          dragStateRef.current.elementStartY +
-            (event.clientY - dragStateRef.current.pointerStartY),
-          24,
-          CANVAS_HEIGHT - dragStateRef.current.height - 24
+          snapToGrid(rawY),
+          ELEMENT_PADDING,
+          CANVAS_HEIGHT - dragStateRef.current.height - ELEMENT_PADDING
         );
 
         dragStateRef.current.currentX = nextX;
@@ -413,14 +627,15 @@ export function BoardWorkspace({ initialBoard }: BoardWorkspaceProps) {
       }
 
       if (panStateRef.current) {
-        setViewport({
+        setViewportConstrained((currentViewport) => ({
+          ...currentViewport,
           x:
-            panStateRef.current.viewportStartX +
-            (event.clientX - panStateRef.current.pointerStartX),
+            panStateRef.current!.viewportStartX +
+            (event.clientX - panStateRef.current!.pointerStartX),
           y:
-            panStateRef.current.viewportStartY +
-            (event.clientY - panStateRef.current.pointerStartY),
-        });
+            panStateRef.current!.viewportStartY +
+            (event.clientY - panStateRef.current!.pointerStartY),
+        }));
       }
     };
 
@@ -457,36 +672,43 @@ export function BoardWorkspace({ initialBoard }: BoardWorkspaceProps) {
     };
   }, []);
 
+  const openDialogDeferred = (nextState: NonNullable<DialogState>, nextDraft: BoardElementDraft) => {
+    window.requestAnimationFrame(() => {
+      setDraft(nextDraft);
+      setDialogState(nextState);
+    });
+  };
+
   const openCreateDialog = (type: BoardElementType) => {
-    setDialogState({ mode: "create", type });
-    setDraft(defaultDrafts[type]);
+    openDialogDeferred({ mode: "create", type }, defaultDrafts[type]);
   };
 
   const openEditDialog = (element: BoardElementSnapshot) => {
-    setDialogState({ mode: "edit", elementId: element.id });
-    setDraft({
-      type: element.type,
-      title: element.title ?? "",
-      content: element.content ?? "",
-      color: element.color ?? defaultDrafts[element.type].color,
-    });
+    openDialogDeferred(
+      { mode: "edit", elementId: element.id },
+      {
+        type: element.type,
+        title: element.title ?? "",
+        content: element.content ?? "",
+        color: element.color ?? defaultDrafts[element.type].color,
+      }
+    );
   };
 
   const handleDialogSubmit = () => {
     if (!dialogState) return;
 
     if (dialogState.mode === "create") {
-      const rect = viewportRef.current?.getBoundingClientRect();
       const size = defaultSizes[draft.type];
       const boardX = clamp(
-        ((rect?.width ?? 1200) / 2 - viewport.x) - size.width / 2,
-        24,
-        CANVAS_WIDTH - size.width - 24
+        (viewportSize.width / 2 - viewport.x) / viewport.scale - size.width / 2,
+        ELEMENT_PADDING,
+        CANVAS_WIDTH - size.width - ELEMENT_PADDING
       );
       const boardY = clamp(
-        ((rect?.height ?? 720) / 2 - viewport.y) - size.height / 2,
-        24,
-        CANVAS_HEIGHT - size.height - 24
+        (viewportSize.height / 2 - viewport.y) / viewport.scale - size.height / 2,
+        ELEMENT_PADDING,
+        CANVAS_HEIGHT - size.height - ELEMENT_PADDING
       );
 
       createAction.execute({
@@ -495,8 +717,8 @@ export function BoardWorkspace({ initialBoard }: BoardWorkspaceProps) {
         title: draft.title,
         content: draft.content,
         color: draft.color,
-        x: boardX,
-        y: boardY,
+        x: snapToGrid(boardX),
+        y: snapToGrid(boardY),
         width: size.width,
         height: size.height,
       });
@@ -516,9 +738,46 @@ export function BoardWorkspace({ initialBoard }: BoardWorkspaceProps) {
     deleteAction.execute({ elementId: dialogState.elementId });
   };
 
+  const handleCanvasWheel = (event: React.WheelEvent<HTMLDivElement>) => {
+    if (!event.ctrlKey && !event.metaKey) {
+      return;
+    }
+
+    event.preventDefault();
+    const rect = viewportRef.current?.getBoundingClientRect();
+
+    if (!rect) {
+      return;
+    }
+
+    const origin = {
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
+    };
+    const nextScale =
+      viewportStateRef.current.scale + (event.deltaY < 0 ? 0.08 : -0.08);
+
+    zoomAt(nextScale, origin);
+  };
+
+  const handleMiniMapClick = (event: ReactMouseEvent<HTMLDivElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const offsetX = event.clientX - rect.left;
+    const offsetY = event.clientY - rect.top;
+    const canvasX = offsetX / miniMapMetrics.scale;
+    const canvasY = offsetY / miniMapMetrics.scale;
+    const nextScale = viewportStateRef.current.scale;
+
+    setViewportConstrained({
+      x: viewportSize.width / 2 - canvasX * nextScale,
+      y: viewportSize.height / 2 - canvasY * nextScale,
+      scale: nextScale,
+    });
+  };
+
   return (
     <>
-      <div className="grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)]">
+      <div className="grid gap-4 xl:grid-cols-[320px_minmax(0,1fr)]">
         <aside className="rounded-[2rem] border border-white/80 bg-white/85 p-5 shadow-[0_22px_60px_rgba(24,24,24,0.08)] backdrop-blur-sm">
           <div className="flex items-start justify-between gap-3">
             <div>
@@ -529,63 +788,126 @@ export function BoardWorkspace({ initialBoard }: BoardWorkspaceProps) {
                 {board.title}
               </h2>
             </div>
-            <span
-              className={cn(
-                "rounded-full px-3 py-1 text-[11px] font-semibold",
-                connectionStatus === "live"
-                  ? "bg-emerald-100 text-emerald-700"
-                  : connectionStatus === "reconnecting"
-                    ? "bg-amber-100 text-amber-700"
-                    : "bg-slate-200 text-slate-700"
-              )}
-            >
-              {getConnectionLabel(connectionStatus)}
-            </span>
+            <div className="flex flex-col items-end gap-2">
+              <span
+                className={cn(
+                  "rounded-full px-3 py-1 text-[11px] font-semibold",
+                  connectionStatus === "live"
+                    ? "bg-emerald-100 text-emerald-700"
+                    : connectionStatus === "reconnecting"
+                      ? "bg-amber-100 text-amber-700"
+                      : "bg-slate-200 text-slate-700"
+                )}
+              >
+                {getConnectionLabel(connectionStatus)}
+              </span>
+              <span className="rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold text-primary">
+                {Math.round(viewport.scale * 100)}%
+              </span>
+            </div>
           </div>
 
           <p className="mt-3 text-sm leading-6 text-muted-foreground">
-            Zieht Karten frei auf die Flaeche, zieht am Hintergrund zum Schwenken und
-            oeffnet den Editor ueber das Stift-Icon.
+            Zoomt mit den Controls oder per Trackpad-Pinch, zieht am Hintergrund zum
+            Navigieren und lasst Karten am Grid einrasten, damit das Board schneller
+            lesbar bleibt.
           </p>
 
-          <div className="mt-6 grid gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              className="justify-start rounded-2xl"
-              onClick={() => openCreateDialog("NOTE")}
-            >
-              <StickyNote className="h-4 w-4" />
-              Sticky Note
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="justify-start rounded-2xl"
-              onClick={() => openCreateDialog("TEXT")}
-            >
-              <Type className="h-4 w-4" />
-              Textblock
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="justify-start rounded-2xl"
-              onClick={() => openCreateDialog("FRAME")}
-            >
-              <Frame className="h-4 w-4" />
-              Frame
-            </Button>
+          <div className="mt-6 space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              Elemente
+            </p>
+            <div className="grid gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="justify-start rounded-2xl"
+                onClick={() => openCreateDialog("NOTE")}
+                disabled={!isHydrated}
+              >
+                <StickyNote className="h-4 w-4" />
+                Sticky Note
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="justify-start rounded-2xl"
+                onClick={() => openCreateDialog("TEXT")}
+                disabled={!isHydrated}
+              >
+                <Type className="h-4 w-4" />
+                Textblock
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="justify-start rounded-2xl"
+                onClick={() => openCreateDialog("FRAME")}
+                disabled={!isHydrated}
+              >
+                <Frame className="h-4 w-4" />
+                Frame
+              </Button>
+            </div>
+          </div>
+
+          <div className="mt-6 space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              Navigation
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="justify-start rounded-2xl"
+                onClick={() => zoomByStep("out")}
+                disabled={!isHydrated}
+              >
+                <Minus className="h-4 w-4" />
+                Zoom out
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="justify-start rounded-2xl"
+                onClick={() => zoomByStep("in")}
+                disabled={!isHydrated}
+              >
+                <Plus className="h-4 w-4" />
+                Zoom in
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="justify-start rounded-2xl"
+                onClick={resetViewport}
+                disabled={!isHydrated}
+              >
+                <LocateFixed className="h-4 w-4" />
+                Reset view
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="justify-start rounded-2xl"
+                onClick={fitBoardToViewport}
+                disabled={!isHydrated}
+              >
+                <ScanSearch className="h-4 w-4" />
+                Fit board
+              </Button>
+            </div>
           </div>
 
           <div className="mt-6 rounded-[1.5rem] bg-muted/60 p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-              Hinweise
+              Was jetzt besser ist
             </p>
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-              <li>Notizen eignen sich fuer OKRs, Ideen und To-dos.</li>
-              <li>Frames helfen euch, Roadmap- und Themenbereiche zu strukturieren.</li>
-              <li>Live-Updates erscheinen automatisch bei beiden Partnern.</li>
+              <li>Elemente rasten am 32px-Grid ein.</li>
+              <li>Das Board laesst sich zoomen und sauber zentrieren.</li>
+              <li>Die Minimap gibt euch Orientierung auf grossen Flaechen.</li>
+              <li>Doppelklick auf eine Karte oeffnet direkt den Editor.</li>
             </ul>
           </div>
 
@@ -594,6 +916,7 @@ export function BoardWorkspace({ initialBoard }: BoardWorkspaceProps) {
             variant="ghost"
             className="mt-5 rounded-2xl"
             onClick={() => void refreshBoardSnapshot()}
+            disabled={!isHydrated}
           >
             <RefreshCw className="h-4 w-4" />
             Board neu laden
@@ -601,107 +924,209 @@ export function BoardWorkspace({ initialBoard }: BoardWorkspaceProps) {
         </aside>
 
         <div className="rounded-[2rem] border border-white/80 bg-white/80 p-4 shadow-[0_22px_60px_rgba(24,24,24,0.08)] backdrop-blur-sm">
-          <div
-            ref={viewportRef}
-            data-testid="board-canvas"
-            className="relative h-[72vh] min-h-[640px] overflow-hidden rounded-[1.6rem] border border-border/60 bg-[#f8f6f2]"
-            onPointerDown={beginPan}
-            onMouseDown={beginPan}
-            style={{
-              backgroundImage:
-                "radial-gradient(circle at 1px 1px, rgba(29,29,31,0.14) 1px, transparent 0)",
-              backgroundPosition: `${viewport.x}px ${viewport.y}px`,
-              backgroundSize: "32px 32px",
-            }}
-          >
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              <span className="rounded-full bg-muted px-3 py-1.5">
+                Grid {GRID_SIZE}px
+              </span>
+              <span className="rounded-full bg-muted px-3 py-1.5">
+                Canvas {CANVAS_WIDTH} x {CANVAS_HEIGHT}
+              </span>
+              <span className="rounded-full bg-muted px-3 py-1.5">
+                Ctrl/Cmd + Scroll zoomt
+              </span>
+              {!isHydrated ? (
+                <span className="rounded-full bg-amber-100 px-3 py-1.5 text-amber-700">
+                  Board wird aktiviert ...
+                </span>
+              ) : null}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="rounded-full"
+                onClick={() => zoomByStep("out")}
+                disabled={!isHydrated}
+              >
+                <Minus className="h-4 w-4" />
+              </Button>
+              <div className="min-w-16 rounded-full border border-border bg-white px-3 py-1 text-center text-sm font-semibold text-foreground">
+                {Math.round(viewport.scale * 100)}%
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="rounded-full"
+                onClick={() => zoomByStep("in")}
+                disabled={!isHydrated}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          <div className="relative">
             <div
-              className="absolute inset-0"
+              ref={viewportRef}
+              data-testid="board-canvas"
+              className={cn(
+                "relative h-[72vh] min-h-[640px] overflow-hidden rounded-[1.6rem] border border-border/60 bg-[#f8f6f2]",
+                !isHydrated
+                  ? "pointer-events-none opacity-80"
+                  : isInteracting
+                    ? "cursor-grabbing"
+                    : "cursor-grab"
+              )}
+              onPointerDown={beginPan}
+              onMouseDown={beginPan}
+              onWheel={handleCanvasWheel}
+              aria-busy={!isHydrated}
               style={{
-                transform: `translate(${viewport.x}px, ${viewport.y}px)`,
-                transformOrigin: "top left",
+                backgroundImage:
+                  "radial-gradient(circle at 1px 1px, rgba(29,29,31,0.14) 1px, transparent 0)",
+                backgroundPosition: `${viewport.x}px ${viewport.y}px`,
+                backgroundSize: `${GRID_SIZE * viewport.scale}px ${
+                  GRID_SIZE * viewport.scale
+                }px`,
               }}
             >
               <div
-                className="relative rounded-[2rem] border border-dashed border-black/8 bg-white/30"
+                className="absolute inset-0"
                 style={{
-                  width: CANVAS_WIDTH,
-                  height: CANVAS_HEIGHT,
+                  transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.scale})`,
+                  transformOrigin: "top left",
                 }}
               >
-                {sortedElements.map((element) => {
-                  const styles = getElementStyles(element);
-                  const isFrame = element.type === "FRAME";
+                <div
+                  className="relative rounded-[2rem] border border-dashed border-black/8 bg-white/30"
+                  style={{
+                    width: CANVAS_WIDTH,
+                    height: CANVAS_HEIGHT,
+                  }}
+                >
+                  {sortedElements.map((element) => {
+                    const styles = getElementStyles(element);
+                    const isFrame = element.type === "FRAME";
 
-                  return (
-                    <div
-                      key={element.id}
-                      data-testid={`board-element-${element.id}`}
-                      className={cn(
-                        "group absolute overflow-hidden rounded-[1.7rem] transition-shadow",
-                        styles.shell
-                      )}
-                      style={{
-                        left: element.x,
-                        top: element.y,
-                        width: element.width,
-                        height: element.height,
-                        zIndex: element.zIndex,
-                        backgroundColor: element.color ?? defaultDrafts[element.type].color,
-                      }}
-                      onPointerDown={(event) => beginElementDrag(event, element)}
-                      onMouseDown={(event) => beginElementDrag(event, element)}
-                    >
-                      <div className="flex h-full flex-col p-4">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/45">
-                              {getElementLabel(element.type)}
-                            </p>
-                            {element.title ? (
-                              <p className={cn("mt-1 truncate", styles.title)}>
-                                {element.title}
-                              </p>
-                            ) : null}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <span className="rounded-full bg-white/80 p-1 text-muted-foreground">
-                              <Grip className="h-3.5 w-3.5" />
-                            </span>
-                            <button
-                              type="button"
-                              data-board-action="true"
-                              onClick={() => openEditDialog(element)}
-                              className="rounded-full bg-white/85 p-1.5 text-muted-foreground transition hover:text-foreground"
-                            >
-                              <Edit3 className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-                        </div>
-
-                        {element.content ? (
-                          <p
-                            className={cn(
-                              "mt-4 whitespace-pre-wrap break-words",
-                              styles.content
-                            )}
-                          >
-                            {element.content}
-                          </p>
-                        ) : (
-                          <p className="mt-4 text-sm text-foreground/35">
-                            {isFrame
-                              ? "Zieht weitere Elemente in diesen Bereich."
-                              : "Noch kein Inhalt"}
-                          </p>
+                    return (
+                      <div
+                        key={element.id}
+                        data-testid={`board-element-${element.id}`}
+                        className={cn(
+                          "group absolute overflow-hidden rounded-[1.7rem] transition-shadow hover:shadow-[0_24px_50px_rgba(20,20,20,0.12)]",
+                          styles.shell
                         )}
+                        style={{
+                          left: element.x,
+                          top: element.y,
+                          width: element.width,
+                          height: element.height,
+                          zIndex: element.zIndex,
+                          backgroundColor:
+                            element.color ?? defaultDrafts[element.type].color,
+                        }}
+                        onPointerDown={(event) => beginElementDrag(event, element)}
+                        onMouseDown={(event) => beginElementDrag(event, element)}
+                        onDoubleClick={() => openEditDialog(element)}
+                      >
+                        <div className="flex h-full flex-col p-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/45">
+                                {getElementLabel(element.type)}
+                              </p>
+                              {element.title ? (
+                                <p className={cn("mt-1 truncate", styles.title)}>
+                                  {element.title}
+                                </p>
+                              ) : null}
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <span className="rounded-full bg-white/80 p-1 text-muted-foreground">
+                                <Grip className="h-3.5 w-3.5" />
+                              </span>
+                              <button
+                                type="button"
+                                data-board-action="true"
+                                onClick={() => openEditDialog(element)}
+                                className="rounded-full bg-white/85 p-1.5 text-muted-foreground transition hover:text-foreground"
+                              >
+                                <Edit3 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          </div>
 
-                        {isFrame ? (
-                          <div className="mt-4 flex-1 rounded-[1.3rem] border border-dashed border-black/10 bg-white/25" />
-                        ) : null}
+                          {element.content ? (
+                            <p
+                              className={cn(
+                                "mt-4 whitespace-pre-wrap break-words",
+                                styles.content
+                              )}
+                            >
+                              {element.content}
+                            </p>
+                          ) : (
+                            <p className="mt-4 text-sm text-foreground/35">
+                              {isFrame
+                                ? "Zieht weitere Elemente in diesen Bereich."
+                                : "Noch kein Inhalt"}
+                            </p>
+                          )}
+
+                          {isFrame ? (
+                            <div className="mt-4 flex-1 rounded-[1.3rem] border border-dashed border-black/10 bg-white/25" />
+                          ) : null}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            <div className="pointer-events-none absolute bottom-4 right-4 rounded-[1.4rem] border border-white/90 bg-white/92 p-3 shadow-[0_18px_40px_rgba(20,20,20,0.12)] backdrop-blur-sm">
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                  Minimap
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  {Math.round(viewport.scale * 100)}%
+                </p>
+              </div>
+              <div
+                className="pointer-events-auto relative cursor-pointer rounded-[1rem] border border-border/60 bg-[#f8f6f2]"
+                style={{
+                  width: miniMapMetrics.width,
+                  height: miniMapMetrics.height,
+                }}
+                onClick={handleMiniMapClick}
+              >
+                {sortedElements.map((element) => (
+                  <div
+                    key={element.id}
+                    className="absolute rounded-sm border border-black/10"
+                    style={{
+                      left: element.x * miniMapMetrics.scale,
+                      top: element.y * miniMapMetrics.scale,
+                      width: Math.max(element.width * miniMapMetrics.scale, 8),
+                      height: Math.max(element.height * miniMapMetrics.scale, 8),
+                      backgroundColor:
+                        element.color ?? defaultDrafts[element.type].color,
+                    }}
+                  />
+                ))}
+                <div
+                  className="absolute rounded-md border-2 border-primary bg-primary/10"
+                  style={{
+                    left: miniMapMetrics.viewportLeft,
+                    top: miniMapMetrics.viewportTop,
+                    width: miniMapMetrics.viewportWidth,
+                    height: miniMapMetrics.viewportHeight,
+                  }}
+                />
               </div>
             </div>
           </div>
