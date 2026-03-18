@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 
 import { CelebrationOverlay } from "@/components/dashboard/celebration-overlay";
+import { CommitmentStatusActions } from "@/components/dashboard/commitment-status-actions";
 import { KeyResultQuickUpdateDialog } from "@/components/dashboard/key-result-quick-update-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { useObjectiveProgress } from "@/hooks/use-objective-progress";
@@ -15,12 +16,20 @@ export type ObjectiveDetailProps = {
   title: string;
   description?: string | null;
   quarterTitle: string;
+  nextAction?: string | null;
   keyResults: {
     id: string;
     title: string;
     currentValue: number;
     targetValue: number;
     unit?: string | null;
+  }[];
+  commitments?: {
+    id: string;
+    title: string;
+    status: string;
+    dueAt?: string | null;
+    ownerName?: string | null;
   }[];
 };
 
@@ -31,7 +40,9 @@ export function ObjectiveDetail({
   title,
   description,
   quarterTitle,
+  nextAction,
   keyResults,
+  commitments = [],
 }: ObjectiveDetailProps) {
   const [showCelebration, setShowCelebration] = useState(false);
   const celebrationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
@@ -98,6 +109,12 @@ export function ObjectiveDetail({
               {description ? (
                 <p className="mt-2 text-sm text-muted-foreground">
                   {description}
+                </p>
+              ) : null}
+              {nextAction ? (
+                <p className="mt-3 rounded-2xl border border-border bg-muted/30 px-4 py-3 text-sm text-foreground">
+                  <span className="font-semibold text-primary">Nächste Aktion:</span>{" "}
+                  {nextAction}
                 </p>
               ) : null}
             </div>
@@ -201,6 +218,51 @@ export function ObjectiveDetail({
           })}
         </div>
       </section>
+
+      {commitments.length ? (
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-foreground">
+              Commitments
+            </h2>
+            <span className="text-xs uppercase tracking-[0.2em] text-primary">
+              Follow-through
+            </span>
+          </div>
+
+          <div className="space-y-4">
+            {commitments.map((commitment) => (
+              <Card key={commitment.id} className="rounded-2xl border-border shadow-sm">
+                <CardContent className="space-y-3 p-5">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="space-y-1">
+                      <p className="text-lg font-semibold text-foreground">
+                        {commitment.title}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Status: {commitment.status}
+                      </p>
+                      {commitment.ownerName ? (
+                        <p className="text-xs text-muted-foreground">
+                          Owner: {commitment.ownerName}
+                        </p>
+                      ) : null}
+                      {commitment.dueAt ? (
+                        <p className="text-xs text-muted-foreground">
+                          Fällig: {new Date(commitment.dueAt).toLocaleDateString("de-DE")}
+                        </p>
+                      ) : null}
+                    </div>
+                    {commitment.status === "OPEN" ? (
+                      <CommitmentStatusActions commitmentId={commitment.id} />
+                    ) : null}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

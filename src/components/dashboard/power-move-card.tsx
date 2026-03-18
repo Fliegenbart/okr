@@ -92,7 +92,7 @@ export function PowerMoveCard({
     if (action.type === "OPEN_CHECKIN_SETTINGS") {
       return (
         <Button key={action.type} asChild size="sm">
-          <Link href="/dashboard/settings">{action.label}</Link>
+          <Link href="/dashboard/check-in">{action.label}</Link>
         </Button>
       );
     }

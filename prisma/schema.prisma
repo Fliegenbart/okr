@@ -12,6 +12,40 @@ enum UserRole {
   ADMIN
 }
 
+enum CommitmentStatus {
+  OPEN
+  DONE
+  CANCELLED
+}
+
+enum CommitmentSource {
+  MANUAL
+  OBJECTIVE
+  CHECK_IN
+}
+
+enum TimelineEventKind {
+  CHECK_IN
+  OBJECTIVE_UPDATE
+  COMMITMENT_CREATED
+  COMMITMENT_DONE
+  NOTE
+  MILESTONE
+  REMINDER
+}
+
+enum ReminderKind {
+  CHECK_IN
+  COMMITMENT
+  QUARTER_REVIEW
+}
+
+enum ReminderStatus {
+  PENDING
+  DONE
+  DISMISSED
+}
+
 model User {
   id              String              @id @default(cuid())
   name            String?
@@ -27,6 +61,11 @@ model User {
   sessions        Session[]
   keyResultUpdates KeyResultUpdate[]  @relation("UserKeyResultUpdates")
   nextActionObjectives Objective[]    @relation("ObjectiveNextActionOwner")
+  createdCheckIns CheckInSession[]     @relation("CheckInCreatedBy")
+  createdCommitments Commitment[]      @relation("CommitmentCreatedBy")
+  ownedCommitments Commitment[]        @relation("CommitmentOwner")
+  createdTimelineEvents TimelineEvent[] @relation("TimelineEventCreatedBy")
+  createdReminders Reminder[]          @relation("ReminderCreatedBy")
   auditLogs       AuditLog[]          @relation("AuditActor")
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
@@ -48,6 +87,10 @@ model Couple {
   boards     Board[]
   invites    Invite[]
   transcripts Transcript[]
+  checkInSessions CheckInSession[]
+  commitments Commitment[]
+  timelineEvents TimelineEvent[]
+  reminders  Reminder[]
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
 }
@@ -61,6 +104,8 @@ model Quarter {
   couple    Couple      @relation(fields: [coupleId], references: [id], onDelete: Cascade)
   objectives Objective[]
   boards    Board[]
+  checkInSessions CheckInSession[]
+  reminders Reminder[]
   preferredBy User[]    @relation("PreferredQuarter")
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
@@ -124,9 +169,117 @@ model Objective {
   quarter     Quarter     @relation(fields: [quarterId], references: [id], onDelete: Cascade)
   keyResults  KeyResult[]
   nextActionOwner User?   @relation("ObjectiveNextActionOwner", fields: [nextActionOwnerId], references: [id])
+  commitments Commitment[]
+  timelineEvents TimelineEvent[]
   archivedAt  DateTime?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
+}
+
+model CheckInSession {
+  id              String          @id @default(cuid())
+  coupleId        String
+  quarterId       String?
+  templateKey     String?
+  title           String
+  moodRating      Int?
+  highlights      String?
+  tensions        String?
+  summary         String?
+  nextSteps       String?
+  couple          Couple          @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  quarter         Quarter?        @relation(fields: [quarterId], references: [id], onDelete: SetNull)
+  createdById     String?
+  createdBy       User?           @relation("CheckInCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  commitments     Commitment[]
+  timelineEvents  TimelineEvent[]
+  reminders       Reminder[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([coupleId, createdAt])
+  @@index([quarterId, createdAt])
+}
+
+model Commitment {
+  id               String            @id @default(cuid())
+  coupleId         String
+  objectiveId      String?
+  checkInSessionId String?
+  title            String
+  details          String?
+  ownerId          String?
+  dueAt            DateTime?
+  status           CommitmentStatus  @default(OPEN)
+  source           CommitmentSource  @default(MANUAL)
+  completedAt      DateTime?
+  createdById      String?
+  couple           Couple            @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  objective        Objective?        @relation(fields: [objectiveId], references: [id], onDelete: SetNull)
+  checkInSession   CheckInSession?   @relation(fields: [checkInSessionId], references: [id], onDelete: SetNull)
+  owner            User?             @relation("CommitmentOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  createdBy        User?             @relation("CommitmentCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  timelineEvents   TimelineEvent[]
+  reminders        Reminder[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@index([coupleId, status])
+  @@index([objectiveId, status])
+  @@index([checkInSessionId])
+}
+
+model TimelineEvent {
+  id               String            @id @default(cuid())
+  coupleId         String
+  kind             TimelineEventKind
+  title            String
+  summary          String?
+  metadata         Json?
+  createdById      String?
+  objectiveId      String?
+  commitmentId     String?
+  checkInSessionId String?
+  reminderId       String?
+  couple           Couple            @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  createdBy        User?             @relation("TimelineEventCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  objective        Objective?        @relation(fields: [objectiveId], references: [id], onDelete: SetNull)
+  commitment       Commitment?       @relation(fields: [commitmentId], references: [id], onDelete: SetNull)
+  checkInSession   CheckInSession?   @relation(fields: [checkInSessionId], references: [id], onDelete: SetNull)
+  reminder         Reminder?         @relation(fields: [reminderId], references: [id], onDelete: SetNull)
+  createdAt        DateTime          @default(now())
+
+  @@index([coupleId, createdAt])
+  @@index([kind, createdAt])
+}
+
+model Reminder {
+  id               String          @id @default(cuid())
+  coupleId         String
+  quarterId        String?
+  commitmentId     String?
+  checkInSessionId String?
+  kind             ReminderKind
+  status           ReminderStatus  @default(PENDING)
+  title            String
+  body             String?
+  dueAt            DateTime
+  relatedType      String?
+  relatedId        String?
+  createdById      String?
+  completedAt      DateTime?
+  dismissedAt      DateTime?
+  couple           Couple          @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  quarter          Quarter?        @relation(fields: [quarterId], references: [id], onDelete: SetNull)
+  commitment       Commitment?     @relation(fields: [commitmentId], references: [id], onDelete: SetNull)
+  checkInSession   CheckInSession? @relation(fields: [checkInSessionId], references: [id], onDelete: SetNull)
+  createdBy        User?           @relation("ReminderCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  timelineEvents   TimelineEvent[]
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@index([coupleId, status, dueAt])
+  @@index([kind, dueAt])
 }
 
 model KeyResult {

@@ -116,6 +116,20 @@ export function buildCoupleContext(couple: {
       unit: string | null;
     }>;
   }>;
+  commitments?: Array<{
+    title: string;
+    details: string | null;
+    dueAt: Date | null;
+    status: string;
+    owner?: { name: string | null; email: string | null } | null;
+    objective?: { title: string } | null;
+  }>;
+  checkInSessions?: Array<{
+    title: string;
+    summary: string | null;
+    moodRating: number | null;
+    createdAt: Date;
+  }>;
 }) {
   const vision = couple.vision ? couple.vision : "(nicht gesetzt)";
   const mission = couple.mission ? couple.mission : "(nicht gesetzt)";
@@ -142,8 +156,30 @@ export function buildCoupleContext(couple: {
     return `Objective: ${objective.title} (${objective.quarter.title}) - ${progress}%${nextAction}\n${keyResults}`;
   });
 
+  const commitments = couple.commitments?.map((commitment) => {
+    const owner = commitment.owner
+      ? `, Owner: ${commitment.owner.name ?? commitment.owner.email ?? "unbekannt"}`
+      : "";
+    const dueAt = commitment.dueAt ? `, Fällig: ${commitment.dueAt.toISOString()}` : "";
+    const objective = commitment.objective ? `, Objective: ${commitment.objective.title}` : "";
+    return `Commitment: ${commitment.title} (${commitment.status}${dueAt}${owner}${objective})${
+      commitment.details ? `\nDetails: ${commitment.details}` : ""
+    }`;
+  });
+
+  const checkIns = couple.checkInSessions?.map((checkIn) => {
+    const mood = checkIn.moodRating ? `, Mood: ${checkIn.moodRating}/5` : "";
+    return `Check-in: ${checkIn.title} (${checkIn.createdAt.toISOString()}${mood})${
+      checkIn.summary ? `\nSummary: ${checkIn.summary}` : ""
+    }`;
+  });
+
   return `Couple: ${couple.name}\nVision: ${vision}\nMission: ${mission}\n\nObjectives:\n${
     objectives.length ? objectives.join("\n\n") : "(keine Objectives)"
+  }\n\nCommitments:\n${
+    commitments?.length ? commitments.join("\n\n") : "(keine Commitments)"
+  }\n\nLetzte Check-ins:\n${
+    checkIns?.length ? checkIns.join("\n\n") : "(keine Check-ins)"
   }`;
 }
 

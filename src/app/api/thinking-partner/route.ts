@@ -156,6 +156,19 @@ export async function POST(req: Request) {
             },
             orderBy: { createdAt: "desc" },
           },
+          commitments: {
+            where: { status: "OPEN" },
+            include: {
+              owner: { select: { name: true, email: true } },
+              objective: { select: { title: true } },
+            },
+            orderBy: [{ dueAt: "asc" }, { createdAt: "desc" }],
+            take: 6,
+          },
+          checkInSessions: {
+            orderBy: { createdAt: "desc" },
+            take: 4,
+          },
         },
       },
     },
@@ -184,6 +197,8 @@ export async function POST(req: Request) {
     vision: user.couple.vision,
     mission: user.couple.mission,
     objectives: user.couple.objectives,
+    commitments: user.couple.commitments,
+    checkInSessions: user.couple.checkInSessions,
   });
 
   const topics = inferTopicsFromQuery(message);

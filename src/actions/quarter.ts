@@ -10,6 +10,11 @@ import {
 } from "@/lib/validations/quarter";
 import { getQuarterInfo } from "@/lib/quarters";
 import { requireUserWithCouple } from "@/actions/utils";
+import {
+  createTimelineEvent,
+  getQuarterReviewDueAt,
+  upsertReminder,
+} from "@/lib/couple-engagement";
 
 export const createQuarter = action
   .schema(createQuarterSchema)
@@ -42,6 +47,26 @@ export const createQuarter = action
         endsAt,
         coupleId: user.coupleId,
       },
+    });
+
+    await upsertReminder({
+      coupleId: user.coupleId,
+      kind: "QUARTER_REVIEW",
+      title: `Quarter-Review: ${quarter.title}`,
+      body: "Zeit, das Quartal zu reviewen und das nächste zu planen.",
+      dueAt: getQuarterReviewDueAt(quarter.endsAt),
+      relatedType: "quarter",
+      relatedId: quarter.id,
+      quarterId: quarter.id,
+      createdById: user.id,
+    });
+
+    await createTimelineEvent({
+      coupleId: user.coupleId,
+      kind: "MILESTONE",
+      title: quarter.title,
+      summary: "Neues Quartal angelegt.",
+      createdById: user.id,
     });
 
     revalidatePath("/dashboard");

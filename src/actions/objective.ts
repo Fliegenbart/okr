@@ -13,6 +13,10 @@ import {
 } from "@/lib/validations/objective";
 import { getQuarterInfo } from "@/lib/quarters";
 import { requireUserWithCouple } from "@/actions/utils";
+import {
+  createTimelineEvent,
+  syncObjectiveCommitment,
+} from "@/lib/couple-engagement";
 
 export const createObjective = action
   .schema(createObjectiveSchema)
@@ -175,6 +179,15 @@ export const updateObjective = action
       },
     });
 
+    await createTimelineEvent({
+      coupleId: user.coupleId,
+      kind: "OBJECTIVE_UPDATE",
+      title: parsedInput.title,
+      summary: "Objective aktualisiert.",
+      createdById: user.id,
+      objectiveId: objective.id,
+    });
+
     revalidatePath("/dashboard");
     revalidatePath(`/dashboard/objectives/${objective.id}/edit`);
 
@@ -204,6 +217,15 @@ export const archiveObjective = action
       data: { archivedAt: new Date() },
     });
 
+    await createTimelineEvent({
+      coupleId: user.coupleId,
+      kind: "MILESTONE",
+      title: "Objective archiviert",
+      summary: "Ein Objective wurde archiviert.",
+      createdById: user.id,
+      objectiveId: objective.id,
+    });
+
     revalidatePath("/dashboard");
 
     return { archived: true };
@@ -230,6 +252,15 @@ export const restoreObjective = action
     await prisma.objective.update({
       where: { id: objective.id },
       data: { archivedAt: null },
+    });
+
+    await createTimelineEvent({
+      coupleId: user.coupleId,
+      kind: "MILESTONE",
+      title: "Objective wiederhergestellt",
+      summary: "Ein archiviertes Objective wurde reaktiviert.",
+      createdById: user.id,
+      objectiveId: objective.id,
     });
 
     revalidatePath("/dashboard");
@@ -274,6 +305,25 @@ export const setObjectiveNextAction = action
         nextAction: parsedInput.nextAction,
         nextActionOwnerId: ownerId,
       },
+    });
+
+    await syncObjectiveCommitment({
+      objectiveId: objective.id,
+      coupleId: user.coupleId,
+      title: parsedInput.nextAction,
+      ownerId,
+      createdById: user.id,
+    });
+
+    await createTimelineEvent({
+      coupleId: user.coupleId,
+      kind: parsedInput.nextAction ? "COMMITMENT_CREATED" : "OBJECTIVE_UPDATE",
+      title: parsedInput.nextAction ?? "Nächste Aktion entfernt",
+      summary: parsedInput.nextAction
+        ? "Objective-Commitment gespeichert."
+        : "Objective-Commitment entfernt.",
+      createdById: user.id,
+      objectiveId: objective.id,
     });
 
     revalidatePath("/dashboard");

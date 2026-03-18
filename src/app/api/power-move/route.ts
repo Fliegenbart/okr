@@ -8,6 +8,7 @@ import { generateChatCompletion, generateToolCallCompletion, type LlmMessage } f
 import { calculateProgress } from "@/lib/progress";
 import {
   buildKnowledgeContext,
+  buildCoupleContext,
   inferTopicsFromQuery,
   searchTranscriptChunks,
 } from "@/lib/thinking-partner";
@@ -129,6 +130,19 @@ export async function POST(req: Request) {
           checkInTime: true,
           checkInDurationMinutes: true,
           checkInTimeZone: true,
+          commitments: {
+            where: { status: "OPEN" },
+            include: {
+              owner: { select: { name: true, email: true } },
+              objective: { select: { title: true } },
+            },
+            orderBy: [{ dueAt: "asc" }, { createdAt: "desc" }],
+            take: 6,
+          },
+          checkInSessions: {
+            orderBy: { createdAt: "desc" },
+            take: 4,
+          },
         },
       },
     },
@@ -251,6 +265,26 @@ export async function POST(req: Request) {
 
   const averageProgress = safeAverage(objectiveSignals.map((o) => o.progress));
 
+  const coupleContext = buildCoupleContext({
+    name: user.couple.name,
+    vision: user.couple.vision,
+    mission: user.couple.mission,
+    objectives: objectives.map((objective) => ({
+      title: objective.title,
+      description: objective.description ?? null,
+      nextAction: objective.nextAction ?? null,
+      quarter: { title: selectedQuarter.title },
+      keyResults: objective.keyResults.map((kr) => ({
+        title: kr.title,
+        currentValue: kr.currentValue,
+        targetValue: kr.targetValue,
+        unit: kr.unit ?? null,
+      })),
+    })),
+    commitments: user.couple.commitments,
+    checkInSessions: user.couple.checkInSessions,
+  });
+
   const allKeyResults = objectiveSignals.flatMap((objective) =>
     objective.keyResults.map((kr) => ({
       objectiveTitle: objective.title,
@@ -338,9 +372,7 @@ export async function POST(req: Request) {
 
   const contextPrompt = [
     "Kontext aus dem OKR-Dashboard:",
-    `Couple: ${user.couple.name}`,
-    user.couple.vision ? `Vision: ${user.couple.vision}` : "Vision: (nicht gesetzt)",
-    user.couple.mission ? `Mission: ${user.couple.mission}` : "Mission: (nicht gesetzt)",
+    coupleContext,
     "",
     signalLines,
     "",

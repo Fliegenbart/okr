@@ -28,6 +28,12 @@ export default async function ObjectiveDetailPage({
             where: { id: resolvedParams.id, archivedAt: null },
             include: {
               quarter: true,
+              commitments: {
+                orderBy: { createdAt: "desc" },
+                include: {
+                  owner: { select: { name: true, email: true } },
+                },
+              },
               keyResults: {
                 where: { archivedAt: null },
                 orderBy: { createdAt: "asc" },
@@ -61,12 +67,21 @@ export default async function ObjectiveDetailPage({
             title={objective.title}
             description={objective.description}
             quarterTitle={objective.quarter.title}
+            nextAction={objective.nextAction}
             keyResults={objective.keyResults.map((keyResult) => ({
               id: keyResult.id,
               title: keyResult.title,
               currentValue: keyResult.currentValue,
               targetValue: keyResult.targetValue,
               unit: keyResult.unit,
+            }))}
+            commitments={objective.commitments.map((commitment) => ({
+              id: commitment.id,
+              title: commitment.title,
+              status: commitment.status,
+              dueAt: commitment.dueAt ? commitment.dueAt.toISOString() : null,
+              ownerName:
+                commitment.owner?.name ?? commitment.owner?.email ?? null,
             }))}
           />
         </div>

@@ -241,6 +241,32 @@ export default async function DashboardPage({
     };
   });
 
+  const [latestCheckIn, openCommitments, upcomingReminders, recentTimeline] =
+    await Promise.all([
+      prisma.checkInSession.findFirst({
+        where: { coupleId: couple.id },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.commitment.findMany({
+        where: { coupleId: couple.id, status: "OPEN" },
+        include: {
+          objective: { select: { title: true } },
+        },
+        orderBy: [{ dueAt: "asc" }, { createdAt: "desc" }],
+        take: 4,
+      }),
+      prisma.reminder.findMany({
+        where: { coupleId: couple.id, status: "PENDING" },
+        orderBy: { dueAt: "asc" },
+        take: 4,
+      }),
+      prisma.timelineEvent.findMany({
+        where: { coupleId: couple.id },
+        orderBy: { createdAt: "desc" },
+        take: 3,
+      }),
+    ]);
+
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto w-full max-w-5xl px-6 py-10">
@@ -308,6 +334,94 @@ export default async function DashboardPage({
             </CardContent>
           </Card>
         </div>
+
+        <section className="mt-10 space-y-4">
+          <div className="space-y-2">
+            <h2 className="text-xl font-semibold text-foreground">
+              Beziehungs-Puls
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Ein kompakter Überblick über Check-ins, Commitments und offene
+              Follow-ups.
+            </p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <Card>
+              <CardContent className="space-y-2 p-6">
+                <p className="text-sm font-medium text-primary">Letzter Check-in</p>
+                {latestCheckIn ? (
+                  <>
+                    <p className="text-lg font-semibold text-foreground">
+                      {latestCheckIn.title}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {dateFormatter.format(latestCheckIn.createdAt)}
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Noch kein Check-in gespeichert.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="space-y-2 p-6">
+                <p className="text-sm font-medium text-primary">Offene Commitments</p>
+                <p className="text-3xl font-semibold text-foreground">
+                  {openCommitments.length}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {openCommitments[0]
+                    ? openCommitments[0].title
+                    : "Alles erledigt"}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="space-y-2 p-6">
+                <p className="text-sm font-medium text-primary">Nächster Reminder</p>
+                {upcomingReminders[0] ? (
+                  <>
+                    <p className="text-lg font-semibold text-foreground">
+                      {upcomingReminders[0].title}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {dateFormatter.format(upcomingReminders[0].dueAt)}
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Keine offenen Reminder.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="space-y-2 p-6">
+                <p className="text-sm font-medium text-primary">Letzter Verlauf</p>
+                {recentTimeline[0] ? (
+                  <>
+                    <p className="text-lg font-semibold text-foreground">
+                      {recentTimeline[0].title}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {dateFormatter.format(recentTimeline[0].createdAt)}
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Noch kein Verlauf vorhanden.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </section>
 
         <section
           className="mt-10 space-y-4"

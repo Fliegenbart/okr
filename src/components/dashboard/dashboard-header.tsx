@@ -56,7 +56,11 @@ export async function DashboardHeader() {
           className="flex-wrap gap-2"
         items={[
           { href: "/dashboard", label: "Dashboard" },
+          { href: "/dashboard/check-in", label: "Check-in" },
+          { href: "/dashboard/timeline", label: "Timeline" },
           { href: "/dashboard/board", label: "Board" },
+          { href: "/dashboard/templates", label: "Templates" },
+          { href: "/dashboard/reminders", label: "Reminder" },
           { href: "/dashboard/thinking-partner", label: "Thinking Partner" },
           { href: "/dashboard/vision-mission", label: "Vision & Mission" },
           ...(user?.role === "ADMIN" || isAdminEmail(user?.email)

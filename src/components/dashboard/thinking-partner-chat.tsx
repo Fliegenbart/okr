@@ -226,7 +226,7 @@ export function ThinkingPartnerChat({
     const structured = message.structured;
 
     if (action.type === "OPEN_CHECKIN_SETTINGS") {
-      router.push("/dashboard/settings#checkin");
+      router.push("/dashboard/check-in");
       return;
     }
 
