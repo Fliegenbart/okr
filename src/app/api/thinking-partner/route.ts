@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 import { getAuthSession } from "@/auth";
+import { assertRateLimit } from "@/lib/rate-limit";
 import { prisma } from "@/lib/db";
 import {
   generateChatCompletion,
@@ -17,6 +19,26 @@ import {
   thinkingPartnerResponseSchema,
   type ThinkingPartnerResponse,
 } from "@/lib/validations/thinking-partner";
+
+const MAX_MESSAGE_LENGTH = 1200;
+const MAX_HISTORY_MESSAGES = 6;
+const MAX_HISTORY_MESSAGE_LENGTH = 1200;
+
+const historyMessageSchema = z
+  .object({
+    role: z.enum(["user", "assistant"]),
+    content: z.string().trim().min(1).max(MAX_HISTORY_MESSAGE_LENGTH),
+  })
+  .strict();
+
+const requestSchema = z
+  .object({
+    message: z.string().trim().min(1).max(MAX_MESSAGE_LENGTH),
+    history: z.array(historyMessageSchema).max(MAX_HISTORY_MESSAGES).default([]),
+    objectiveId: z.string().trim().min(1).nullable().optional(),
+    keyResultId: z.string().trim().min(1).nullable().optional(),
+  })
+  .strict();
 
 const toolSchema = {
   type: "object",
@@ -100,20 +122,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await req.json().catch(() => null);
-  const message = typeof body?.message === "string" ? body.message.trim() : "";
-  const history: unknown[] = Array.isArray(body?.history) ? body.history : [];
-  const objectiveId =
-    typeof body?.objectiveId === "string" ? body.objectiveId : null;
-  const keyResultId =
-    typeof body?.keyResultId === "string" ? body.keyResultId : null;
+  const parsedBody = requestSchema.safeParse(await req.json().catch(() => null));
 
-  if (!message) {
+  if (!parsedBody.success) {
     return NextResponse.json(
-      { error: "Nachricht fehlt." },
+      { error: "Ungültige Anfrage." },
       { status: 400 }
     );
   }
+
+  const { message, history, objectiveId, keyResultId } = parsedBody.data;
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
@@ -147,6 +165,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "No couple" }, { status: 404 });
   }
 
+  try {
+    await assertRateLimit({
+      action: "thinking_partner_request",
+      key: user.coupleId!,
+      limit: 20,
+      windowMs: 15 * 60 * 1000,
+    });
+  } catch {
+    return NextResponse.json(
+      { error: "Zu viele Anfragen. Bitte warte kurz und versuche es erneut." },
+      { status: 429 }
+    );
+  }
+
   const coupleContext = buildCoupleContext({
     name: user.couple.name,
     vision: user.couple.vision,
@@ -155,7 +187,12 @@ export async function POST(req: Request) {
   });
 
   const topics = inferTopicsFromQuery(message);
-  const snippets = await searchTranscriptChunks(message, 6, topics);
+  const snippets = await searchTranscriptChunks(
+    message,
+    6,
+    topics,
+    user.coupleId
+  );
   const knowledgeContext = buildKnowledgeContext(snippets);
   const ritualCandidates = extractMiniRitualCandidates(knowledgeContext);
 
@@ -184,15 +221,6 @@ export async function POST(req: Request) {
     : "Keine Mini-Ritual Kandidaten gefunden.";
 
   const sanitizedHistory: LlmMessage[] = history
-    .filter((item): item is { role: "user" | "assistant"; content: string } => {
-      if (!item || typeof item !== "object") return false;
-      const candidate = item as { role?: unknown; content?: unknown };
-      return (
-        (candidate.role === "user" || candidate.role === "assistant") &&
-        typeof candidate.content === "string"
-      );
-    })
-    .slice(-6)
     .map((item) => ({
       role: item.role,
       content: item.content,

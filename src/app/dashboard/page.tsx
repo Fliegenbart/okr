@@ -106,6 +106,7 @@ export default async function DashboardPage({
           invites: {
             where: {
               acceptedAt: null,
+              revokedAt: null,
               expiresAt: { gt: now },
             },
             orderBy: { createdAt: "desc" },

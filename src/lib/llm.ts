@@ -1,3 +1,5 @@
+import { logEvent } from "@/lib/monitoring";
+
 export type LlmMessage = {
   role: "system" | "user" | "assistant";
   content: string;
@@ -52,17 +54,23 @@ export async function generateChatCompletion(
     });
   };
 
-  let response = await doRequest(model);
+  let selectedModel = model;
+  let response = await doRequest(selectedModel);
 
   if (!response.ok && fallbackModel && fallbackModel !== model) {
     // If the model is unavailable or blocked, retry once with a cheaper fallback.
-    response = await doRequest(fallbackModel);
+    selectedModel = fallbackModel;
+    response = await doRequest(selectedModel);
   }
 
   if (!response.ok) {
-    const errorText = await response.text();
+    logEvent("error", "llm_chat_request_failed", {
+      status: response.status,
+      model: selectedModel,
+    });
     return {
-      content: `Fehler bei der LLM-Anfrage: ${errorText}`,
+      content:
+        "Der Thinking Partner ist gerade nicht erreichbar. Bitte versuche es später noch einmal.",
       isFallback: true,
     };
   }
@@ -127,20 +135,26 @@ export async function generateToolCallCompletion(
     });
   };
 
-  let response = await doRequest(model);
+  let selectedModel = model;
+  let response = await doRequest(selectedModel);
   let isFallback = false;
 
   if (!response.ok && fallbackModel && fallbackModel !== model) {
-    response = await doRequest(fallbackModel);
+    selectedModel = fallbackModel;
+    response = await doRequest(selectedModel);
     isFallback = true;
   }
 
   if (!response.ok) {
-    const errorText = await response.text();
+    logEvent("error", "llm_tool_call_request_failed", {
+      status: response.status,
+      model: selectedModel,
+    });
     return {
       toolArgumentsJson: null,
       isFallback: true,
-      error: `Fehler bei der LLM-Anfrage: ${errorText}`,
+      error:
+        "Der Thinking Partner ist gerade nicht erreichbar. Bitte versuche es später noch einmal.",
     };
   }
 
@@ -149,10 +163,14 @@ export async function generateToolCallCompletion(
   const args = toolCall?.function?.arguments;
 
   if (!args || typeof args !== "string") {
+    logEvent("error", "llm_tool_call_missing_arguments", {
+      model: selectedModel,
+    });
     return {
       toolArgumentsJson: null,
       isFallback,
-      error: "Das Modell hat keine strukturierte Antwort geliefert.",
+      error:
+        "Der Thinking Partner konnte gerade keine strukturierte Antwort liefern.",
     };
   }
 
@@ -162,10 +180,14 @@ export async function generateToolCallCompletion(
       isFallback,
     };
   } catch {
+    logEvent("error", "llm_tool_call_invalid_json", {
+      model: selectedModel,
+    });
     return {
       toolArgumentsJson: null,
       isFallback,
-      error: "Strukturierte Antwort war kein gültiges JSON.",
+      error:
+        "Der Thinking Partner konnte gerade keine strukturierte Antwort liefern.",
     };
   }
 }

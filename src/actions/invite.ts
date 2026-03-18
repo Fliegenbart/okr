@@ -50,6 +50,7 @@ export const createInvite = action
         coupleId: user.coupleId,
         email,
         acceptedAt: null,
+        revokedAt: null,
         expiresAt: { lte: now },
       },
     });
@@ -59,6 +60,7 @@ export const createInvite = action
         coupleId: user.coupleId,
         email,
         acceptedAt: null,
+        revokedAt: null,
         expiresAt: { gt: now },
       },
       orderBy: {
@@ -160,6 +162,10 @@ export const acceptInvite = action
 
     if (invite.acceptedAt) {
       throw new Error("Diese Einladung wurde bereits verwendet.");
+    }
+
+    if (invite.revokedAt) {
+      throw new Error("Diese Einladung wurde widerrufen.");
     }
 
     if (invite.expiresAt < new Date()) {

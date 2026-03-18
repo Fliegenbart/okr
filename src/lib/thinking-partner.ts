@@ -43,7 +43,8 @@ export function inferTopicsFromQuery(query: string): TranscriptTopic[] {
 export async function searchTranscriptChunks(
   query: string,
   limit = 6,
-  topics?: TranscriptTopic[]
+  topics?: TranscriptTopic[],
+  coupleId?: string | null
 ) {
   if (!query.trim()) return [];
 
@@ -62,6 +63,10 @@ export async function searchTranscriptChunks(
         )})`
       : Prisma.empty;
 
+    const transcriptScopeCondition = coupleId
+      ? Prisma.sql`AND (t."coupleId" IS NULL OR t."coupleId" = ${coupleId})`
+      : Prisma.sql`AND t."coupleId" IS NULL`;
+
     return prisma.$queryRaw<
       Array<{
         id: string;
@@ -79,6 +84,7 @@ export async function searchTranscriptChunks(
       FROM "TranscriptChunk" tc
       JOIN "Transcript" t ON t.id = tc."transcriptId"
       WHERE to_tsvector('german', tc.content) @@ plainto_tsquery('german', ${query})
+      ${transcriptScopeCondition}
       ${topicConditions}
       ORDER BY ts_rank(to_tsvector('german', tc.content), plainto_tsquery('german', ${query})) DESC
       LIMIT ${limit}

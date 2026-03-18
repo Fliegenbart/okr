@@ -55,6 +55,7 @@ export default async function SettingsPage() {
           invites: {
             where: {
               acceptedAt: null,
+              revokedAt: null,
               expiresAt: { gt: now },
             },
             orderBy: { createdAt: "desc" },

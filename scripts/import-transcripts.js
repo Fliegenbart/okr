@@ -102,10 +102,24 @@ async function main() {
     process.exit(1);
   }
 
+  const transcriptCoupleId = process.env.TRANSCRIPT_COUPLE_ID?.trim() || null;
+
   const resolvedDir = path.resolve(transcriptDir);
   if (!fs.existsSync(resolvedDir)) {
     console.error(`Verzeichnis nicht gefunden: ${resolvedDir}`);
     process.exit(1);
+  }
+
+  if (transcriptCoupleId) {
+    const couple = await prisma.couple.findUnique({
+      where: { id: transcriptCoupleId },
+      select: { id: true },
+    });
+
+    if (!couple) {
+      console.error(`Couple nicht gefunden: ${transcriptCoupleId}`);
+      process.exit(1);
+    }
   }
 
   if (process.env.RESET_TRANSCRIPTS === "true") {
@@ -136,6 +150,7 @@ async function main() {
       data: {
         title,
         sourcePath: filePath,
+        coupleId: transcriptCoupleId,
         topics,
         metadata: {
           fileName: path.basename(filePath),

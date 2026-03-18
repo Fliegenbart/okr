@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getAuthSession } from "@/auth";
+import { assertRateLimit } from "@/lib/rate-limit";
 import { prisma } from "@/lib/db";
 import { generateChatCompletion, generateToolCallCompletion, type LlmMessage } from "@/lib/llm";
 import { calculateProgress } from "@/lib/progress";
@@ -135,6 +136,20 @@ export async function POST(req: Request) {
 
   if (!user?.coupleId || !user.couple) {
     return NextResponse.json({ error: "No couple" }, { status: 404 });
+  }
+
+  try {
+    await assertRateLimit({
+      action: "power_move_request",
+      key: user.coupleId!,
+      limit: 8,
+      windowMs: 15 * 60 * 1000,
+    });
+  } catch {
+    return NextResponse.json(
+      { error: "Zu viele Anfragen. Bitte warte kurz und versuche es erneut." },
+      { status: 429 }
+    );
   }
 
   const now = new Date();
@@ -338,7 +353,12 @@ export async function POST(req: Request) {
       ? "Weekly Check-in Struktur 15 Minuten"
       : "KR-Check in 90 Sekunden";
   const topics = inferTopicsFromQuery(query);
-  const snippets = await searchTranscriptChunks(query, 6, topics);
+  const snippets = await searchTranscriptChunks(
+    query,
+    6,
+    topics,
+    user.coupleId
+  );
   const knowledgeContext = buildKnowledgeContext(snippets);
   const ritualCandidates = extractMiniRitualCandidates(knowledgeContext);
 

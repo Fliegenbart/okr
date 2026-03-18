@@ -41,11 +41,12 @@ npm run dev
 Open `http://localhost:3000`.
 
 ## Dev Login
-In `.env` set:
+Only for local development, in `.env` set:
 ```
 DEV_LOGIN_ENABLED="true"
 ```
 Then you can sign in via the Developer Login form using any email.
+Do not enable this in production.
 
 ## Closed Beta Auth MVP
 
@@ -82,6 +83,7 @@ For closed beta and magic-link emails also set:
 - `BETA_MODE`
 - `ALLOW_SELF_SERVE_SIGNUP`
 - `DEV_LOGIN_ENABLED`
+- `ADMIN_EMAILS`
 - `EMAIL_SERVER_HOST`
 - `EMAIL_SERVER_PORT`
 - `EMAIL_SERVER_USER`
@@ -112,8 +114,11 @@ Supported formats: `.txt`, `.md`, `.srt`, `.vtt`.
 ```bash
 export TRANSCRIPT_DIR="/absolute/path/to/transcripts"
 export RESET_TRANSCRIPTS="true"
+export TRANSCRIPT_COUPLE_ID=""
 npm run transcripts:import
 ```
+
+If `TRANSCRIPT_COUPLE_ID` is set, the imported knowledge is scoped to that couple. If it is empty, the transcripts stay global and are only used when the app intentionally allows shared knowledge.
 
 ### 2) Configure LLM
 Add to `.env`:
@@ -138,3 +143,4 @@ In `http://localhost:3000/dashboard/settings` you can configure a weekly check-i
 ## Notes
 - Invite emails are only sent if real SMTP credentials are configured.
 - PWA assets live in `public/` and `public/manifest.json`.
+- The admin console lives under `/admin` and is only accessible to users whose email is listed in `ADMIN_EMAILS` or who have `role = ADMIN` in the database.

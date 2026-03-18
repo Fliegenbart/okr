@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { isAdminEmail } from "@/lib/admin-access";
 import { isClosedBetaMode, isSelfServeSignupAllowed } from "@/lib/runtime-flags";
 
 function normalizeEmail(email: string) {
@@ -22,6 +23,10 @@ export async function hasBetaAccess(email: string) {
 }
 
 export async function canEmailCreateCouple(email: string) {
+  if (isAdminEmail(email)) {
+    return true;
+  }
+
   if (!isClosedBetaMode() || isSelfServeSignupAllowed()) {
     return true;
   }
@@ -31,6 +36,10 @@ export async function canEmailCreateCouple(email: string) {
 
 export async function canEmailSignIn(email: string) {
   const normalizedEmail = normalizeEmail(email);
+
+  if (isAdminEmail(normalizedEmail)) {
+    return true;
+  }
 
   if (!isClosedBetaMode()) {
     return true;
@@ -45,6 +54,7 @@ export async function canEmailSignIn(email: string) {
       where: {
         email: normalizedEmail,
         acceptedAt: null,
+        revokedAt: null,
         expiresAt: {
           gt: new Date(),
         },

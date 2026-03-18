@@ -5,6 +5,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 
 import { canEmailSignIn } from "@/lib/beta-access";
+import { isAdminEmail } from "@/lib/admin-access";
 import { prisma } from "@/lib/db";
 import { isEmailConfigured, sendLoginLinkEmail } from "@/lib/email";
 import { logEvent } from "@/lib/monitoring";
@@ -146,16 +147,41 @@ export const authOptions: NextAuthOptions = {
     },
     async jwt({ token, user }) {
       if (user) {
+        if (isAdminEmail(user.email)) {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { role: "ADMIN" },
+          });
+        }
+
         token.sub = user.id;
         token.coupleId = user.coupleId ?? null;
+        token.role = isAdminEmail(user.email)
+          ? "ADMIN"
+          : (user as { role?: "USER" | "ADMIN" }).role ?? "USER";
       }
       return token;
     },
     async session({ session, token, user }) {
       if (session.user) {
+        const dbUser = token?.sub
+          ? await prisma.user.findUnique({
+              where: { id: token.sub },
+              select: {
+                coupleId: true,
+                role: true,
+              },
+            })
+          : null;
+
         session.user.id = user?.id ?? token?.sub ?? session.user.id ?? "";
         session.user.coupleId =
-          user?.coupleId ?? (token?.coupleId as string | null) ?? null;
+          user?.coupleId ??
+          dbUser?.coupleId ??
+          (token?.coupleId as string | null) ??
+          null;
+        session.user.role =
+          dbUser?.role ?? (token?.role as "USER" | "ADMIN" | undefined) ?? "USER";
       }
       return session;
     },

@@ -7,5 +7,9 @@ export function isSelfServeSignupAllowed() {
 }
 
 export function isDevLoginEnabled() {
+  if (process.env.NODE_ENV === "production") {
+    return false;
+  }
+
   return process.env.DEV_LOGIN_ENABLED === "true";
 }
