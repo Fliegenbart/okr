@@ -7,9 +7,11 @@ import EmailProvider from "next-auth/providers/email";
 import { canEmailSignIn } from "@/lib/beta-access";
 import { isAdminEmail } from "@/lib/admin-access";
 import { prisma } from "@/lib/db";
+import { claimInviteForEmail } from "@/lib/invite-access";
 import { isEmailConfigured, sendLoginLinkEmail } from "@/lib/email";
 import { logEvent } from "@/lib/monitoring";
 import { assertRateLimit } from "@/lib/rate-limit";
+import { authorizeSupportLogin, isSupportAccessConfigured } from "@/lib/support-access";
 import { isDevLoginEnabled } from "@/lib/runtime-flags";
 
 const enableDevLogin = isDevLoginEnabled();
@@ -17,6 +19,19 @@ const enableEmailProvider = isEmailConfigured();
 
 function normalizeEmail(email?: string | null) {
   return email?.trim().toLowerCase() ?? "";
+}
+
+async function assertCredentialLoginRateLimit({ action, key }: { action: string; key: string }) {
+  try {
+    await assertRateLimit({
+      action,
+      key,
+      limit: 8,
+      windowMs: 15 * 60 * 1000,
+    });
+  } catch {
+    throw new Error("Zu viele Versuche. Bitte warte kurz und versuche es erneut.");
+  }
 }
 
 export const authOptions: NextAuthOptions = {
@@ -83,6 +98,68 @@ export const authOptions: NextAuthOptions = {
           }),
         ]
       : []),
+    CredentialsProvider({
+      id: "invite-login",
+      name: "Invite Login",
+      credentials: {
+        email: {
+          label: "Email",
+          type: "email",
+          placeholder: "partner@email.de",
+        },
+        token: {
+          label: "Token",
+          type: "text",
+          placeholder: "Einladungstoken",
+        },
+      },
+      async authorize(credentials) {
+        const email = credentials?.email?.toLowerCase().trim();
+        const token = credentials?.token?.trim();
+
+        if (!email || !token) return null;
+
+        await assertCredentialLoginRateLimit({
+          action: "auth_invite_login",
+          key: `${email}:${token.slice(0, 12)}`,
+        });
+
+        return claimInviteForEmail({ email, token });
+      },
+    }),
+    ...(isSupportAccessConfigured()
+      ? [
+          CredentialsProvider({
+            id: "support-login",
+            name: "Support Login",
+            credentials: {
+              email: {
+                label: "Email",
+                type: "email",
+                placeholder: "mail@davidwegener.de",
+              },
+              accessCode: {
+                label: "Support Code",
+                type: "password",
+                placeholder: "Support-Code",
+              },
+            },
+            async authorize(credentials) {
+              const email = credentials?.email?.toLowerCase().trim();
+              const accessCode = credentials?.accessCode?.trim();
+
+              if (!email || !accessCode) return null;
+
+              await assertCredentialLoginRateLimit({
+                action: "auth_support_login",
+                key: email,
+              });
+
+              return authorizeSupportLogin({ email, accessCode });
+            },
+          }),
+        ]
+      : []),
   ],
   callbacks: {
     async signIn({ user, account, email }) {
@@ -92,13 +169,15 @@ export const authOptions: NextAuthOptions = {
         return enableDevLogin;
       }
 
+      if (provider === "invite-login" || provider === "support-login") {
+        return true;
+      }
+
       if (provider !== "email") {
         return false;
       }
 
-      const normalizedEmail = normalizeEmail(
-        user?.email ?? account?.providerAccountId ?? null
-      );
+      const normalizedEmail = normalizeEmail(user?.email ?? account?.providerAccountId ?? null);
 
       if (!normalizedEmail) {
         return "/auth/signin?error=MissingEmail";
@@ -158,7 +237,7 @@ export const authOptions: NextAuthOptions = {
         token.coupleId = user.coupleId ?? null;
         token.role = isAdminEmail(user.email)
           ? "ADMIN"
-          : (user as { role?: "USER" | "ADMIN" }).role ?? "USER";
+          : ((user as { role?: "USER" | "ADMIN" }).role ?? "USER");
       }
       return token;
     },
@@ -176,12 +255,8 @@ export const authOptions: NextAuthOptions = {
 
         session.user.id = user?.id ?? token?.sub ?? session.user.id ?? "";
         session.user.coupleId =
-          user?.coupleId ??
-          dbUser?.coupleId ??
-          (token?.coupleId as string | null) ??
-          null;
-        session.user.role =
-          dbUser?.role ?? (token?.role as "USER" | "ADMIN" | undefined) ?? "USER";
+          user?.coupleId ?? dbUser?.coupleId ?? (token?.coupleId as string | null) ?? null;
+        session.user.role = dbUser?.role ?? (token?.role as "USER" | "ADMIN" | undefined) ?? "USER";
       }
       return session;
     },

@@ -26,12 +26,8 @@ export function AdminHeader({ user }: AdminHeaderProps) {
               />
             </span>
             <div className="flex flex-col">
-              <span className="text-sm font-semibold text-foreground">
-                Admin Console
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {user.email ?? "ohne E-Mail"}
-              </span>
+              <span className="text-sm font-semibold text-foreground">Admin Console</span>
+              <span className="text-xs text-muted-foreground">{user.email ?? "ohne E-Mail"}</span>
             </div>
           </Link>
         </div>
@@ -40,6 +36,7 @@ export function AdminHeader({ user }: AdminHeaderProps) {
           className="flex-wrap gap-2"
           items={[
             { href: "/admin", label: "Overview" },
+            { href: "/admin/beta", label: "Beta" },
             { href: "/admin/invites", label: "Invites" },
             { href: "/admin/couples", label: "Couples" },
             { href: "/admin/boards", label: "Boards" },
@@ -61,4 +58,3 @@ export function AdminHeader({ user }: AdminHeaderProps) {
     </header>
   );
 }
-
