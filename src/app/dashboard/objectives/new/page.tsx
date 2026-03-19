@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { getAuthSession } from "@/auth";
 import { ObjectiveForm } from "@/components/dashboard/objective-form";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -10,30 +9,23 @@ import {
 import { prisma } from "@/lib/db";
 
 export default async function ObjectiveNewPage() {
-  const session = await getAuthSession();
-  requireDashboardSubpageAccess(session, "/dashboard/objectives/new");
+  const viewer = await requireDashboardSubpageAccess("/dashboard/objectives/new");
 
-  const user = await prisma.user.findFirst({
-    where: session.user.id
-      ? { id: session.user.id }
-      : { email: session.user.email ?? "" },
+  const couple = await prisma.couple.findUnique({
+    where: { id: viewer.activeCoupleId },
     include: {
-      couple: {
-        include: {
-          quarters: {
-            orderBy: { startsAt: "desc" },
-          },
-        },
+      quarters: {
+        orderBy: { startsAt: "desc" },
       },
     },
   });
 
-  if (!user?.couple) {
-    redirectForMissingCouple(session);
+  if (!couple) {
+    redirectForMissingCouple(viewer);
   }
 
   const now = new Date();
-  const quarters = user.couple.quarters;
+  const quarters = couple.quarters;
   const activeQuarter = quarters.find(
     (quarter) => quarter.startsAt <= now && quarter.endsAt >= now
   );

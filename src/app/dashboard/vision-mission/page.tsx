@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { getAuthSession } from "@/auth";
 import { VisionMissionForm } from "@/components/dashboard/vision-mission-form";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -10,20 +9,18 @@ import {
 import { prisma } from "@/lib/db";
 
 export default async function VisionMissionPage() {
-  const session = await getAuthSession();
-  requireDashboardSubpageAccess(session, "/dashboard/vision-mission");
+  const viewer = await requireDashboardSubpageAccess("/dashboard/vision-mission");
 
-  const user = await prisma.user.findFirst({
-    where: session.user.id
-      ? { id: session.user.id }
-      : { email: session.user.email ?? "" },
-    include: {
-      couple: true,
+  const couple = await prisma.couple.findUnique({
+    where: { id: viewer.activeCoupleId },
+    select: {
+      vision: true,
+      mission: true,
     },
   });
 
-  if (!user?.couple) {
-    redirectForMissingCouple(session);
+  if (!couple) {
+    redirectForMissingCouple(viewer);
   }
 
   return (
@@ -48,8 +45,8 @@ export default async function VisionMissionPage() {
         <Card className="mt-8 rounded-2xl border-border shadow-sm">
           <CardContent className="p-6">
             <VisionMissionForm
-              initialVision={user.couple.vision}
-              initialMission={user.couple.mission}
+              initialVision={couple.vision}
+              initialMission={couple.mission}
             />
           </CardContent>
         </Card>

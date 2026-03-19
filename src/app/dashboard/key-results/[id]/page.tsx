@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { getAuthSession } from "@/auth";
 import { KeyResultChart } from "@/components/dashboard/key-result-chart";
 import { KeyResultUpdateForm } from "@/components/dashboard/key-result-update-form";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,27 +21,14 @@ export default async function KeyResultDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const resolvedParams = await params;
-  const session = await getAuthSession();
-  requireDashboardSubpageAccess(
-    session,
-    `/dashboard/key-results/${resolvedParams.id}`
-  );
-
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { coupleId: true },
-  });
-
-  if (!user?.coupleId) {
-    redirectForMissingCouple(session);
-  }
+  const viewer = await requireDashboardSubpageAccess(`/dashboard/key-results/${resolvedParams.id}`);
 
   const keyResult = await prisma.keyResult.findFirst({
     where: {
       id: resolvedParams.id,
       archivedAt: null,
       objective: {
-        coupleId: user.coupleId,
+        coupleId: viewer.activeCoupleId,
         archivedAt: null,
       },
     },
@@ -55,6 +41,15 @@ export default async function KeyResultDetailPage({
   });
 
   if (!keyResult) {
+    const couple = await prisma.couple.findUnique({
+      where: { id: viewer.activeCoupleId },
+      select: { id: true },
+    });
+
+    if (!couple) {
+      redirectForMissingCouple(viewer);
+    }
+
     return notFound();
   }
 

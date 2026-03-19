@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { getAuthSession } from "@/auth";
 import { ThinkingPartnerChat } from "@/components/dashboard/thinking-partner-chat";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -14,29 +13,24 @@ export default async function ThinkingPartnerPage({
 }: {
   searchParams?: Promise<{ objectiveId?: string; keyResultId?: string }>;
 }) {
-  const session = await getAuthSession();
-  requireDashboardSubpageAccess(session, "/dashboard/thinking-partner");
+  const viewer = await requireDashboardSubpageAccess("/dashboard/thinking-partner");
 
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const objectiveId = resolvedSearchParams?.objectiveId ?? null;
   const keyResultId = resolvedSearchParams?.keyResultId ?? null;
 
-  const user = await prisma.user.findFirst({
-    where: session.user.id
-      ? { id: session.user.id }
-      : { email: session.user.email ?? "" },
-    include: {
-      couple: true,
-    },
+  const couple = await prisma.couple.findUnique({
+    where: { id: viewer.activeCoupleId },
+    select: { id: true },
   });
 
-  if (!user?.couple) {
-    redirectForMissingCouple(session);
+  if (!couple) {
+    redirectForMissingCouple(viewer);
   }
 
   const objective = objectiveId
     ? await prisma.objective.findFirst({
-        where: { id: objectiveId, coupleId: user.couple.id },
+        where: { id: objectiveId, coupleId: couple.id },
         select: { title: true },
       })
     : null;
@@ -46,7 +40,7 @@ export default async function ThinkingPartnerPage({
         where: {
           id: keyResultId,
           archivedAt: null,
-          objective: { coupleId: user.couple.id, archivedAt: null },
+          objective: { coupleId: couple.id, archivedAt: null },
         },
         select: { title: true },
       })

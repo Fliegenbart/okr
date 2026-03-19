@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { getAuthSession } from "@/auth";
 import { CommitmentForm } from "@/components/dashboard/commitment-form";
 import { CheckInComposer } from "@/components/dashboard/check-in-composer";
 import { CommitmentStatusActions } from "@/components/dashboard/commitment-status-actions";
@@ -31,39 +30,32 @@ export default async function CheckInPage({
 }: {
   searchParams?: Promise<{ template?: string }>;
 }) {
-  const session = await getAuthSession();
-  requireDashboardSubpageAccess(session, "/dashboard/check-in");
+  const viewer = await requireDashboardSubpageAccess("/dashboard/check-in");
 
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
-  const user = await prisma.user.findFirst({
-    where: session.user.id
-      ? { id: session.user.id }
-      : { email: session.user.email ?? "" },
+  const couple = await prisma.couple.findUnique({
+    where: { id: viewer.activeCoupleId },
     include: {
-      couple: {
-        include: {
-          users: { select: { id: true, name: true, email: true } },
-          objectives: {
-            where: { archivedAt: null },
-            select: { id: true, title: true },
-            orderBy: { updatedAt: "desc" },
-          },
-          quarters: {
-            orderBy: { startsAt: "desc" },
-          },
-        },
+      users: { select: { id: true, name: true, email: true } },
+      objectives: {
+        where: { archivedAt: null },
+        select: { id: true, title: true },
+        orderBy: { updatedAt: "desc" },
+      },
+      quarters: {
+        orderBy: { startsAt: "desc" },
       },
     },
   });
 
-  if (!user?.couple) {
-    redirectForMissingCouple(session);
+  if (!couple) {
+    redirectForMissingCouple(viewer);
   }
 
   const now = new Date();
   const [recentCheckIns, openCommitments, openReminders] = await Promise.all([
     prisma.checkInSession.findMany({
-      where: { coupleId: user.couple.id },
+      where: { coupleId: couple.id },
       include: {
         createdBy: { select: { name: true, email: true } },
         quarter: { select: { title: true } },
@@ -72,7 +64,7 @@ export default async function CheckInPage({
       take: 6,
     }),
     prisma.commitment.findMany({
-      where: { coupleId: user.couple.id, status: "OPEN" },
+      where: { coupleId: couple.id, status: "OPEN" },
       include: {
         owner: { select: { name: true, email: true } },
         objective: { select: { title: true } },
@@ -81,7 +73,7 @@ export default async function CheckInPage({
       take: 8,
     }),
     prisma.reminder.findMany({
-      where: { coupleId: user.couple.id, status: "PENDING", dueAt: { gte: now } },
+      where: { coupleId: couple.id, status: "PENDING", dueAt: { gte: now } },
       include: {
         quarter: { select: { title: true } },
       },
@@ -91,14 +83,14 @@ export default async function CheckInPage({
   ]);
 
   const activeQuarter =
-    user.couple.quarters.find(
+    couple.quarters.find(
       (quarter) => quarter.startsAt <= now && quarter.endsAt >= now
-    ) ?? user.couple.quarters[0] ?? null;
+    ) ?? couple.quarters[0] ?? null;
 
   const scheduleEnabled = Boolean(
-    user.couple.checkInWeekday &&
-      user.couple.checkInTime &&
-      user.couple.checkInDurationMinutes
+    couple.checkInWeekday &&
+      couple.checkInTime &&
+      couple.checkInDurationMinutes
   );
 
   return (
@@ -140,7 +132,7 @@ export default async function CheckInPage({
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {scheduleEnabled
-                    ? `Euer regelmäßiger Check-in ist eingerichtet (${user.couple.checkInWeekday} / ${user.couple.checkInTime}).`
+                    ? `Euer regelmäßiger Check-in ist eingerichtet (${couple.checkInWeekday} / ${couple.checkInTime}).`
                     : "Euer Check-in ist noch nicht terminiert."}
                 </p>
                 <p className="text-xs text-muted-foreground">
@@ -169,11 +161,11 @@ export default async function CheckInPage({
               </CardHeader>
               <CardContent>
                 <CommitmentForm
-                  ownerOptions={user.couple.users.map((member) => ({
+                  ownerOptions={couple.users.map((member) => ({
                     id: member.id,
                     label: member.name ?? member.email ?? "Unbekannt",
                   }))}
-                  objectiveOptions={user.couple.objectives.map((objective) => ({
+                  objectiveOptions={couple.objectives.map((objective) => ({
                     id: objective.id,
                     label: objective.title,
                   }))}

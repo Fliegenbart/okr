@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { getAuthSession } from "@/auth";
+import { getAuthenticatedViewer } from "@/lib/active-couple";
 import { assertRateLimit } from "@/lib/rate-limit";
 import { prisma } from "@/lib/db";
 import {
@@ -116,10 +116,14 @@ function formatStructuredAsText(answer: ThinkingPartnerResponse) {
 }
 
 export async function POST(req: Request) {
-  const session = await getAuthSession();
+  const viewer = await getAuthenticatedViewer();
 
-  if (!session?.user?.id) {
+  if (!viewer) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!viewer.activeCoupleId) {
+    return NextResponse.json({ error: "No couple" }, { status: 404 });
   }
 
   const parsedBody = requestSchema.safeParse(await req.json().catch(() => null));
@@ -133,55 +137,51 @@ export async function POST(req: Request) {
 
   const { message, history, objectiveId, keyResultId } = parsedBody.data;
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
+  const couple = await prisma.couple.findUnique({
+    where: { id: viewer.activeCoupleId },
     include: {
-      couple: {
+      objectives: {
+        where: {
+          archivedAt: null,
+          ...(objectiveId
+            ? { id: objectiveId }
+            : keyResultId
+              ? { keyResults: { some: { id: keyResultId } } }
+              : {}),
+        },
         include: {
-          objectives: {
-            where: {
-              archivedAt: null,
-              ...(objectiveId
-                ? { id: objectiveId }
-                : keyResultId
-                  ? { keyResults: { some: { id: keyResultId } } }
-                  : {}),
-            },
-            include: {
-              quarter: true,
-              keyResults: {
-                where: { archivedAt: null },
-                orderBy: { createdAt: "asc" },
-              },
-            },
-            orderBy: { createdAt: "desc" },
-          },
-          commitments: {
-            where: { status: "OPEN" },
-            include: {
-              owner: { select: { name: true, email: true } },
-              objective: { select: { title: true } },
-            },
-            orderBy: [{ dueAt: "asc" }, { createdAt: "desc" }],
-            take: 6,
-          },
-          checkInSessions: {
-            orderBy: { createdAt: "desc" },
-            take: 4,
+          quarter: true,
+          keyResults: {
+            where: { archivedAt: null },
+            orderBy: { createdAt: "asc" },
           },
         },
+        orderBy: { createdAt: "desc" },
+      },
+      commitments: {
+        where: { status: "OPEN" },
+        include: {
+          owner: { select: { name: true, email: true } },
+          objective: { select: { title: true } },
+        },
+        orderBy: [{ dueAt: "asc" }, { createdAt: "desc" }],
+        take: 6,
+      },
+      checkInSessions: {
+        orderBy: { createdAt: "desc" },
+        take: 4,
       },
     },
   });
 
-  if (!user?.couple) {
+  if (!couple) {
     return NextResponse.json({ error: "No couple" }, { status: 404 });
   }
 
   try {
     await assertRateLimit({
       action: "thinking_partner_request",
-      key: user.coupleId!,
+      key: viewer.activeCoupleId,
       limit: 20,
       windowMs: 15 * 60 * 1000,
     });
@@ -193,12 +193,12 @@ export async function POST(req: Request) {
   }
 
   const coupleContext = buildCoupleContext({
-    name: user.couple.name,
-    vision: user.couple.vision,
-    mission: user.couple.mission,
-    objectives: user.couple.objectives,
-    commitments: user.couple.commitments,
-    checkInSessions: user.couple.checkInSessions,
+    name: couple.name,
+    vision: couple.vision,
+    mission: couple.mission,
+    objectives: couple.objectives,
+    commitments: couple.commitments,
+    checkInSessions: couple.checkInSessions,
   });
 
   const topics = inferTopicsFromQuery(message);
@@ -206,7 +206,7 @@ export async function POST(req: Request) {
     message,
     6,
     topics,
-    user.coupleId
+    viewer.activeCoupleId
   );
   const knowledgeContext = buildKnowledgeContext(snippets);
   const ritualCandidates = extractMiniRitualCandidates(knowledgeContext);

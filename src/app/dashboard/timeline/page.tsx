@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { getAuthSession } from "@/auth";
 import { CommitmentForm } from "@/components/dashboard/commitment-form";
 import { TimelineNoteForm } from "@/components/dashboard/timeline-note-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,33 +36,26 @@ function kindLabel(kind: string) {
 }
 
 export default async function TimelinePage() {
-  const session = await getAuthSession();
-  requireDashboardSubpageAccess(session, "/dashboard/timeline");
+  const viewer = await requireDashboardSubpageAccess("/dashboard/timeline");
 
-  const user = await prisma.user.findFirst({
-    where: session.user.id
-      ? { id: session.user.id }
-      : { email: session.user.email ?? "" },
+  const couple = await prisma.couple.findUnique({
+    where: { id: viewer.activeCoupleId },
     include: {
-      couple: {
-        include: {
-          users: { select: { id: true, name: true, email: true } },
-          objectives: {
-            where: { archivedAt: null },
-            select: { id: true, title: true },
-            orderBy: { updatedAt: "desc" },
-          },
-        },
+      users: { select: { id: true, name: true, email: true } },
+      objectives: {
+        where: { archivedAt: null },
+        select: { id: true, title: true },
+        orderBy: { updatedAt: "desc" },
       },
     },
   });
 
-  if (!user?.couple) {
-    redirectForMissingCouple(session);
+  if (!couple) {
+    redirectForMissingCouple(viewer);
   }
 
   const events = await prisma.timelineEvent.findMany({
-    where: { coupleId: user.couple.id },
+    where: { coupleId: couple.id },
     include: {
       commitment: { select: { title: true } },
       objective: { select: { title: true } },
@@ -108,11 +100,11 @@ export default async function TimelinePage() {
             </CardHeader>
             <CardContent>
               <CommitmentForm
-                ownerOptions={user.couple.users.map((member) => ({
+                ownerOptions={couple.users.map((member) => ({
                   id: member.id,
                   label: member.name ?? member.email ?? "Unbekannt",
                 }))}
-                objectiveOptions={user.couple.objectives.map((objective) => ({
+                objectiveOptions={couple.objectives.map((objective) => ({
                   id: objective.id,
                   label: objective.title,
                 }))}

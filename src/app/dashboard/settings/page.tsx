@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { headers } from "next/headers";
 
-import { getAuthSession } from "@/auth";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { CoupleSettingsForm } from "@/components/dashboard/couple-settings-form";
 import { CheckInScheduleCard } from "@/components/dashboard/check-in-schedule-card";
@@ -34,50 +33,42 @@ export default async function SettingsPage() {
     requestOrigin
   ).replace(/\/$/, "");
 
-  const session = await getAuthSession();
-  requireDashboardSubpageAccess(session, "/dashboard/settings");
+  const viewer = await requireDashboardSubpageAccess("/dashboard/settings");
 
   const now = new Date();
-  const user = await prisma.user.findFirst({
-    where: session.user.id
-      ? { id: session.user.id }
-      : { email: session.user.email ?? "" },
+  const couple = await prisma.couple.findUnique({
+    where: { id: viewer.activeCoupleId },
     include: {
-      couple: {
-        include: {
-          users: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-          invites: {
-            where: {
-              acceptedAt: null,
-              revokedAt: null,
-              expiresAt: { gt: now },
-            },
-            orderBy: { createdAt: "desc" },
-          },
-          quarters: {
-            orderBy: { startsAt: "desc" },
-          },
-          objectives: {
-            where: { archivedAt: { not: null } },
-            orderBy: { updatedAt: "desc" },
-          },
+      users: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
         },
+      },
+      invites: {
+        where: {
+          acceptedAt: null,
+          revokedAt: null,
+          expiresAt: { gt: now },
+        },
+        orderBy: { createdAt: "desc" },
+      },
+      quarters: {
+        orderBy: { startsAt: "desc" },
+      },
+      objectives: {
+        where: { archivedAt: { not: null } },
+        orderBy: { updatedAt: "desc" },
       },
     },
   });
 
-  if (!user?.couple) {
-    redirectForMissingCouple(session);
+  if (!couple) {
+    redirectForMissingCouple(viewer);
   }
 
-  const { couple } = user;
-  const currentUserId = session.user.id ?? user.id;
+  const currentUserId = viewer.id;
   const latestInvite = couple.invites[0];
   const pendingInvite = latestInvite
     ? {
@@ -149,7 +140,7 @@ export default async function SettingsPage() {
                 </p>
                 <p className="text-sm text-muted-foreground">
                   Du bist aktuell als{" "}
-                  {user.email ?? "unbekannter Nutzer"} angemeldet.
+                  {viewer.email ?? "unbekannter Nutzer"} angemeldet.
                 </p>
               </div>
               <LogoutButton className="w-full sm:w-auto" />

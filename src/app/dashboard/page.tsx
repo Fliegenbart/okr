@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
-import { getAuthSession } from "@/auth";
 import { InvitePartnerCard } from "@/components/dashboard/invite-partner-card";
 import { ObjectiveProgressMiniChart } from "@/components/dashboard/objective-progress-mini-chart";
 import { OnboardingCard } from "@/components/dashboard/onboarding-card";
@@ -12,6 +12,7 @@ import { QuarterProgressChart } from "@/components/dashboard/quarter-progress-ch
 import { QuarterFilter } from "@/components/dashboard/quarter-filter";
 import { VisionHeader } from "@/components/dashboard/vision-header";
 import { Card, CardContent } from "@/components/ui/card";
+import { getAuthenticatedViewer } from "@/lib/active-couple";
 import { canEmailCreateCouple } from "@/lib/beta-access";
 import { prisma } from "@/lib/db";
 import { getObjectiveInsights } from "@/lib/insights";
@@ -39,35 +40,9 @@ export default async function DashboardPage({
   ).replace(/\/$/, "");
 
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
-  const session = await getAuthSession();
+  const viewer = await getAuthenticatedViewer();
 
-  if (!session?.user) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background px-6 py-12">
-        <Card className="w-full max-w-md">
-          <CardContent className="space-y-3 p-6 text-center">
-            <p className="text-lg font-semibold text-foreground">
-              Bitte melde dich an
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Deine Sitzung ist abgelaufen oder ungültig.
-            </p>
-            <Link
-              href="/auth/signin?callbackUrl=/dashboard"
-              className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
-            >
-              Zur Anmeldung
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  const userId = session.user.id;
-  const userEmail = session.user.email ?? undefined;
-
-  if (!userId && !userEmail) {
+  if (!viewer) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-6 py-12">
         <Card className="w-full max-w-md">
@@ -91,62 +66,19 @@ export default async function DashboardPage({
   }
 
   const now = new Date();
-  const user = await prisma.user.findFirst({
-    where: userId
-      ? { id: userId }
-      : userEmail
-        ? { email: userEmail }
-        : undefined,
-    include: {
-      couple: {
-        include: {
-          users: {
-            select: { id: true },
-          },
-          invites: {
-            where: {
-              acceptedAt: null,
-              revokedAt: null,
-              expiresAt: { gt: now },
-            },
-            orderBy: { createdAt: "desc" },
-          },
-          objectives: {
-            where: { archivedAt: null },
-            include: {
-              keyResults: {
-                where: { archivedAt: null },
-                include: {
-                  updates: {
-                    select: {
-                      value: true,
-                      previousValue: true,
-                      createdAt: true,
-                    },
-                    orderBy: { createdAt: "asc" },
-                  },
-                },
-              },
-            },
-            orderBy: { createdAt: "desc" },
-          },
-          quarters: {
-            orderBy: { startsAt: "desc" },
-          },
-        },
-      },
-    },
-  });
+  if (!viewer.activeCoupleId) {
+    if (viewer.role === "ADMIN") {
+      redirect("/admin/couples");
+    }
 
-  if (!user?.couple) {
-    const canCreateCouple = session.user.email
-      ? await canEmailCreateCouple(session.user.email)
+    const canCreateCouple = viewer.email
+      ? await canEmailCreateCouple(viewer.email)
       : false;
 
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-6 py-12">
         <OnboardingCard
-          userEmail={session.user.email}
+          userEmail={viewer.email}
           initialInviteToken={resolvedSearchParams?.invite}
           canCreateCouple={canCreateCouple}
         />
@@ -154,12 +86,67 @@ export default async function DashboardPage({
     );
   }
 
-  const { couple } = user;
+  const [couple, userPreferences] = await Promise.all([
+    prisma.couple.findUnique({
+      where: { id: viewer.activeCoupleId },
+      include: {
+        users: {
+          select: { id: true },
+        },
+        invites: {
+          where: {
+            acceptedAt: null,
+            revokedAt: null,
+            expiresAt: { gt: now },
+          },
+          orderBy: { createdAt: "desc" },
+        },
+        objectives: {
+          where: { archivedAt: null },
+          include: {
+            keyResults: {
+              where: { archivedAt: null },
+              include: {
+                updates: {
+                  select: {
+                    value: true,
+                    previousValue: true,
+                    createdAt: true,
+                  },
+                  orderBy: { createdAt: "asc" },
+                },
+              },
+            },
+          },
+          orderBy: { createdAt: "desc" },
+        },
+        quarters: {
+          orderBy: { startsAt: "desc" },
+        },
+      },
+    }),
+    prisma.user.findUnique({
+      where: { id: viewer.id },
+      select: { preferredQuarterId: true },
+    }),
+  ]);
+
+  if (!couple) {
+    if (viewer.role === "ADMIN") {
+      redirect("/admin/couples");
+    }
+
+    redirect("/dashboard");
+  }
+
   const activeQuarter =
     couple.quarters.find(
       (quarter) => quarter.startsAt <= now && quarter.endsAt >= now
     ) ?? couple.quarters[0];
-  const preferredQuarterId = user.preferredQuarterId ?? null;
+  const preferredQuarterId =
+    viewer.userCoupleId === viewer.activeCoupleId
+      ? userPreferences?.preferredQuarterId ?? null
+      : null;
   const selectedQuarterId =
     resolvedSearchParams?.quarter ?? preferredQuarterId ?? "all";
   const filteredObjectives =

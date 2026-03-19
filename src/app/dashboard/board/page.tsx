@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Prisma } from "@prisma/client";
 
-import { getAuthSession } from "@/auth";
 import { BoardWorkspace } from "@/components/dashboard/board-workspace";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -36,33 +35,25 @@ function isMissingBoardSchemaError(error: unknown) {
 }
 
 export default async function BoardPage({ searchParams }: BoardPageProps) {
-  const session = await getAuthSession();
-  requireDashboardSubpageAccess(session, "/dashboard/board");
+  const viewer = await requireDashboardSubpageAccess("/dashboard/board");
 
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
-  const user = await prisma.user.findFirst({
-    where: session.user.id
-      ? { id: session.user.id }
-      : { email: session.user.email ?? "" },
+  const couple = await prisma.couple.findUnique({
+    where: { id: viewer.activeCoupleId },
     include: {
-      couple: {
-        include: {
-          quarters: {
-            orderBy: {
-              startsAt: "desc",
-            },
-          },
+      quarters: {
+        orderBy: {
+          startsAt: "desc",
         },
       },
     },
   });
 
-  if (!user?.couple) {
-    redirectForMissingCouple(session);
+  if (!couple) {
+    redirectForMissingCouple(viewer);
   }
 
   const now = new Date();
-  const { couple } = user;
   const activeQuarter =
     couple.quarters.find(
       (quarter) => quarter.startsAt <= now && quarter.endsAt >= now

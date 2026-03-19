@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { stopAdminCouplePreview } from "@/actions/admin";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { DashboardHeaderNav } from "@/components/dashboard/dashboard-header-nav";
 import { Button } from "@/components/ui/button";
@@ -8,9 +9,13 @@ import type { AdminUser } from "@/lib/admin";
 
 type AdminHeaderProps = {
   user: AdminUser;
+  previewCouple: {
+    id: string;
+    name: string;
+  } | null;
 };
 
-export function AdminHeader({ user }: AdminHeaderProps) {
+export function AdminHeader({ user, previewCouple }: AdminHeaderProps) {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-white/95 backdrop-blur-sm">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-6 py-3 lg:flex-row lg:items-center lg:justify-between">
@@ -46,12 +51,27 @@ export function AdminHeader({ user }: AdminHeaderProps) {
         />
 
         <div className="flex items-center gap-2">
+          {previewCouple ? (
+            <span className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+              Preview: {previewCouple.name}
+            </span>
+          ) : null}
           <span className="rounded-full border border-border bg-muted px-3 py-1 text-xs font-semibold text-foreground">
             {user.role}
           </span>
           <Button asChild size="sm" variant="outline">
-            <Link href="/dashboard">Zur App</Link>
+            <Link href="/dashboard">
+              {previewCouple ? "Zum Paar-Dashboard" : "Zur App"}
+            </Link>
           </Button>
+          {previewCouple ? (
+            <form action={stopAdminCouplePreview}>
+              <input type="hidden" name="redirectTo" value="/admin/couples" />
+              <Button size="sm" variant="secondary" type="submit">
+                Preview beenden
+              </Button>
+            </form>
+          ) : null}
           <LogoutButton />
         </div>
       </div>

@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { getAuthSession } from "@/auth";
 import { ReminderStatusActions } from "@/components/dashboard/reminder-status-actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -28,25 +27,20 @@ function statusLabel(status: string) {
 }
 
 export default async function RemindersPage() {
-  const session = await getAuthSession();
-  requireDashboardSubpageAccess(session, "/dashboard/reminders");
+  const viewer = await requireDashboardSubpageAccess("/dashboard/reminders");
 
-  const user = await prisma.user.findFirst({
-    where: session.user.id
-      ? { id: session.user.id }
-      : { email: session.user.email ?? "" },
-    include: {
-      couple: true,
-    },
+  const couple = await prisma.couple.findUnique({
+    where: { id: viewer.activeCoupleId },
+    select: { id: true },
   });
 
-  if (!user?.couple) {
-    redirectForMissingCouple(session);
+  if (!couple) {
+    redirectForMissingCouple(viewer);
   }
 
   const [upcoming, recent] = await Promise.all([
     prisma.reminder.findMany({
-      where: { coupleId: user.couple.id, status: "PENDING" },
+      where: { coupleId: couple.id, status: "PENDING" },
       include: {
         quarter: { select: { title: true } },
         commitment: { select: { title: true } },
@@ -55,7 +49,7 @@ export default async function RemindersPage() {
       take: 12,
     }),
     prisma.reminder.findMany({
-      where: { coupleId: user.couple.id, status: { in: ["DONE", "DISMISSED"] } },
+      where: { coupleId: couple.id, status: { in: ["DONE", "DISMISSED"] } },
       include: {
         quarter: { select: { title: true } },
         commitment: { select: { title: true } },

@@ -1,8 +1,10 @@
+import { startAdminCouplePreview, stopAdminCouplePreview } from "@/actions/admin";
 import { prisma } from "@/lib/db";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { getAdminUser } from "@/lib/admin";
+import { getAuthenticatedViewer } from "@/lib/active-couple";
 
 const dateFormatter = new Intl.DateTimeFormat("de-DE", {
   dateStyle: "medium",
@@ -36,6 +38,8 @@ export default async function AdminCouplesPage({
 }) {
   const user = await getAdminUser();
   if (!user) return null;
+  const viewer = await getAuthenticatedViewer();
+  const previewCoupleId = viewer?.previewCoupleId ?? null;
 
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const q = resolvedSearchParams?.q?.trim() ?? "";
@@ -143,6 +147,7 @@ export default async function AdminCouplesPage({
                 <th className="pb-3 pr-4 font-medium">Offene Invites</th>
                 <th className="pb-3 pr-4 font-medium">Invite Code</th>
                 <th className="pb-3 font-medium">Aktivität</th>
+                <th className="pb-3 text-right font-medium">Aktion</th>
               </tr>
             </thead>
             <tbody>
@@ -173,8 +178,34 @@ export default async function AdminCouplesPage({
                     <td className="py-4 pr-4 font-mono text-xs text-muted-foreground">
                       {couple.inviteCode}
                     </td>
-                    <td className="py-4 text-muted-foreground">
+                    <td className="py-4 pr-4 text-muted-foreground">
                       {formatDate(couple.updatedAt)}
+                    </td>
+                    <td className="py-4 text-right">
+                      {previewCoupleId === couple.id ? (
+                        <div className="flex justify-end gap-2">
+                          <Button asChild size="sm" variant="outline">
+                            <a href="/dashboard">Dashboard öffnen</a>
+                          </Button>
+                          <form action={stopAdminCouplePreview}>
+                            <input
+                              type="hidden"
+                              name="redirectTo"
+                              value="/admin/couples"
+                            />
+                            <Button size="sm" variant="secondary" type="submit">
+                              Preview beenden
+                            </Button>
+                          </form>
+                        </div>
+                      ) : (
+                        <form action={startAdminCouplePreview.bind(null, couple.id)}>
+                          <input type="hidden" name="redirectTo" value="/dashboard" />
+                          <Button size="sm" type="submit">
+                            Als Paar ansehen
+                          </Button>
+                        </form>
+                      )}
                     </td>
                   </tr>
                 );
@@ -186,4 +217,3 @@ export default async function AdminCouplesPage({
     </div>
   );
 }
-

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { getAuthSession } from "@/auth";
+import { getAuthenticatedViewer } from "@/lib/active-couple";
 import { assertRateLimit } from "@/lib/rate-limit";
 import { prisma } from "@/lib/db";
 import { generateChatCompletion, generateToolCallCompletion, type LlmMessage } from "@/lib/llm";
@@ -106,56 +106,54 @@ function safeAverage(values: number[]) {
 }
 
 export async function POST(req: Request) {
-  const session = await getAuthSession();
+  const viewer = await getAuthenticatedViewer();
 
-  if (!session?.user?.id) {
+  if (!viewer) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!viewer.activeCoupleId) {
+    return NextResponse.json({ error: "No couple" }, { status: 404 });
   }
 
   const parsedBody = bodySchema.safeParse(await req.json().catch(() => ({})));
   const quarterId = parsedBody.success ? parsedBody.data.quarterId ?? null : null;
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
+  const couple = await prisma.couple.findUnique({
+    where: { id: viewer.activeCoupleId },
     select: {
       id: true,
-      coupleId: true,
-      couple: {
-        select: {
-          id: true,
-          name: true,
-          vision: true,
-          mission: true,
-          checkInWeekday: true,
-          checkInTime: true,
-          checkInDurationMinutes: true,
-          checkInTimeZone: true,
-          commitments: {
-            where: { status: "OPEN" },
-            include: {
-              owner: { select: { name: true, email: true } },
-              objective: { select: { title: true } },
-            },
-            orderBy: [{ dueAt: "asc" }, { createdAt: "desc" }],
-            take: 6,
-          },
-          checkInSessions: {
-            orderBy: { createdAt: "desc" },
-            take: 4,
-          },
+      name: true,
+      vision: true,
+      mission: true,
+      checkInWeekday: true,
+      checkInTime: true,
+      checkInDurationMinutes: true,
+      checkInTimeZone: true,
+      commitments: {
+        where: { status: "OPEN" },
+        include: {
+          owner: { select: { name: true, email: true } },
+          objective: { select: { title: true } },
         },
+        orderBy: [{ dueAt: "asc" }, { createdAt: "desc" }],
+        take: 6,
+      },
+      checkInSessions: {
+        orderBy: { createdAt: "desc" },
+        take: 4,
       },
     },
   });
 
-  if (!user?.coupleId || !user.couple) {
+  if (!couple) {
     return NextResponse.json({ error: "No couple" }, { status: 404 });
   }
 
   try {
     await assertRateLimit({
       action: "power_move_request",
-      key: user.coupleId!,
+      key: viewer.activeCoupleId,
       limit: 8,
       windowMs: 15 * 60 * 1000,
     });
@@ -170,18 +168,18 @@ export async function POST(req: Request) {
   const selectedQuarter =
     (quarterId
       ? await prisma.quarter.findFirst({
-          where: { id: quarterId, coupleId: user.coupleId },
+          where: { id: quarterId, coupleId: viewer.activeCoupleId },
         })
       : await prisma.quarter.findFirst({
           where: {
-            coupleId: user.coupleId,
+            coupleId: viewer.activeCoupleId,
             startsAt: { lte: now },
             endsAt: { gte: now },
           },
           orderBy: { startsAt: "desc" },
         })) ??
     (await prisma.quarter.findFirst({
-      where: { coupleId: user.coupleId },
+      where: { coupleId: viewer.activeCoupleId },
       orderBy: { startsAt: "desc" },
     }));
 
@@ -194,7 +192,7 @@ export async function POST(req: Request) {
 
   const objectives = await prisma.objective.findMany({
     where: {
-      coupleId: user.coupleId,
+      coupleId: viewer.activeCoupleId,
       quarterId: selectedQuarter.id,
       archivedAt: null,
     },
@@ -215,9 +213,9 @@ export async function POST(req: Request) {
   });
 
   const checkInEnabled = Boolean(
-    user.couple.checkInWeekday &&
-      user.couple.checkInTime &&
-      user.couple.checkInDurationMinutes
+    couple.checkInWeekday &&
+      couple.checkInTime &&
+      couple.checkInDurationMinutes
   );
 
   const objectiveSignals = objectives.map((objective) => {
@@ -266,9 +264,9 @@ export async function POST(req: Request) {
   const averageProgress = safeAverage(objectiveSignals.map((o) => o.progress));
 
   const coupleContext = buildCoupleContext({
-    name: user.couple.name,
-    vision: user.couple.vision,
-    mission: user.couple.mission,
+    name: couple.name,
+    vision: couple.vision,
+    mission: couple.mission,
     objectives: objectives.map((objective) => ({
       title: objective.title,
       description: objective.description ?? null,
@@ -281,8 +279,8 @@ export async function POST(req: Request) {
         unit: kr.unit ?? null,
       })),
     })),
-    commitments: user.couple.commitments,
-    checkInSessions: user.couple.checkInSessions,
+    commitments: couple.commitments,
+    checkInSessions: couple.checkInSessions,
   });
 
   const allKeyResults = objectiveSignals.flatMap((objective) =>
@@ -320,7 +318,7 @@ export async function POST(req: Request) {
   const remainingDays = Math.max(0, quarterTotalDays - elapsedDays);
 
   const checkInLine = checkInEnabled
-    ? `Check-in: aktiv (${user.couple.checkInWeekday} / ${user.couple.checkInTime}, ${user.couple.checkInDurationMinutes} Min)`
+    ? `Check-in: aktiv (${couple.checkInWeekday} / ${couple.checkInTime}, ${couple.checkInDurationMinutes} Min)`
     : "Check-in: nicht geplant";
 
   const signalLines = [
@@ -389,7 +387,7 @@ export async function POST(req: Request) {
     query,
     6,
     topics,
-    user.coupleId
+    viewer.activeCoupleId
   );
   const knowledgeContext = buildKnowledgeContext(snippets);
   const ritualCandidates = extractMiniRitualCandidates(knowledgeContext);

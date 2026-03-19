@@ -1,36 +1,25 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { stopAdminCouplePreview } from "@/actions/admin";
 import { getAuthSession } from "@/auth";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { DashboardHeaderNav } from "@/components/dashboard/dashboard-header-nav";
 import { Button } from "@/components/ui/button";
+import { getActiveCoupleSummary, getAuthenticatedViewer } from "@/lib/active-couple";
 import { isAdminEmail } from "@/lib/admin-access";
-import { prisma } from "@/lib/db";
 
 export async function DashboardHeader() {
   const session = await getAuthSession();
-  const userId = session?.user?.id ?? undefined;
-  const userEmail = session?.user?.email ?? undefined;
 
-  if (!userId && !userEmail) {
+  if (!session?.user?.id && !session?.user?.email) {
     return null;
   }
 
-  const user = await prisma.user.findFirst({
-    where: userId ? { id: userId } : { email: userEmail },
-    select: {
-      email: true,
-      role: true,
-      couple: {
-        select: {
-          name: true,
-        },
-      },
-    },
-  });
+  const user = await getAuthenticatedViewer();
+  const activeCouple = await getActiveCoupleSummary(user);
 
-  const coupleName = user?.couple?.name ?? "OKR für Paare";
+  const coupleName = activeCouple?.name ?? "OKR für Paare";
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-white/95 backdrop-blur-sm">
@@ -71,11 +60,24 @@ export async function DashboardHeader() {
       />
 
         <div className="flex items-center gap-2">
+          {user?.isPreviewingCouple ? (
+            <span className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+              Admin Preview
+            </span>
+          ) : null}
           <Button asChild size="sm">
             <Link href="/dashboard/objectives/new">
               Objective erstellen
             </Link>
           </Button>
+          {user?.isPreviewingCouple ? (
+            <form action={stopAdminCouplePreview}>
+              <input type="hidden" name="redirectTo" value="/admin/couples" />
+              <Button size="sm" variant="outline" type="submit">
+                Preview beenden
+              </Button>
+            </form>
+          ) : null}
           <LogoutButton />
         </div>
       </div>

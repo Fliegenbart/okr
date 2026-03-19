@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { getAuthSession } from "@/auth";
 import { ObjectiveDetail } from "@/components/dashboard/objective-detail";
 import {
   redirectForMissingCouple,
@@ -15,47 +14,35 @@ export default async function ObjectiveDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const resolvedParams = await params;
-  const session = await getAuthSession();
-  requireDashboardSubpageAccess(
-    session,
-    `/dashboard/objectives/${resolvedParams.id}`
-  );
+  const viewer = await requireDashboardSubpageAccess(`/dashboard/objectives/${resolvedParams.id}`);
 
-  const user = await prisma.user.findFirst({
-    where: session.user.id
-      ? { id: session.user.id }
-      : { email: session.user.email ?? "" },
+  const objective = await prisma.objective.findFirst({
+    where: { id: resolvedParams.id, coupleId: viewer.activeCoupleId, archivedAt: null },
     include: {
-      couple: {
+      quarter: true,
+      commitments: {
+        orderBy: { createdAt: "desc" },
         include: {
-          objectives: {
-            where: { id: resolvedParams.id, archivedAt: null },
-            include: {
-              quarter: true,
-              commitments: {
-                orderBy: { createdAt: "desc" },
-                include: {
-                  owner: { select: { name: true, email: true } },
-                },
-              },
-              keyResults: {
-                where: { archivedAt: null },
-                orderBy: { createdAt: "asc" },
-              },
-            },
-          },
+          owner: { select: { name: true, email: true } },
         },
+      },
+      keyResults: {
+        where: { archivedAt: null },
+        orderBy: { createdAt: "asc" },
       },
     },
   });
 
-  const objective = user?.couple?.objectives?.[0];
-
-  if (!user?.couple) {
-    redirectForMissingCouple(session);
-  }
-
   if (!objective) {
+    const couple = await prisma.couple.findUnique({
+      where: { id: viewer.activeCoupleId },
+      select: { id: true },
+    });
+
+    if (!couple) {
+      redirectForMissingCouple(viewer);
+    }
+
     return notFound();
   }
 

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
-import { getAuthSession } from "@/auth";
+import { requireUserWithCouple } from "@/actions/utils";
 import { prisma } from "@/lib/db";
 import { action } from "@/lib/safe-action";
 import { updateKeyResultSchema } from "@/lib/validations/key-result";
@@ -13,30 +13,10 @@ import {
   updateKeyResultMetaSchema,
 } from "@/lib/validations/key-result-meta";
 
-async function requireUser() {
-  const session = await getAuthSession();
-  const userId = session?.user?.id;
-
-  if (!userId) {
-    throw new Error("Bitte melde dich an.");
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { id: true, coupleId: true },
-  });
-
-  if (!user?.coupleId) {
-    throw new Error("Du hast noch kein Couple.");
-  }
-
-  return user as { id: string; coupleId: string };
-}
-
 export const updateKeyResult = action
   .schema(updateKeyResultSchema)
   .action(async ({ parsedInput }) => {
-    const user = await requireUser();
+    const user = await requireUserWithCouple();
 
     const keyResult = await prisma.keyResult.findFirst({
       where: {
@@ -89,7 +69,7 @@ export const updateKeyResult = action
 export const createKeyResult = action
   .schema(createKeyResultSchema)
   .action(async ({ parsedInput }) => {
-    const user = await requireUser();
+    const user = await requireUserWithCouple();
 
     const objective = await prisma.objective.findFirst({
       where: {
@@ -130,7 +110,7 @@ export const createKeyResult = action
 export const updateKeyResultMeta = action
   .schema(updateKeyResultMetaSchema)
   .action(async ({ parsedInput }) => {
-    const user = await requireUser();
+    const user = await requireUserWithCouple();
 
     const keyResult = await prisma.keyResult.findFirst({
       where: {
@@ -163,7 +143,7 @@ export const updateKeyResultMeta = action
 export const archiveKeyResult = action
   .schema(archiveKeyResultSchema)
   .action(async ({ parsedInput }) => {
-    const user = await requireUser();
+    const user = await requireUserWithCouple();
 
     const keyResult = await prisma.keyResult.findFirst({
       where: {
@@ -200,7 +180,7 @@ export const archiveKeyResult = action
 export const restoreKeyResult = action
   .schema(restoreKeyResultSchema)
   .action(async ({ parsedInput }) => {
-    const user = await requireUser();
+    const user = await requireUserWithCouple();
 
     const keyResult = await prisma.keyResult.findFirst({
       where: {

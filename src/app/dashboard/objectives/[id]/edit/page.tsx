@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { getAuthSession } from "@/auth";
 import { KeyResultCreateForm } from "@/components/dashboard/key-result-create-form";
 import { KeyResultEditItem } from "@/components/dashboard/key-result-edit-item";
 import { KeyResultRestoreButton } from "@/components/dashboard/key-result-restore-button";
@@ -20,32 +19,25 @@ export default async function ObjectiveEditPage({
   params: Promise<{ id: string }>;
 }) {
   const resolvedParams = await params;
-  const session = await getAuthSession();
-  requireDashboardSubpageAccess(
-    session,
+  const viewer = await requireDashboardSubpageAccess(
     `/dashboard/objectives/${resolvedParams.id}/edit`
   );
 
-  const user = await prisma.user.findFirst({
-    where: session.user.id
-      ? { id: session.user.id }
-      : { email: session.user.email ?? "" },
-    include: {
-      couple: {
-        include: {
-          quarters: {
-            orderBy: { startsAt: "desc" },
-          },
-          objectives: {
-            where: { id: resolvedParams.id, archivedAt: null },
-            include: { keyResults: { orderBy: { createdAt: "asc" } } },
-          },
+  const [couple, objective] = await Promise.all([
+    prisma.couple.findUnique({
+      where: { id: viewer.activeCoupleId },
+      include: {
+        quarters: {
+          orderBy: { startsAt: "desc" },
         },
       },
-    },
-  });
+    }),
+    prisma.objective.findFirst({
+      where: { id: resolvedParams.id, coupleId: viewer.activeCoupleId, archivedAt: null },
+      include: { keyResults: { orderBy: { createdAt: "asc" } } },
+    }),
+  ]);
 
-  const objective = user?.couple?.objectives?.[0];
   const activeKeyResults = objective?.keyResults.filter(
     (keyResult) => !keyResult.archivedAt
   );
@@ -54,8 +46,8 @@ export default async function ObjectiveEditPage({
   );
   const keyResultLimitReached = (activeKeyResults?.length ?? 0) >= 6;
 
-  if (!user?.couple) {
-    redirectForMissingCouple(session);
+  if (!couple) {
+    redirectForMissingCouple(viewer);
   }
 
   if (!objective) {
@@ -92,7 +84,7 @@ export default async function ObjectiveEditPage({
                 title={objective.title}
                 description={objective.description}
                 quarterId={objective.quarterId}
-                quarters={user.couple.quarters.map((quarter) => ({
+                quarters={couple.quarters.map((quarter) => ({
                   id: quarter.id,
                   title: quarter.title,
                 }))}
