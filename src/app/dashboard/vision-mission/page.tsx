@@ -1,17 +1,17 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
 
 import { getAuthSession } from "@/auth";
 import { VisionMissionForm } from "@/components/dashboard/vision-mission-form";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  redirectForMissingCouple,
+  requireDashboardSubpageAccess,
+} from "@/lib/dashboard-access";
 import { prisma } from "@/lib/db";
 
 export default async function VisionMissionPage() {
   const session = await getAuthSession();
-
-  if (!session?.user?.email && !session?.user?.id) {
-    return notFound();
-  }
+  requireDashboardSubpageAccess(session, "/dashboard/vision-mission");
 
   const user = await prisma.user.findFirst({
     where: session.user.id
@@ -23,7 +23,7 @@ export default async function VisionMissionPage() {
   });
 
   if (!user?.couple) {
-    return notFound();
+    redirectForMissingCouple(session);
   }
 
   return (

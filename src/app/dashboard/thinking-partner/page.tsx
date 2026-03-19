@@ -1,9 +1,12 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
 
 import { getAuthSession } from "@/auth";
 import { ThinkingPartnerChat } from "@/components/dashboard/thinking-partner-chat";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  redirectForMissingCouple,
+  requireDashboardSubpageAccess,
+} from "@/lib/dashboard-access";
 import { prisma } from "@/lib/db";
 
 export default async function ThinkingPartnerPage({
@@ -12,10 +15,7 @@ export default async function ThinkingPartnerPage({
   searchParams?: Promise<{ objectiveId?: string; keyResultId?: string }>;
 }) {
   const session = await getAuthSession();
-
-  if (!session?.user?.email && !session?.user?.id) {
-    return notFound();
-  }
+  requireDashboardSubpageAccess(session, "/dashboard/thinking-partner");
 
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const objectiveId = resolvedSearchParams?.objectiveId ?? null;
@@ -31,7 +31,7 @@ export default async function ThinkingPartnerPage({
   });
 
   if (!user?.couple) {
-    return notFound();
+    redirectForMissingCouple(session);
   }
 
   const objective = objectiveId

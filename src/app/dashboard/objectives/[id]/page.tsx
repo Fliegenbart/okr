@@ -3,6 +3,10 @@ import { notFound } from "next/navigation";
 
 import { getAuthSession } from "@/auth";
 import { ObjectiveDetail } from "@/components/dashboard/objective-detail";
+import {
+  redirectForMissingCouple,
+  requireDashboardSubpageAccess,
+} from "@/lib/dashboard-access";
 import { prisma } from "@/lib/db";
 
 export default async function ObjectiveDetailPage({
@@ -12,10 +16,10 @@ export default async function ObjectiveDetailPage({
 }) {
   const resolvedParams = await params;
   const session = await getAuthSession();
-
-  if (!session?.user?.email && !session?.user?.id) {
-    return notFound();
-  }
+  requireDashboardSubpageAccess(
+    session,
+    `/dashboard/objectives/${resolvedParams.id}`
+  );
 
   const user = await prisma.user.findFirst({
     where: session.user.id
@@ -46,6 +50,10 @@ export default async function ObjectiveDetailPage({
   });
 
   const objective = user?.couple?.objectives?.[0];
+
+  if (!user?.couple) {
+    redirectForMissingCouple(session);
+  }
 
   if (!objective) {
     return notFound();

@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { Prisma } from "@prisma/client";
 
 import { getAuthSession } from "@/auth";
@@ -7,6 +6,10 @@ import { BoardWorkspace } from "@/components/dashboard/board-workspace";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ensureBoardForCouple, serializeBoard } from "@/lib/boards";
+import {
+  redirectForMissingCouple,
+  requireDashboardSubpageAccess,
+} from "@/lib/dashboard-access";
 import { prisma } from "@/lib/db";
 import { cn } from "@/lib/utils";
 
@@ -34,10 +37,7 @@ function isMissingBoardSchemaError(error: unknown) {
 
 export default async function BoardPage({ searchParams }: BoardPageProps) {
   const session = await getAuthSession();
-
-  if (!session?.user?.email && !session?.user?.id) {
-    return notFound();
-  }
+  requireDashboardSubpageAccess(session, "/dashboard/board");
 
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const user = await prisma.user.findFirst({
@@ -58,7 +58,7 @@ export default async function BoardPage({ searchParams }: BoardPageProps) {
   });
 
   if (!user?.couple) {
-    return notFound();
+    redirectForMissingCouple(session);
   }
 
   const now = new Date();

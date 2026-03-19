@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 
 import { getAuthSession } from "@/auth";
@@ -11,6 +10,10 @@ import { ObjectiveRestoreButton } from "@/components/dashboard/objective-restore
 import { QuarterForm } from "@/components/dashboard/quarter-form";
 import { UserManagementCard } from "@/components/dashboard/user-management-card";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  redirectForMissingCouple,
+  requireDashboardSubpageAccess,
+} from "@/lib/dashboard-access";
 import { prisma } from "@/lib/db";
 
 const dateFormatter = new Intl.DateTimeFormat("de-DE", {
@@ -32,10 +35,7 @@ export default async function SettingsPage() {
   ).replace(/\/$/, "");
 
   const session = await getAuthSession();
-
-  if (!session?.user?.email && !session?.user?.id) {
-    return notFound();
-  }
+  requireDashboardSubpageAccess(session, "/dashboard/settings");
 
   const now = new Date();
   const user = await prisma.user.findFirst({
@@ -73,7 +73,7 @@ export default async function SettingsPage() {
   });
 
   if (!user?.couple) {
-    return notFound();
+    redirectForMissingCouple(session);
   }
 
   const { couple } = user;

@@ -1,9 +1,12 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
 
 import { getAuthSession } from "@/auth";
 import { ReminderStatusActions } from "@/components/dashboard/reminder-status-actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  redirectForMissingCouple,
+  requireDashboardSubpageAccess,
+} from "@/lib/dashboard-access";
 import { prisma } from "@/lib/db";
 
 const dateTimeFormatter = new Intl.DateTimeFormat("de-DE", {
@@ -26,10 +29,7 @@ function statusLabel(status: string) {
 
 export default async function RemindersPage() {
   const session = await getAuthSession();
-
-  if (!session?.user?.email && !session?.user?.id) {
-    return notFound();
-  }
+  requireDashboardSubpageAccess(session, "/dashboard/reminders");
 
   const user = await prisma.user.findFirst({
     where: session.user.id
@@ -41,7 +41,7 @@ export default async function RemindersPage() {
   });
 
   if (!user?.couple) {
-    return notFound();
+    redirectForMissingCouple(session);
   }
 
   const [upcoming, recent] = await Promise.all([
@@ -163,4 +163,3 @@ export default async function RemindersPage() {
     </div>
   );
 }
-

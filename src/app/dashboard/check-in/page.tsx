@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
 
 import { getAuthSession } from "@/auth";
 import { CommitmentForm } from "@/components/dashboard/commitment-form";
@@ -7,6 +6,10 @@ import { CheckInComposer } from "@/components/dashboard/check-in-composer";
 import { CommitmentStatusActions } from "@/components/dashboard/commitment-status-actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { conversationTemplates } from "@/lib/couple-engagement";
+import {
+  redirectForMissingCouple,
+  requireDashboardSubpageAccess,
+} from "@/lib/dashboard-access";
 import { prisma } from "@/lib/db";
 
 const dateTimeFormatter = new Intl.DateTimeFormat("de-DE", {
@@ -29,10 +32,7 @@ export default async function CheckInPage({
   searchParams?: Promise<{ template?: string }>;
 }) {
   const session = await getAuthSession();
-
-  if (!session?.user?.email && !session?.user?.id) {
-    return notFound();
-  }
+  requireDashboardSubpageAccess(session, "/dashboard/check-in");
 
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const user = await prisma.user.findFirst({
@@ -57,7 +57,7 @@ export default async function CheckInPage({
   });
 
   if (!user?.couple) {
-    return notFound();
+    redirectForMissingCouple(session);
   }
 
   const now = new Date();
@@ -330,4 +330,3 @@ export default async function CheckInPage({
     </div>
   );
 }
-

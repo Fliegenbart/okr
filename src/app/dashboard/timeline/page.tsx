@@ -1,10 +1,13 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
 
 import { getAuthSession } from "@/auth";
 import { CommitmentForm } from "@/components/dashboard/commitment-form";
 import { TimelineNoteForm } from "@/components/dashboard/timeline-note-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  redirectForMissingCouple,
+  requireDashboardSubpageAccess,
+} from "@/lib/dashboard-access";
 import { prisma } from "@/lib/db";
 
 const dateTimeFormatter = new Intl.DateTimeFormat("de-DE", {
@@ -35,10 +38,7 @@ function kindLabel(kind: string) {
 
 export default async function TimelinePage() {
   const session = await getAuthSession();
-
-  if (!session?.user?.email && !session?.user?.id) {
-    return notFound();
-  }
+  requireDashboardSubpageAccess(session, "/dashboard/timeline");
 
   const user = await prisma.user.findFirst({
     where: session.user.id
@@ -59,7 +59,7 @@ export default async function TimelinePage() {
   });
 
   if (!user?.couple) {
-    return notFound();
+    redirectForMissingCouple(session);
   }
 
   const events = await prisma.timelineEvent.findMany({
@@ -182,4 +182,3 @@ export default async function TimelinePage() {
     </div>
   );
 }
-

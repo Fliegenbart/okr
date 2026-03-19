@@ -5,6 +5,10 @@ import { getAuthSession } from "@/auth";
 import { KeyResultChart } from "@/components/dashboard/key-result-chart";
 import { KeyResultUpdateForm } from "@/components/dashboard/key-result-update-form";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  redirectForMissingCouple,
+  requireDashboardSubpageAccess,
+} from "@/lib/dashboard-access";
 import { prisma } from "@/lib/db";
 
 const dateTimeFormatter = new Intl.DateTimeFormat("de-DE", {
@@ -19,10 +23,10 @@ export default async function KeyResultDetailPage({
 }) {
   const resolvedParams = await params;
   const session = await getAuthSession();
-
-  if (!session?.user?.id) {
-    return null;
-  }
+  requireDashboardSubpageAccess(
+    session,
+    `/dashboard/key-results/${resolvedParams.id}`
+  );
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
@@ -30,7 +34,7 @@ export default async function KeyResultDetailPage({
   });
 
   if (!user?.coupleId) {
-    return notFound();
+    redirectForMissingCouple(session);
   }
 
   const keyResult = await prisma.keyResult.findFirst({

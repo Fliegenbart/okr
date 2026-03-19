@@ -8,6 +8,10 @@ import { KeyResultRestoreButton } from "@/components/dashboard/key-result-restor
 import { ObjectiveDeleteCard } from "@/components/dashboard/objective-delete-card";
 import { ObjectiveEditForm } from "@/components/dashboard/objective-edit-form";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  redirectForMissingCouple,
+  requireDashboardSubpageAccess,
+} from "@/lib/dashboard-access";
 import { prisma } from "@/lib/db";
 
 export default async function ObjectiveEditPage({
@@ -17,10 +21,10 @@ export default async function ObjectiveEditPage({
 }) {
   const resolvedParams = await params;
   const session = await getAuthSession();
-
-  if (!session?.user?.email && !session?.user?.id) {
-    return notFound();
-  }
+  requireDashboardSubpageAccess(
+    session,
+    `/dashboard/objectives/${resolvedParams.id}/edit`
+  );
 
   const user = await prisma.user.findFirst({
     where: session.user.id
@@ -50,7 +54,11 @@ export default async function ObjectiveEditPage({
   );
   const keyResultLimitReached = (activeKeyResults?.length ?? 0) >= 6;
 
-  if (!user?.couple || !objective) {
+  if (!user?.couple) {
+    redirectForMissingCouple(session);
+  }
+
+  if (!objective) {
     return notFound();
   }
 
