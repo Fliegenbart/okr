@@ -193,6 +193,10 @@ export function ThinkingPartnerChat({
     if (!trimmed || isLoading) return;
 
     const nextMessages: Message[] = [...messages, { role: "user", content: trimmed }];
+    const history = nextMessages.slice(-6).map(({ role, content }) => ({
+      role,
+      content,
+    }));
     setMessages(nextMessages);
     setInput("");
     setIsLoading(true);
@@ -203,7 +207,7 @@ export function ThinkingPartnerChat({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: trimmed,
-          history: nextMessages.slice(-6),
+          history,
           objectiveId: objectiveId ?? null,
           keyResultId: keyResultId ?? null,
           persona: canUsePersona ? persona : null,
@@ -211,6 +215,15 @@ export function ThinkingPartnerChat({
       });
 
       const data = await response.json();
+
+      if (!response.ok) {
+        const errorMessage =
+          typeof data?.error === "string" && data.error.trim()
+            ? data.error
+            : "Ich konnte gerade keine Antwort liefern.";
+        throw new Error(errorMessage);
+      }
+
       const reply = typeof data?.reply === "string" ? data.reply : "";
       const structured =
         data?.structured && typeof data.structured === "object"
@@ -228,12 +241,16 @@ export function ThinkingPartnerChat({
         },
       ]);
       setSources(Array.isArray(data?.sources) ? data.sources : []);
-    } catch {
+    } catch (error) {
+      const messageText =
+        error instanceof Error && error.message.trim()
+          ? error.message
+          : "Fehler beim Laden. Bitte versuche es erneut.";
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content: "Fehler beim Laden. Bitte versuche es erneut.",
+          content: messageText,
         },
       ]);
     } finally {

@@ -30,7 +30,7 @@ const historyMessageSchema = z
     role: z.enum(["user", "assistant"]),
     content: z.string().trim().min(1).max(MAX_HISTORY_MESSAGE_LENGTH),
   })
-  .strict();
+  .strip();
 
 const requestSchema = z
   .object({
