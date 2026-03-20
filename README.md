@@ -133,7 +133,7 @@ already been executed.
 
 ### 1) Import transcripts
 
-Supported formats: `.txt`, `.md`, `.srt`, `.vtt`.
+Supported formats: `.txt`, `.md`, `.srt`, `.vtt`, `.docx`.
 
 ```bash
 export TRANSCRIPT_DIR="/absolute/path/to/transcripts"
@@ -143,6 +143,12 @@ npm run transcripts:import
 ```
 
 If `TRANSCRIPT_COUPLE_ID` is set, the imported knowledge is scoped to that couple. If it is empty, the transcripts stay global and are only used when the app intentionally allows shared knowledge.
+
+The importer now:
+
+- splits transcripts into speaker-aware chunks
+- marks chunk quality (`VERIFIED`, `INFERRED`, `MIXED`, `UNKNOWN`)
+- rebuilds persona profiles for `DANIEL` and `CHRISTIANE` from verified/inferred chunks
 
 ### 2) Configure LLM
 
@@ -155,6 +161,11 @@ OPENAI_FALLBACK_MODEL="gpt-4.1-mini"
 ```
 
 Open `http://localhost:3000/dashboard/thinking-partner`.
+
+## Persona Beta
+
+- Daniel-/Christiane-Persona is available only for beta-approved users and admins.
+- The Thinking Partner always stays source-grounded and does not pretend to have private memories of the real people.
 
 ## Weekly Check-in (Calendar)
 

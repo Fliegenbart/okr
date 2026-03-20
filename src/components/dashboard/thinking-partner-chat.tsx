@@ -19,10 +19,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  getPersonaGreeting,
+  getPersonaLabel,
+  getTranscriptSpeakerLabel,
+  type PersonaSpeaker,
+} from "@/lib/transcript-persona";
 
 export type ThinkingPartnerChatProps = {
   objectiveId?: string | null;
   keyResultId?: string | null;
+  canUsePersona?: boolean;
 };
 
 type StructuredAnswer = {
@@ -54,6 +61,8 @@ type Source = {
   title: string;
   excerpt: string;
   topics?: unknown;
+  speaker?: string | null;
+  kind?: "wissen" | "stil";
 };
 
 const starterPrompts = [
@@ -79,20 +88,22 @@ function formatTopics(topics: unknown) {
 export function ThinkingPartnerChat({
   objectiveId,
   keyResultId,
+  canUsePersona = false,
 }: ThinkingPartnerChatProps) {
   const router = useRouter();
+  const [persona, setPersona] = useState<PersonaSpeaker>("DANIEL");
 
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content:
-        "Hi! Ich bin euer Thinking Partner. Erzählt mir kurz, was euch gerade beschäftigt.",
+      content: getPersonaGreeting(canUsePersona ? persona : null),
     },
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sources, setSources] = useState<Source[]>([]);
   const messagesRef = useRef<HTMLDivElement | null>(null);
+  const hasMountedRef = useRef(false);
 
   const [dialog, setDialog] = useState<
     | null
@@ -124,8 +135,7 @@ export function ThinkingPartnerChat({
     },
     onError: ({ error }) => {
       toast.error("Nächste Aktion konnte nicht gespeichert werden", {
-        description:
-          error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
+        description: error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
       });
     },
   });
@@ -138,8 +148,7 @@ export function ThinkingPartnerChat({
     },
     onError: ({ error }) => {
       toast.error("Objective konnte nicht aktualisiert werden", {
-        description:
-          error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
+        description: error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
       });
     },
   });
@@ -152,8 +161,7 @@ export function ThinkingPartnerChat({
     },
     onError: ({ error }) => {
       toast.error("Key Result konnte nicht aktualisiert werden", {
-        description:
-          error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
+        description: error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
       });
     },
   });
@@ -164,14 +172,27 @@ export function ThinkingPartnerChat({
     }
   }, [messages, isLoading]);
 
+  useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
+    }
+
+    setMessages([
+      {
+        role: "assistant",
+        content: getPersonaGreeting(canUsePersona ? persona : null),
+      },
+    ]);
+    setSources([]);
+    setInput("");
+  }, [canUsePersona, persona]);
+
   const handleSend = async (message: string) => {
     const trimmed = message.trim();
     if (!trimmed || isLoading) return;
 
-    const nextMessages: Message[] = [
-      ...messages,
-      { role: "user", content: trimmed },
-    ];
+    const nextMessages: Message[] = [...messages, { role: "user", content: trimmed }];
     setMessages(nextMessages);
     setInput("");
     setIsLoading(true);
@@ -185,6 +206,7 @@ export function ThinkingPartnerChat({
           history: nextMessages.slice(-6),
           objectiveId: objectiveId ?? null,
           keyResultId: keyResultId ?? null,
+          persona: canUsePersona ? persona : null,
         }),
       });
 
@@ -194,9 +216,7 @@ export function ThinkingPartnerChat({
         data?.structured && typeof data.structured === "object"
           ? (data.structured as StructuredAnswer)
           : null;
-      const actions = Array.isArray(data?.actions)
-        ? (data.actions as Action[])
-        : [];
+      const actions = Array.isArray(data?.actions) ? (data.actions as Action[]) : [];
 
       setMessages((prev) => [
         ...prev,
@@ -281,8 +301,39 @@ export function ThinkingPartnerChat({
     applyObjectiveRewrite.isPending ||
     applyKeyResultRewrite.isPending;
 
+  const sourceKindLabel = (kind?: "wissen" | "stil") => {
+    if (kind === "stil") return "Stil";
+    return "Wissen";
+  };
+
   return (
     <div className="space-y-4">
+      {canUsePersona ? (
+        <div className="rounded-2xl border border-border bg-card p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+            Persona Beta
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Waehlt, ob die Antwort mehr nach Daniel oder Christiane klingen soll. Beim Wechsel
+            startet der Chat bewusst frisch, damit die Stimme sauber bleibt.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {(["DANIEL", "CHRISTIANE"] as const).map((option) => (
+              <Button
+                key={option}
+                type="button"
+                variant={persona === option ? "default" : "outline"}
+                className="rounded-2xl"
+                onClick={() => setPersona(option)}
+                disabled={isLoading}
+              >
+                {getPersonaLabel(option)}
+              </Button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       <div
         ref={messagesRef}
         className="h-[420px] overflow-y-auto rounded-2xl border border-border bg-card p-4"
@@ -291,9 +342,7 @@ export function ThinkingPartnerChat({
           {messages.map((message, index) => (
             <div
               key={`${message.role}-${index}`}
-              className={`flex ${
-                message.role === "user" ? "justify-end" : "justify-start"
-              }`}
+              className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
             >
               <div
                 className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-sm ${
@@ -304,9 +353,7 @@ export function ThinkingPartnerChat({
               >
                 {message.role === "assistant" && message.structured ? (
                   <div className="space-y-4">
-                    <p className="whitespace-pre-wrap">
-                      {message.structured.summary}
-                    </p>
+                    <p className="whitespace-pre-wrap">{message.structured.summary}</p>
 
                     <div className="space-y-2">
                       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
@@ -378,9 +425,7 @@ export function ThinkingPartnerChat({
               </div>
             </div>
           ))}
-          {isLoading ? (
-            <div className="text-xs text-muted-foreground">Tippt...</div>
-          ) : null}
+          {isLoading ? <div className="text-xs text-muted-foreground">Tippt...</div> : null}
         </div>
       </div>
 
@@ -419,25 +464,30 @@ export function ThinkingPartnerChat({
 
       {sources.length ? (
         <div className="rounded-2xl border border-border bg-card p-4">
-          <p className="text-xs uppercase tracking-[0.2em] text-primary">
-            Quellen aus Calls
-          </p>
+          <p className="text-xs uppercase tracking-[0.2em] text-primary">Quellen aus Calls</p>
           <div className="mt-3 space-y-3">
             {sources.map((source, index) => {
               const topicsLabel = formatTopics(source.topics);
+              const speakerLabel = getTranscriptSpeakerLabel(source.speaker);
               return (
                 <div key={`${source.title}-${index}`}>
-                  <p className="text-sm font-semibold text-foreground">
-                    {source.title}
-                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-sm font-semibold text-foreground">{source.title}</p>
+                    <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                      {sourceKindLabel(source.kind)}
+                    </span>
+                    {speakerLabel ? (
+                      <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                        {speakerLabel}
+                      </span>
+                    ) : null}
+                  </div>
                   {topicsLabel ? (
                     <p className="text-[11px] uppercase tracking-[0.2em] text-primary">
                       {topicsLabel}
                     </p>
                   ) : null}
-                  <p className="text-xs text-muted-foreground">
-                    {source.excerpt}...
-                  </p>
+                  <p className="text-xs text-muted-foreground">{source.excerpt}...</p>
                 </div>
               );
             })}
@@ -445,10 +495,7 @@ export function ThinkingPartnerChat({
         </div>
       ) : null}
 
-      <Dialog
-        open={dialog !== null}
-        onOpenChange={(open) => (!open ? setDialog(null) : null)}
-      >
+      <Dialog open={dialog !== null} onOpenChange={(open) => (!open ? setDialog(null) : null)}>
         <DialogContent>
           {dialog?.kind === "saveNextAction" ? (
             <>

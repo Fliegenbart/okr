@@ -2,21 +2,27 @@ import { Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/db";
 import { calculateProgress } from "@/lib/progress";
+import {
+  getPersonaLabel,
+  getTranscriptSpeakerLabel,
+  type PersonaProfileSnapshot,
+  type PersonaSpeaker,
+} from "@/lib/transcript-persona";
 
 export type TranscriptSnippet = {
   id: string;
   content: string;
   title: string;
   sourcePath: string | null;
+  sessionDate?: Date | null;
+  speaker?: string | null;
+  qualityStatus?: string | null;
   topics?: unknown;
 };
 
-export const transcriptTopics = [
-  "KONFLIKT",
-  "PRIORISIERUNG",
-  "INTIMITAET",
-  "FINANZEN",
-] as const;
+const STYLE_QUALITY_STATUSES = ["VERIFIED", "INFERRED"] as const;
+
+export const transcriptTopics = ["KONFLIKT", "PRIORISIERUNG", "INTIMITAET", "FINANZEN"] as const;
 
 export type TranscriptTopic = (typeof transcriptTopics)[number];
 
@@ -55,10 +61,7 @@ export async function searchTranscriptChunks(
   const runQuery = async (topicsFilter: TranscriptTopic[]) => {
     const topicConditions = topicsFilter.length
       ? Prisma.sql`AND (${Prisma.join(
-          topicsFilter.map(
-            (topic) =>
-              Prisma.sql`coalesce(t.topics, '[]'::jsonb) ? ${topic}`
-          ),
+          topicsFilter.map((topic) => Prisma.sql`coalesce(t.topics, '[]'::jsonb) ? ${topic}`),
           " OR "
         )})`
       : Prisma.empty;
@@ -73,6 +76,9 @@ export async function searchTranscriptChunks(
         content: string;
         title: string;
         sourcePath: string | null;
+        sessionDate: Date | null;
+        speaker: string | null;
+        qualityStatus: string | null;
         topics: unknown;
       }>
     >(Prisma.sql`
@@ -80,6 +86,9 @@ export async function searchTranscriptChunks(
              tc.content,
              t.title,
              t."sourcePath",
+             t."sessionDate",
+             tc."speaker"::text AS speaker,
+             tc."qualityStatus"::text AS "qualityStatus",
              t.topics
       FROM "TranscriptChunk" tc
       JOIN "Transcript" t ON t.id = tc."transcriptId"
@@ -98,6 +107,172 @@ export async function searchTranscriptChunks(
   }
 
   return results;
+}
+
+export async function searchPersonaStyleChunks(
+  query: string,
+  speaker: PersonaSpeaker,
+  limit = 4,
+  topics?: TranscriptTopic[],
+  coupleId?: string | null
+) {
+  if (!query.trim()) return [];
+
+  const topicsList = (topics ?? []).filter((topic): topic is TranscriptTopic =>
+    transcriptTopics.includes(topic)
+  );
+
+  const transcriptScopeCondition = coupleId
+    ? Prisma.sql`AND (t."coupleId" IS NULL OR t."coupleId" = ${coupleId})`
+    : Prisma.sql`AND t."coupleId" IS NULL`;
+
+  const qualityCondition = Prisma.sql`AND tc."qualityStatus"::text IN (${Prisma.join(
+    STYLE_QUALITY_STATUSES.map((status) => Prisma.sql`${status}`)
+  )})`;
+
+  const speakerCondition = Prisma.sql`AND tc."speaker"::text = ${speaker}`;
+
+  const runQuery = async (topicsFilter: TranscriptTopic[]) => {
+    const topicConditions = topicsFilter.length
+      ? Prisma.sql`AND (${Prisma.join(
+          topicsFilter.map((topic) => Prisma.sql`coalesce(t.topics, '[]'::jsonb) ? ${topic}`),
+          " OR "
+        )})`
+      : Prisma.empty;
+
+    return prisma.$queryRaw<TranscriptSnippet[]>(Prisma.sql`
+      SELECT tc.id,
+             tc.content,
+             t.title,
+             t."sourcePath",
+             t."sessionDate",
+             tc."speaker"::text AS speaker,
+             tc."qualityStatus"::text AS "qualityStatus",
+             t.topics
+      FROM "TranscriptChunk" tc
+      JOIN "Transcript" t ON t.id = tc."transcriptId"
+      WHERE to_tsvector('german', tc.content) @@ plainto_tsquery('german', ${query})
+      ${transcriptScopeCondition}
+      ${speakerCondition}
+      ${qualityCondition}
+      ${topicConditions}
+      ORDER BY ts_rank(to_tsvector('german', tc.content), plainto_tsquery('german', ${query})) DESC
+      LIMIT ${limit}
+    `);
+  };
+
+  const topicalResults = await runQuery(topicsList);
+
+  if (topicalResults.length) {
+    return topicalResults;
+  }
+
+  const genericResults = topicsList.length ? await runQuery([]) : [];
+
+  if (genericResults.length) {
+    return genericResults;
+  }
+
+  return prisma.transcriptChunk
+    .findMany({
+      where: {
+        speaker,
+        qualityStatus: { in: [...STYLE_QUALITY_STATUSES] },
+        transcript: coupleId ? { OR: [{ coupleId: null }, { coupleId }] } : { coupleId: null },
+      },
+      select: {
+        id: true,
+        content: true,
+        qualityStatus: true,
+        transcript: {
+          select: {
+            title: true,
+            sourcePath: true,
+            sessionDate: true,
+            topics: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+    })
+    .then((rows) =>
+      rows.map((row) => ({
+        id: row.id,
+        content: row.content,
+        title: row.transcript.title,
+        sourcePath: row.transcript.sourcePath,
+        sessionDate: row.transcript.sessionDate,
+        speaker,
+        qualityStatus: row.qualityStatus,
+        topics: row.transcript.topics,
+      }))
+    );
+}
+
+function parseStringList(value: unknown) {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .filter((item): item is string => typeof item === "string")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+export async function getPersonaProfile(
+  speaker: PersonaSpeaker,
+  coupleId?: string | null
+): Promise<PersonaProfileSnapshot | null> {
+  const scopeKey = coupleId ?? "global";
+
+  const profile =
+    (await prisma.transcriptPersonaProfile.findUnique({
+      where: {
+        scopeKey_speaker: {
+          scopeKey,
+          speaker,
+        },
+      },
+      select: {
+        styleSummary: true,
+        toneDescriptors: true,
+        recurringPhrases: true,
+        vocabulary: true,
+        avoidPatterns: true,
+        sampleCount: true,
+      },
+    })) ??
+    (coupleId
+      ? await prisma.transcriptPersonaProfile.findUnique({
+          where: {
+            scopeKey_speaker: {
+              scopeKey: "global",
+              speaker,
+            },
+          },
+          select: {
+            styleSummary: true,
+            toneDescriptors: true,
+            recurringPhrases: true,
+            vocabulary: true,
+            avoidPatterns: true,
+            sampleCount: true,
+          },
+        })
+      : null);
+
+  if (!profile) {
+    return null;
+  }
+
+  return {
+    styleSummary: profile.styleSummary,
+    toneDescriptors: parseStringList(profile.toneDescriptors),
+    recurringPhrases: parseStringList(profile.recurringPhrases),
+    vocabulary: parseStringList(profile.vocabulary),
+    avoidPatterns: parseStringList(profile.avoidPatterns),
+    sampleCount: profile.sampleCount,
+  };
 }
 
 export function buildCoupleContext(couple: {
@@ -149,9 +324,7 @@ export function buildCoupleContext(couple: {
       })
       .join("\n");
 
-    const nextAction = objective.nextAction
-      ? `\nNächste Aktion: ${objective.nextAction}`
-      : "";
+    const nextAction = objective.nextAction ? `\nNächste Aktion: ${objective.nextAction}` : "";
 
     return `Objective: ${objective.title} (${objective.quarter.title}) - ${progress}%${nextAction}\n${keyResults}`;
   });
@@ -178,16 +351,65 @@ export function buildCoupleContext(couple: {
     objectives.length ? objectives.join("\n\n") : "(keine Objectives)"
   }\n\nCommitments:\n${
     commitments?.length ? commitments.join("\n\n") : "(keine Commitments)"
-  }\n\nLetzte Check-ins:\n${
-    checkIns?.length ? checkIns.join("\n\n") : "(keine Check-ins)"
-  }`;
+  }\n\nLetzte Check-ins:\n${checkIns?.length ? checkIns.join("\n\n") : "(keine Check-ins)"}`;
 }
 
 export function buildKnowledgeContext(snippets: TranscriptSnippet[]) {
   if (!snippets.length) return "Keine passenden Ausschnitte gefunden.";
   return snippets
     .map((snippet, index) => {
-      return `Quelle ${index + 1} (${snippet.title}): ${snippet.content}`;
+      const speaker = getTranscriptSpeakerLabel(snippet.speaker);
+      const date = snippet.sessionDate
+        ? new Intl.DateTimeFormat("de-DE", {
+            dateStyle: "medium",
+          }).format(new Date(snippet.sessionDate))
+        : null;
+      const meta = [speaker, date].filter(Boolean).join(", ");
+      const metaSuffix = meta ? `, ${meta}` : "";
+      return `Quelle ${index + 1} (${snippet.title}${metaSuffix}): ${snippet.content}`;
     })
     .join("\n\n");
+}
+
+export function buildPersonaContext({
+  speaker,
+  profile,
+  styleSnippets,
+}: {
+  speaker: PersonaSpeaker;
+  profile: PersonaProfileSnapshot | null;
+  styleSnippets: TranscriptSnippet[];
+}) {
+  const speakerLabel = getPersonaLabel(speaker);
+  const toneDescriptors = profile?.toneDescriptors.length
+    ? profile.toneDescriptors.join(", ")
+    : "klar, warm, handlungsorientiert";
+  const recurringPhrases = profile?.recurringPhrases.length
+    ? profile.recurringPhrases.slice(0, 4).join("; ")
+    : "keine stabilen Wiederholungen gefunden";
+  const vocabulary = profile?.vocabulary.length
+    ? profile.vocabulary.slice(0, 8).join(", ")
+    : "keine stabilen Signalwoerter gefunden";
+  const avoidPatterns = profile?.avoidPatterns.length
+    ? profile.avoidPatterns.join(" | ")
+    : "Keine Diagnosen, keine erfundenen Erinnerungen.";
+  const styleExamples = styleSnippets.length
+    ? styleSnippets
+        .map((snippet, index) => `Stilbeispiel ${index + 1}: ${snippet.content.slice(0, 260)}`)
+        .join("\n")
+    : "Keine Stilbeispiele gefunden.";
+
+  return [
+    `Gewaehlte Persona: ${speakerLabel}`,
+    `Profil: ${profile?.styleSummary ?? "Kein gespeichertes Persona-Profil gefunden."}`,
+    `Ton: ${toneDescriptors}`,
+    `Typische Woerter: ${vocabulary}`,
+    `Wiederkehrende Formulierungen: ${recurringPhrases}`,
+    `No-Gos: ${avoidPatterns}`,
+    "",
+    "Wichtige Regel: Du formulierst im Stil dieser Persona, gibst dich aber nicht als reale Person mit eigenen privaten Erinnerungen aus.",
+    "Nutze keine Ich-Erlebnisse, wenn sie nicht direkt durch den Kontext gedeckt sind.",
+    "",
+    styleExamples,
+  ].join("\n");
 }

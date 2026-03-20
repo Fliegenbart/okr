@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-export function ThinkingPartnerFloating() {
+export function ThinkingPartnerFloating({ canUsePersona }: { canUsePersona: boolean }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -22,10 +22,8 @@ export function ThinkingPartnerFloating() {
   }
 
   const segments = pathname?.split("/") ?? [];
-  const objectiveId =
-    segments[2] === "objectives" ? segments[3] ?? null : null;
-  const keyResultId =
-    segments[2] === "key-results" ? segments[3] ?? null : null;
+  const objectiveId = segments[2] === "objectives" ? (segments[3] ?? null) : null;
+  const keyResultId = segments[2] === "key-results" ? (segments[3] ?? null) : null;
 
   return (
     <>
@@ -58,6 +56,7 @@ export function ThinkingPartnerFloating() {
             <ThinkingPartnerChat
               objectiveId={objectiveId}
               keyResultId={keyResultId}
+              canUsePersona={canUsePersona}
             />
           </div>
         </DialogContent>

@@ -2,8 +2,8 @@ import { prisma } from "@/lib/db";
 import { isAdminEmail } from "@/lib/admin-access";
 import { isClosedBetaMode, isSelfServeSignupAllowed } from "@/lib/runtime-flags";
 
-function normalizeEmail(email: string) {
-  return email.trim().toLowerCase();
+function normalizeEmail(email?: string | null) {
+  return email?.trim().toLowerCase() ?? "";
 }
 
 export async function hasBetaAccess(email: string) {
@@ -20,6 +20,20 @@ export async function hasBetaAccess(email: string) {
   });
 
   return Boolean(invite);
+}
+
+export async function canUseThinkingPartnerPersona(email?: string | null) {
+  const normalizedEmail = normalizeEmail(email);
+
+  if (!normalizedEmail) {
+    return false;
+  }
+
+  if (isAdminEmail(normalizedEmail)) {
+    return true;
+  }
+
+  return hasBetaAccess(normalizedEmail);
 }
 
 export async function canEmailCreateCouple(email: string) {

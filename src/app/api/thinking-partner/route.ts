@@ -2,19 +2,20 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getAuthenticatedViewer } from "@/lib/active-couple";
+import { canUseThinkingPartnerPersona } from "@/lib/beta-access";
 import { assertRateLimit } from "@/lib/rate-limit";
 import { prisma } from "@/lib/db";
-import {
-  generateChatCompletion,
-  generateToolCallCompletion,
-  type LlmMessage,
-} from "@/lib/llm";
+import { generateChatCompletion, generateToolCallCompletion, type LlmMessage } from "@/lib/llm";
 import {
   buildCoupleContext,
   buildKnowledgeContext,
+  buildPersonaContext,
+  getPersonaProfile,
   inferTopicsFromQuery,
+  searchPersonaStyleChunks,
   searchTranscriptChunks,
 } from "@/lib/thinking-partner";
+import { isPersonaSpeaker } from "@/lib/transcript-persona";
 import {
   thinkingPartnerResponseSchema,
   type ThinkingPartnerResponse,
@@ -37,6 +38,7 @@ const requestSchema = z
     history: z.array(historyMessageSchema).max(MAX_HISTORY_MESSAGES).default([]),
     objectiveId: z.string().trim().min(1).nullable().optional(),
     keyResultId: z.string().trim().min(1).nullable().optional(),
+    persona: z.enum(["DANIEL", "CHRISTIANE"]).nullable().optional(),
   })
   .strict();
 
@@ -129,13 +131,10 @@ export async function POST(req: Request) {
   const parsedBody = requestSchema.safeParse(await req.json().catch(() => null));
 
   if (!parsedBody.success) {
-    return NextResponse.json(
-      { error: "Ungültige Anfrage." },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Ungültige Anfrage." }, { status: 400 });
   }
 
-  const { message, history, objectiveId, keyResultId } = parsedBody.data;
+  const { message, history, objectiveId, keyResultId, persona: requestedPersona } = parsedBody.data;
 
   const couple = await prisma.couple.findUnique({
     where: { id: viewer.activeCoupleId },
@@ -202,18 +201,33 @@ export async function POST(req: Request) {
   });
 
   const topics = inferTopicsFromQuery(message);
-  const snippets = await searchTranscriptChunks(
-    message,
-    6,
-    topics,
-    viewer.activeCoupleId
-  );
+  const canUsePersona = await canUseThinkingPartnerPersona(viewer.email);
+  const persona = canUsePersona && isPersonaSpeaker(requestedPersona) ? requestedPersona : null;
+
+  const [snippets, styleSnippets, personaProfile] = await Promise.all([
+    searchTranscriptChunks(message, 6, topics, viewer.activeCoupleId),
+    persona
+      ? searchPersonaStyleChunks(message, persona, 4, topics, viewer.activeCoupleId)
+      : Promise.resolve([]),
+    persona ? getPersonaProfile(persona, viewer.activeCoupleId) : Promise.resolve(null),
+  ]);
   const knowledgeContext = buildKnowledgeContext(snippets);
+  const personaContext = persona
+    ? buildPersonaContext({
+        speaker: persona,
+        profile: personaProfile,
+        styleSnippets,
+      })
+    : "Keine Persona aktiv.";
   const ritualCandidates = extractMiniRitualCandidates(knowledgeContext);
 
   const systemPrompt = [
     "Du bist ein Thinking Partner für Paare. Du hilfst, gemeinsame Objectives und Key Results zu erreichen.",
     "Antworte auf Deutsch, klar, warm, handlungsorientiert. Kein Therapie-Setting, keine Diagnosen.",
+    persona
+      ? "Formuliere spuerbar im Stil der gewaehlten Persona, bleibe aber fachlich korrekt und belegt."
+      : "Formuliere in einer neutral-warmen Coach-Stimme.",
+    "WICHTIG: Gib dich nie als reale Person mit eigenen privaten Erinnerungen aus, wenn diese nicht direkt durch Quellen belegt sind.",
     "WICHTIG: Du MUSST deine Antwort als JSON via Tool-Aufruf liefern (kein Freitext).",
     "Format: Kurzfassung (1-3 Sätze) -> 2-4 Impulse -> 1 nächster Schritt -> 1-2 Rückfragen.",
     "Wenn möglich: schlage 1 Mini-Ritual vor (kurz, niedrigschwellig), bevorzugt basierend auf den Call-Snippets.",
@@ -235,15 +249,15 @@ export async function POST(req: Request) {
       )}`
     : "Keine Mini-Ritual Kandidaten gefunden.";
 
-  const sanitizedHistory: LlmMessage[] = history
-    .map((item) => ({
-      role: item.role,
-      content: item.content,
-    }));
+  const sanitizedHistory: LlmMessage[] = history.map((item) => ({
+    role: item.role,
+    content: item.content,
+  }));
 
   const messages: LlmMessage[] = [
     { role: "system", content: systemPrompt },
     { role: "system", content: contextPrompt },
+    { role: "system", content: personaContext },
     { role: "system", content: ritualPrompt },
     ...sanitizedHistory,
     { role: "user", content: message },
@@ -251,8 +265,7 @@ export async function POST(req: Request) {
 
   const toolResult = await generateToolCallCompletion(messages, {
     name: "thinking_partner_answer",
-    description:
-      "Erzeuge eine strukturierte, handlungsorientierte Thinking-Partner Antwort.",
+    description: "Erzeuge eine strukturierte, handlungsorientierte Thinking-Partner Antwort.",
     parameters: toolSchema,
   });
 
@@ -261,9 +274,7 @@ export async function POST(req: Request) {
   let fallback = Boolean(toolResult.isFallback);
 
   if (toolResult.toolArgumentsJson) {
-    const parsed = thinkingPartnerResponseSchema.safeParse(
-      toolResult.toolArgumentsJson
-    );
+    const parsed = thinkingPartnerResponseSchema.safeParse(toolResult.toolArgumentsJson);
     if (parsed.success) {
       structured = parsed.data;
       replyText = formatStructuredAsText(parsed.data);
@@ -280,9 +291,7 @@ export async function POST(req: Request) {
 
   const actions: Array<{ type: string; label: string }> = [];
   const combinedText = structured
-    ? `${structured.summary}\n${structured.nextStep}\n${structured.impulses.join(
-        " "
-      )}`
+    ? `${structured.summary}\n${structured.nextStep}\n${structured.impulses.join(" ")}`
     : replyText;
 
   if (/(check[- ]?in|wochencheck|kalender|termin)/i.test(combinedText)) {
@@ -304,15 +313,44 @@ export async function POST(req: Request) {
     actions.push({ type: "APPLY_KEY_RESULT_REWRITE", label: "KR vereinfachen" });
   }
 
-  return NextResponse.json({
-    reply: replyText,
-    structured,
-    sources: snippets.map((snippet) => ({
+  const sourceMap = new Map<
+    string,
+    {
+      title: string;
+      excerpt: string;
+      topics: unknown;
+      speaker: string | null;
+      kind: "wissen" | "stil";
+    }
+  >();
+
+  snippets.forEach((snippet) => {
+    sourceMap.set(snippet.id, {
       title: snippet.title,
       excerpt: snippet.content.slice(0, 220),
       topics: snippet.topics ?? null,
-    })),
+      speaker: snippet.speaker ?? null,
+      kind: "wissen",
+    });
+  });
+
+  styleSnippets.forEach((snippet) => {
+    if (sourceMap.has(snippet.id)) return;
+    sourceMap.set(snippet.id, {
+      title: snippet.title,
+      excerpt: snippet.content.slice(0, 220),
+      topics: snippet.topics ?? null,
+      speaker: snippet.speaker ?? null,
+      kind: "stil",
+    });
+  });
+
+  return NextResponse.json({
+    reply: replyText,
+    structured,
+    sources: Array.from(sourceMap.values()),
     actions,
     fallback,
+    activePersona: persona,
   });
 }

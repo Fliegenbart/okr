@@ -2,10 +2,8 @@ import Link from "next/link";
 
 import { ThinkingPartnerChat } from "@/components/dashboard/thinking-partner-chat";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  redirectForMissingCouple,
-  requireDashboardSubpageAccess,
-} from "@/lib/dashboard-access";
+import { canUseThinkingPartnerPersona } from "@/lib/beta-access";
+import { redirectForMissingCouple, requireDashboardSubpageAccess } from "@/lib/dashboard-access";
 import { prisma } from "@/lib/db";
 
 export default async function ThinkingPartnerPage({
@@ -14,6 +12,7 @@ export default async function ThinkingPartnerPage({
   searchParams?: Promise<{ objectiveId?: string; keyResultId?: string }>;
 }) {
   const viewer = await requireDashboardSubpageAccess("/dashboard/thinking-partner");
+  const canUsePersona = await canUseThinkingPartnerPersona(viewer.email);
 
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const objectiveId = resolvedSearchParams?.objectiveId ?? null;
@@ -57,12 +56,15 @@ export default async function ThinkingPartnerPage({
         </Link>
 
         <div className="mt-6 space-y-2">
-          <h1 className="text-3xl font-semibold text-foreground">
-            Thinking Partner
-          </h1>
+          <h1 className="text-3xl font-semibold text-foreground">Thinking Partner</h1>
           <p className="text-sm text-muted-foreground">
             Ein kurzer, klarer Impuls für euren nächsten Schritt.
           </p>
+          {canUsePersona ? (
+            <p className="text-sm text-muted-foreground">
+              Beta: Ihr koennt hier zwischen Daniel- und Christiane-Stil wechseln.
+            </p>
+          ) : null}
           {objective ? (
             <p className="text-sm text-muted-foreground">
               Fokus: <span className="font-medium">{objective.title}</span>
@@ -80,6 +82,7 @@ export default async function ThinkingPartnerPage({
             <ThinkingPartnerChat
               objectiveId={objectiveId}
               keyResultId={keyResultId}
+              canUsePersona={canUsePersona}
             />
           </CardContent>
         </Card>

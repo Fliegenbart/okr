@@ -46,69 +46,85 @@ enum ReminderStatus {
   DISMISSED
 }
 
+enum TranscriptSpeaker {
+  DANIEL
+  CHRISTIANE
+  OTHER
+  MIXED
+  UNKNOWN
+}
+
+enum TranscriptQualityStatus {
+  VERIFIED
+  INFERRED
+  MIXED
+  UNKNOWN
+}
+
 model User {
-  id              String              @id @default(cuid())
-  name            String?
-  email           String?             @unique
-  emailVerified   DateTime?
-  image           String?
-  role            UserRole            @default(USER)
-  coupleId        String?
-  preferredQuarterId String?
-  couple          Couple?             @relation(fields: [coupleId], references: [id])
-  preferredQuarter Quarter?           @relation("PreferredQuarter", fields: [preferredQuarterId], references: [id])
-  accounts        Account[]
-  sessions        Session[]
-  keyResultUpdates KeyResultUpdate[]  @relation("UserKeyResultUpdates")
-  nextActionObjectives Objective[]    @relation("ObjectiveNextActionOwner")
-  createdCheckIns CheckInSession[]     @relation("CheckInCreatedBy")
-  createdCommitments Commitment[]      @relation("CommitmentCreatedBy")
-  ownedCommitments Commitment[]        @relation("CommitmentOwner")
-  createdTimelineEvents TimelineEvent[] @relation("TimelineEventCreatedBy")
-  createdReminders Reminder[]          @relation("ReminderCreatedBy")
-  auditLogs       AuditLog[]          @relation("AuditActor")
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
+  id                    String            @id @default(cuid())
+  name                  String?
+  email                 String?           @unique
+  emailVerified         DateTime?
+  image                 String?
+  role                  UserRole          @default(USER)
+  coupleId              String?
+  preferredQuarterId    String?
+  couple                Couple?           @relation(fields: [coupleId], references: [id])
+  preferredQuarter      Quarter?          @relation("PreferredQuarter", fields: [preferredQuarterId], references: [id])
+  accounts              Account[]
+  sessions              Session[]
+  keyResultUpdates      KeyResultUpdate[] @relation("UserKeyResultUpdates")
+  nextActionObjectives  Objective[]       @relation("ObjectiveNextActionOwner")
+  createdCheckIns       CheckInSession[]  @relation("CheckInCreatedBy")
+  createdCommitments    Commitment[]      @relation("CommitmentCreatedBy")
+  ownedCommitments      Commitment[]      @relation("CommitmentOwner")
+  createdTimelineEvents TimelineEvent[]   @relation("TimelineEventCreatedBy")
+  createdReminders      Reminder[]        @relation("ReminderCreatedBy")
+  auditLogs             AuditLog[]        @relation("AuditActor")
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
 }
 
 model Couple {
-  id         String      @id @default(cuid())
-  name       String
-  vision     String?
-  mission    String?
-  checkInWeekday Int?
-  checkInTime String?
-  checkInDurationMinutes Int?
-  checkInTimeZone String?
-  inviteCode String      @unique
-  users      User[]
-  quarters   Quarter[]
-  objectives Objective[]
-  boards     Board[]
-  invites    Invite[]
-  transcripts Transcript[]
-  checkInSessions CheckInSession[]
-  commitments Commitment[]
-  timelineEvents TimelineEvent[]
-  reminders  Reminder[]
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  id                        String                     @id @default(cuid())
+  name                      String
+  vision                    String?
+  mission                   String?
+  checkInWeekday            Int?
+  checkInTime               String?
+  checkInDurationMinutes    Int?
+  checkInTimeZone           String?
+  inviteCode                String                     @unique
+  users                     User[]
+  quarters                  Quarter[]
+  objectives                Objective[]
+  boards                    Board[]
+  invites                   Invite[]
+  transcripts               Transcript[]
+  transcriptPersonaProfiles TranscriptPersonaProfile[]
+  checkInSessions           CheckInSession[]
+  commitments               Commitment[]
+  timelineEvents            TimelineEvent[]
+  reminders                 Reminder[]
+  createdAt                 DateTime                   @default(now())
+  updatedAt                 DateTime                   @updatedAt
 }
 
 model Quarter {
-  id        String      @id @default(cuid())
-  title     String
-  startsAt  DateTime
-  endsAt    DateTime
-  coupleId  String
-  couple    Couple      @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  objectives Objective[]
-  boards    Board[]
+  id              String           @id @default(cuid())
+  title           String
+  startsAt        DateTime
+  endsAt          DateTime
+  coupleId        String
+  couple          Couple           @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  objectives      Objective[]
+  boards          Board[]
   checkInSessions CheckInSession[]
-  reminders Reminder[]
-  preferredBy User[]    @relation("PreferredQuarter")
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  reminders       Reminder[]
+  preferredBy     User[]           @relation("PreferredQuarter")
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 }
 
 enum BoardScope {
@@ -123,86 +139,108 @@ enum BoardElementType {
 }
 
 model Board {
-  id        String      @id @default(cuid())
-  coupleId  String
-  quarterId String?
-  scope     BoardScope
-  boardKey  String
-  title     String
-  version   Int         @default(1)
-  couple    Couple      @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  quarter   Quarter?    @relation(fields: [quarterId], references: [id], onDelete: Cascade)
-  elements  BoardElement[]
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  id          String            @id @default(cuid())
+  coupleId    String
+  quarterId   String?
+  scope       BoardScope
+  boardKey    String
+  title       String
+  version     Int               @default(1)
+  couple      Couple            @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  quarter     Quarter?          @relation(fields: [quarterId], references: [id], onDelete: Cascade)
+  elements    BoardElement[]
+  connections BoardConnection[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
 
   @@unique([coupleId, boardKey])
 }
 
 model BoardElement {
-  id        String           @id @default(cuid())
-  boardId   String
-  type      BoardElementType
-  title     String?
-  content   String?
-  color     String?
-  x         Float
-  y         Float
-  width     Float
-  height    Float
-  zIndex    Int              @default(0)
-  meta      Json?
-  board     Board            @relation(fields: [boardId], references: [id], onDelete: Cascade)
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
+  id                  String            @id @default(cuid())
+  boardId             String
+  type                BoardElementType
+  title               String?
+  content             String?
+  color               String?
+  x                   Float
+  y                   Float
+  width               Float
+  height              Float
+  zIndex              Int               @default(0)
+  meta                Json?
+  board               Board             @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  outgoingConnections BoardConnection[] @relation("BoardConnectionFrom")
+  incomingConnections BoardConnection[] @relation("BoardConnectionTo")
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+}
+
+model BoardConnection {
+  id            String       @id @default(cuid())
+  boardId       String
+  fromElementId String
+  toElementId   String
+  color         String?
+  label         String?
+  board         Board        @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  fromElement   BoardElement @relation("BoardConnectionFrom", fields: [fromElementId], references: [id], onDelete: Cascade)
+  toElement     BoardElement @relation("BoardConnectionTo", fields: [toElementId], references: [id], onDelete: Cascade)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@unique([boardId, fromElementId, toElementId])
+  @@index([boardId])
+  @@index([fromElementId])
+  @@index([toElementId])
 }
 
 model Objective {
-  id          String      @id @default(cuid())
-  title       String
-  description String?
-  nextAction  String?
+  id                String          @id @default(cuid())
+  title             String
+  description       String?
+  nextAction        String?
   nextActionOwnerId String?
-  coupleId    String
-  quarterId   String
-  couple      Couple      @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  quarter     Quarter     @relation(fields: [quarterId], references: [id], onDelete: Cascade)
-  keyResults  KeyResult[]
-  nextActionOwner User?   @relation("ObjectiveNextActionOwner", fields: [nextActionOwnerId], references: [id])
-  commitments Commitment[]
-  timelineEvents TimelineEvent[]
-  archivedAt  DateTime?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  coupleId          String
+  quarterId         String
+  couple            Couple          @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  quarter           Quarter         @relation(fields: [quarterId], references: [id], onDelete: Cascade)
+  keyResults        KeyResult[]
+  nextActionOwner   User?           @relation("ObjectiveNextActionOwner", fields: [nextActionOwnerId], references: [id])
+  commitments       Commitment[]
+  timelineEvents    TimelineEvent[]
+  archivedAt        DateTime?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
 }
 
 model CheckInSession {
-  id              String          @id @default(cuid())
-  coupleId        String
-  quarterId       String?
-  templateKey     String?
-  title           String
-  moodRating      Int?
-  highlights      String?
-  tensions        String?
-  summary         String?
-  nextSteps       String?
-  couple          Couple          @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  quarter         Quarter?        @relation(fields: [quarterId], references: [id], onDelete: SetNull)
-  createdById     String?
-  createdBy       User?           @relation("CheckInCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
-  commitments     Commitment[]
-  timelineEvents  TimelineEvent[]
-  reminders       Reminder[]
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  id             String          @id @default(cuid())
+  coupleId       String
+  quarterId      String?
+  templateKey    String?
+  title          String
+  moodRating     Int?
+  highlights     String?
+  tensions       String?
+  summary        String?
+  nextSteps      String?
+  couple         Couple          @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  quarter        Quarter?        @relation(fields: [quarterId], references: [id], onDelete: SetNull)
+  createdById    String?
+  createdBy      User?           @relation("CheckInCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  commitments    Commitment[]
+  timelineEvents TimelineEvent[]
+  reminders      Reminder[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
   @@index([coupleId, createdAt])
   @@index([quarterId, createdAt])
 }
 
 model Commitment {
-  id               String            @id @default(cuid())
+  id               String           @id @default(cuid())
   coupleId         String
   objectiveId      String?
   checkInSessionId String?
@@ -210,19 +248,19 @@ model Commitment {
   details          String?
   ownerId          String?
   dueAt            DateTime?
-  status           CommitmentStatus  @default(OPEN)
-  source           CommitmentSource  @default(MANUAL)
+  status           CommitmentStatus @default(OPEN)
+  source           CommitmentSource @default(MANUAL)
   completedAt      DateTime?
   createdById      String?
-  couple           Couple            @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  objective        Objective?        @relation(fields: [objectiveId], references: [id], onDelete: SetNull)
-  checkInSession   CheckInSession?   @relation(fields: [checkInSessionId], references: [id], onDelete: SetNull)
-  owner            User?             @relation("CommitmentOwner", fields: [ownerId], references: [id], onDelete: SetNull)
-  createdBy        User?             @relation("CommitmentCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  couple           Couple           @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  objective        Objective?       @relation(fields: [objectiveId], references: [id], onDelete: SetNull)
+  checkInSession   CheckInSession?  @relation(fields: [checkInSessionId], references: [id], onDelete: SetNull)
+  owner            User?            @relation("CommitmentOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  createdBy        User?            @relation("CommitmentCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   timelineEvents   TimelineEvent[]
   reminders        Reminder[]
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 
   @@index([coupleId, status])
   @@index([objectiveId, status])
@@ -283,51 +321,51 @@ model Reminder {
 }
 
 model KeyResult {
-  id           String             @id @default(cuid())
+  id           String            @id @default(cuid())
   title        String
   targetValue  Float
   currentValue Float             @default(0)
   unit         String?
   objectiveId  String
-  objective    Objective          @relation(fields: [objectiveId], references: [id], onDelete: Cascade)
+  objective    Objective         @relation(fields: [objectiveId], references: [id], onDelete: Cascade)
   updates      KeyResultUpdate[]
   archivedAt   DateTime?
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
 }
 
 model KeyResultUpdate {
-  id          String    @id @default(cuid())
-  keyResultId String
-  keyResult   KeyResult @relation(fields: [keyResultId], references: [id], onDelete: Cascade)
-  value       Float
+  id            String    @id @default(cuid())
+  keyResultId   String
+  keyResult     KeyResult @relation(fields: [keyResultId], references: [id], onDelete: Cascade)
+  value         Float
   previousValue Float?
-  note        String?
-  updatedById String?
-  updatedBy   User?     @relation("UserKeyResultUpdates", fields: [updatedById], references: [id])
-  createdAt   DateTime  @default(now())
+  note          String?
+  updatedById   String?
+  updatedBy     User?     @relation("UserKeyResultUpdates", fields: [updatedById], references: [id])
+  createdAt     DateTime  @default(now())
 }
 
 model Invite {
-  id        String   @id @default(cuid())
-  coupleId  String
-  email     String
-  token     String   @unique
-  expiresAt DateTime
+  id         String    @id @default(cuid())
+  coupleId   String
+  email      String
+  token      String    @unique
+  expiresAt  DateTime
   acceptedAt DateTime?
-  revokedAt DateTime?
-  createdAt DateTime @default(now())
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
 
-  couple    Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  couple Couple @relation(fields: [coupleId], references: [id], onDelete: Cascade)
 }
 
 model BetaAccessInvite {
-  id         String   @id @default(cuid())
-  email      String   @unique
-  note       String?
+  id          String    @id @default(cuid())
+  email       String    @unique
+  note        String?
   activatedAt DateTime?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model RateLimitEvent {
@@ -355,26 +393,51 @@ model AuditLog {
 }
 
 model Transcript {
-  id         String           @id @default(cuid())
-  title      String
-  sourcePath String?
-  coupleId   String?
-  couple     Couple?          @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  metadata   Json?
-  topics     Json?
-  importedAt DateTime         @default(now())
-  chunks     TranscriptChunk[]
+  id          String            @id @default(cuid())
+  title       String
+  sourcePath  String?
+  sessionDate DateTime?
+  coupleId    String?
+  couple      Couple?           @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  metadata    Json?
+  topics      Json?
+  importedAt  DateTime          @default(now())
+  chunks      TranscriptChunk[]
 
   @@index([coupleId])
 }
 
 model TranscriptChunk {
-  id           String     @id @default(cuid())
-  transcriptId String
-  transcript   Transcript @relation(fields: [transcriptId], references: [id], onDelete: Cascade)
-  chunkIndex   Int
-  content      String
-  createdAt    DateTime   @default(now())
+  id            String                  @id @default(cuid())
+  transcriptId  String
+  transcript    Transcript              @relation(fields: [transcriptId], references: [id], onDelete: Cascade)
+  chunkIndex    Int
+  speaker       TranscriptSpeaker       @default(UNKNOWN)
+  qualityStatus TranscriptQualityStatus @default(UNKNOWN)
+  content       String
+  createdAt     DateTime                @default(now())
+
+  @@index([speaker, qualityStatus])
+  @@index([transcriptId, speaker])
+}
+
+model TranscriptPersonaProfile {
+  id               String            @id @default(cuid())
+  scopeKey         String
+  coupleId         String?
+  couple           Couple?           @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  speaker          TranscriptSpeaker
+  styleSummary     String
+  toneDescriptors  Json
+  recurringPhrases Json
+  vocabulary       Json
+  avoidPatterns    Json
+  sampleCount      Int               @default(0)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@unique([scopeKey, speaker])
+  @@index([coupleId])
 }
 
 model Account {
