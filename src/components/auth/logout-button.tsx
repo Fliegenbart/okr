@@ -15,7 +15,7 @@ export function LogoutButton({ className }: LogoutButtonProps) {
       variant="outline"
       size="sm"
       className={className}
-      onClick={() => signOut({ callbackUrl: "/auth/signin" })}
+      onClick={() => signOut({ callbackUrl: "/" })}
     >
       Logout
     </Button>

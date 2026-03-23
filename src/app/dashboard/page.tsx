@@ -32,15 +32,15 @@ export default async function DashboardPage({
       <div className="flex min-h-screen items-center justify-center bg-background px-6 py-12">
         <Card className="w-full max-w-md">
           <CardContent className="space-y-3 p-6 text-center">
-            <p className="text-lg font-semibold text-foreground">Bitte melde dich an</p>
+            <p className="text-lg font-semibold text-foreground">Bitte startet noch einmal von vorne</p>
             <p className="text-sm text-muted-foreground">
-              Deine Sitzung ist abgelaufen oder ungültig.
+              Eure Sitzung ist abgelaufen oder noch nicht aktiv.
             </p>
             <Link
-              href="/auth/signin?callbackUrl=/dashboard"
+              href="/"
               className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
             >
-              Zur Anmeldung
+              Zur Startseite
             </Link>
           </CardContent>
         </Card>

@@ -120,11 +120,12 @@ export async function getActiveCoupleSummary(viewer?: AuthViewer | null) {
   });
 }
 
-export async function requireViewerWithCoupleForPage(pathname: string) {
+export async function requireViewerWithCoupleForPage(_pathname: string) {
+  void _pathname;
   const viewer = await getAuthenticatedViewer();
 
   if (!viewer) {
-    redirect(`/auth/signin?callbackUrl=${encodeURIComponent(pathname)}`);
+    redirect("/");
   }
 
   if (!viewer.activeCoupleId) {
