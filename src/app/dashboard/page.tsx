@@ -1,13 +1,10 @@
 import Link from "next/link";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { CollapsibleGrid } from "@/components/dashboard/collapsible-grid";
-import { InvitePartnerCard } from "@/components/dashboard/invite-partner-card";
 import { ObjectiveCard } from "@/components/dashboard/objective-card";
 import { ObjectiveProgressMiniChart } from "@/components/dashboard/objective-progress-mini-chart";
 import { OnboardingCard } from "@/components/dashboard/onboarding-card";
-import { PowerMoveCard } from "@/components/dashboard/power-move-card";
 import { ProgressDonut } from "@/components/dashboard/progress-donut";
 import { QuarterProgressChart } from "@/components/dashboard/quarter-progress-chart";
 import { QuarterFilter } from "@/components/dashboard/quarter-filter";
@@ -27,16 +24,6 @@ export default async function DashboardPage({
 }: {
   searchParams?: Promise<{ quarter?: string; invite?: string }>;
 }) {
-  const headerList = await headers();
-  const forwardedProto = headerList.get("x-forwarded-proto") ?? "http";
-  const forwardedHost = headerList.get("x-forwarded-host") ?? headerList.get("host");
-  const requestOrigin = forwardedHost ? `${forwardedProto}://${forwardedHost}` : "";
-  const appUrl = (
-    process.env.NEXT_PUBLIC_APP_URL ??
-    process.env.NEXTAUTH_URL ??
-    requestOrigin
-  ).replace(/\/$/, "");
-
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const viewer = await getAuthenticatedViewer();
 
@@ -234,55 +221,12 @@ export default async function DashboardPage({
     };
   });
 
-  const [latestCheckIn, openCommitments, upcomingReminders, recentTimeline] = await Promise.all([
-    prisma.checkInSession.findFirst({
-      where: { coupleId: couple.id },
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.commitment.findMany({
-      where: { coupleId: couple.id, status: "OPEN" },
-      include: {
-        objective: { select: { title: true } },
-      },
-      orderBy: [{ dueAt: "asc" }, { createdAt: "desc" }],
-      take: 4,
-    }),
-    prisma.reminder.findMany({
-      where: { coupleId: couple.id, status: "PENDING" },
-      orderBy: { dueAt: "asc" },
-      take: 4,
-    }),
-    prisma.timelineEvent.findMany({
-      where: { coupleId: couple.id },
-      orderBy: { createdAt: "desc" },
-      take: 3,
-    }),
-  ]);
-
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto w-full max-w-5xl px-6 py-10">
         <VisionHeader vision={couple.vision} coupleName={couple.name} />
 
-        <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <Card>
-            <CardContent className="space-y-4 p-6">
-              <InvitePartnerCard
-                latestInvite={
-                  couple.invites[0]
-                    ? {
-                        email: couple.invites[0].email,
-                        token: couple.invites[0].token,
-                        expiresAt: couple.invites[0].expiresAt.toISOString(),
-                      }
-                    : null
-                }
-                isCoupleFull={couple.users.length >= 2}
-                appUrl={appUrl}
-              />
-            </CardContent>
-          </Card>
-
+        <div className="mt-8 grid gap-6 md:grid-cols-3">
           <Card>
             <CardContent className="space-y-3 p-6">
               <p className="text-sm font-medium text-primary">Aktuelles Quartal</p>
@@ -302,7 +246,7 @@ export default async function DashboardPage({
 
           <Card>
             <CardContent className="flex flex-col items-start gap-4 p-6">
-              <p className="text-sm font-medium text-primary">Fortschritt über alle Ziele</p>
+              <p className="text-sm font-medium text-primary">Euer Gesamtstand</p>
               <p className="text-xs text-muted-foreground">
                 So weit seid ihr in diesem Quartal im Schnitt.
               </p>
@@ -317,86 +261,38 @@ export default async function DashboardPage({
               />
             </CardContent>
           </Card>
+          <Card>
+            <CardContent className="space-y-4 p-6">
+              <p className="text-sm font-medium text-primary">Schnell starten</p>
+              <div className="flex flex-col gap-3">
+                <Link
+                  href="/dashboard/objectives/new"
+                  className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary/90"
+                >
+                  Ziel anlegen
+                </Link>
+                <Link
+                  href="/dashboard/check-in"
+                  className="inline-flex items-center justify-center rounded-xl border border-border px-4 py-3 text-sm font-semibold text-foreground transition hover:bg-muted"
+                >
+                  Wochen-Check öffnen
+                </Link>
+                <Link
+                  href="/dashboard/vision-mission"
+                  className="inline-flex items-center justify-center rounded-xl border border-border px-4 py-3 text-sm font-semibold text-foreground transition hover:bg-muted"
+                >
+                  Vision + Mission öffnen
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-
-        <section className="mt-10 space-y-4">
-          <div className="space-y-2">
-            <h2 className="text-xl font-semibold text-foreground">Was gerade wichtig ist</h2>
-            <p className="text-sm text-muted-foreground">
-              Hier seht ihr, was zuletzt passiert ist und was als Nächstes ansteht.
-            </p>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <Card>
-              <CardContent className="space-y-2 p-6">
-                <p className="text-sm font-medium text-primary">Letzter Check-in</p>
-                {latestCheckIn ? (
-                  <>
-                    <p className="text-lg font-semibold text-foreground">{latestCheckIn.title}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {dateFormatter.format(latestCheckIn.createdAt)}
-                    </p>
-                  </>
-                ) : (
-                  <p className="text-sm text-muted-foreground">Noch kein Check-in gespeichert.</p>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="space-y-2 p-6">
-                <p className="text-sm font-medium text-primary">Offene Zusagen</p>
-                <p className="text-3xl font-semibold text-foreground">{openCommitments.length}</p>
-                <p className="text-sm text-muted-foreground">
-                  {openCommitments[0] ? openCommitments[0].title : "Alles erledigt"}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="space-y-2 p-6">
-                <p className="text-sm font-medium text-primary">Nächste Erinnerung</p>
-                {upcomingReminders[0] ? (
-                  <>
-                    <p className="text-lg font-semibold text-foreground">
-                      {upcomingReminders[0].title}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {dateFormatter.format(upcomingReminders[0].dueAt)}
-                    </p>
-                  </>
-                ) : (
-                  <p className="text-sm text-muted-foreground">Keine offene Erinnerung.</p>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="space-y-2 p-6">
-                <p className="text-sm font-medium text-primary">Zuletzt festgehalten</p>
-                {recentTimeline[0] ? (
-                  <>
-                    <p className="text-lg font-semibold text-foreground">
-                      {recentTimeline[0].title}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {dateFormatter.format(recentTimeline[0].createdAt)}
-                    </p>
-                  </>
-                ) : (
-                  <p className="text-sm text-muted-foreground">Noch nichts gespeichert.</p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </section>
 
         <section className="mt-10 space-y-4" data-testid="quarter-progress-section">
           <div className="space-y-2">
-            <h2 className="text-xl font-semibold text-foreground">So läuft euer Quartal</h2>
+            <h2 className="text-xl font-semibold text-foreground">Euer Score im Quartal</h2>
             <p className="text-sm text-muted-foreground">
-              Hier seht ihr, wie sich eure Ziele bis heute entwickelt haben.
+              Hier seht ihr, wie sich eure Ziele im laufenden Quartal entwickeln.
             </p>
           </div>
 
@@ -523,13 +419,6 @@ export default async function DashboardPage({
 
           {objectiveCards.length ? (
             <div className="grid gap-6 md:grid-cols-2">
-              <div className="md:col-span-2">
-                <PowerMoveCard
-                  quarterId={selectedQuarter?.id ?? null}
-                  quarterTitle={selectedQuarter?.title ?? null}
-                  hasObjectives={objectiveCards.length > 0}
-                />
-              </div>
               <div className="md:col-span-2">
                 <CollapsibleGrid className="grid gap-6 md:grid-cols-2" itemLabel="Ziele">
                   {objectiveCards.map((objective) => (

@@ -28,7 +28,7 @@ export function CheckInComposer({
     templates.find((template) => template.key === selectedTemplateKey) ?? templates[0] ?? null;
 
   const [templateKey, setTemplateKey] = useState(defaultTemplate?.key ?? "");
-  const [title, setTitle] = useState(defaultTemplate?.title ?? "Wochen-Check-in");
+  const [title, setTitle] = useState(defaultTemplate?.title ?? "Wochen-Check");
   const [moodRating, setMoodRating] = useState("3");
   const [highlights, setHighlights] = useState("");
   const [tensions, setTensions] = useState("");
@@ -42,7 +42,7 @@ export function CheckInComposer({
 
   const action = useAction(createCheckInSession, {
     onSuccess: () => {
-      toast.success("Check-in gespeichert");
+      toast.success("Wochen-Check gespeichert");
       setHighlights("");
       setTensions("");
       setSummary("");
@@ -50,7 +50,7 @@ export function CheckInComposer({
       router.refresh();
     },
     onError: ({ error }) => {
-      toast.error("Check-in konnte nicht gespeichert werden", {
+      toast.error("Wochen-Check konnte nicht gespeichert werden", {
         description: error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
       });
     },
@@ -185,7 +185,7 @@ export function CheckInComposer({
 
         <div className="flex flex-wrap items-center gap-3">
           <Button type="submit" className="rounded-2xl" disabled={action.isPending}>
-            Check-in speichern
+            Wochen-Check speichern
           </Button>
           <p className="text-xs text-muted-foreground">
             {quarterTitle
@@ -199,7 +199,7 @@ export function CheckInComposer({
         <div className="space-y-2">
           <p className="text-sm uppercase tracking-[0.2em] text-primary">Vorschau</p>
           <h2 className="text-xl font-semibold text-foreground">
-            {selectedTemplate?.title ?? "Check-in"}
+            {selectedTemplate?.title ?? "Wochen-Check"}
           </h2>
           <p className="text-sm text-muted-foreground">
             {selectedTemplate?.description ??

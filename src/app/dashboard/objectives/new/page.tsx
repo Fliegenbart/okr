@@ -41,7 +41,7 @@ export default async function ObjectiveNewPage() {
         <div className="mt-6 space-y-2">
           <h1 className="text-3xl font-semibold text-foreground">Neues Ziel</h1>
           <p className="text-sm text-muted-foreground">
-            Haltet fest, worauf ihr gemeinsam hinarbeiten wollt und woran ihr Fortschritt erkennt.
+            Beschreibt euer Ziel und ergänzt die Messpunkte, an denen ihr Fortschritt erkennt.
           </p>
         </div>
 

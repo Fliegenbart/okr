@@ -14,7 +14,7 @@ const dateTimeFormatter = new Intl.DateTimeFormat("de-DE", {
 function kindLabel(kind: string) {
   switch (kind) {
     case "CHECK_IN":
-      return "Check-in";
+      return "Wochen-Check";
     case "OBJECTIVE_UPDATE":
       return "Ziel";
     case "COMMITMENT_CREATED":
@@ -139,7 +139,7 @@ export default async function TimelinePage() {
                     {event.commitment?.title ? <span>Zusage: {event.commitment.title}</span> : null}
                     {event.objective?.title ? <span>Ziel: {event.objective.title}</span> : null}
                     {event.checkInSession?.title ? (
-                      <span>Check-in: {event.checkInSession.title}</span>
+                      <span>Wochen-Check: {event.checkInSession.title}</span>
                     ) : null}
                     {event.reminder?.title ? <span>Erinnerung: {event.reminder.title}</span> : null}
                     {event.createdBy?.name || event.createdBy?.email ? (

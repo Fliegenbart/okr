@@ -6,12 +6,13 @@ import { ThinkingPartnerFloating } from "@/components/dashboard/thinking-partner
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const viewer = await getAuthenticatedViewer();
   const canUsePersona = await canUseThinkingPartnerPersona(viewer?.email);
+  const showThinkingPartner = Boolean(viewer?.isAdmin || viewer?.isPreviewingCouple);
 
   return (
     <>
       <DashboardHeader />
       {children}
-      <ThinkingPartnerFloating canUsePersona={canUsePersona} />
+      {showThinkingPartner ? <ThinkingPartnerFloating canUsePersona={canUsePersona} /> : null}
     </>
   );
 }

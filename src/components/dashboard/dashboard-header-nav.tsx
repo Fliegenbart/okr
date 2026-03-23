@@ -32,7 +32,7 @@ export function DashboardHeaderNav({
             key={item.href}
             href={item.href}
             className={cn(
-              "rounded-full px-3 py-1 text-xs font-semibold text-muted-foreground transition hover:bg-white/70 hover:text-foreground",
+              "rounded-full px-4 py-2 text-sm font-semibold text-muted-foreground transition hover:bg-white/70 hover:text-foreground",
               isActive && "bg-white/80 text-foreground shadow-sm"
             )}
           >

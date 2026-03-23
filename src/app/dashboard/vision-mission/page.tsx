@@ -24,17 +24,16 @@ export default async function VisionMissionPage() {
     <div className="min-h-screen bg-background">
       <div className="mx-auto w-full max-w-4xl px-6 py-10">
         <Link
-          href="/dashboard/settings"
+          href="/dashboard"
           className="text-xs font-semibold uppercase tracking-[0.2em] text-primary"
         >
-          Zurück zu den Einstellungen
+          Zurück zum Dashboard
         </Link>
 
         <div className="mt-6 space-y-2">
           <h1 className="text-3xl font-semibold text-foreground">Vision & Mission</h1>
           <p className="text-sm text-muted-foreground">
-            Schreibt in wenigen Sätzen auf, was euch wichtig ist und wie ihr im Alltag danach
-            handeln wollt.
+            Haltet hier einfach fest, was euch wichtig ist und wie ihr leben wollt.
           </p>
         </div>
 

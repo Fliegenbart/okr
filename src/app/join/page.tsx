@@ -60,7 +60,8 @@ export default async function JoinPage({
           <p className="text-sm uppercase tracking-[0.2em] text-primary">Einladungslink</p>
           <h1 className="text-2xl font-semibold text-foreground">Du wurdest eingeladen</h1>
           <p className="text-sm text-muted-foreground">
-            Melde dich an, dann wirst du direkt dem gemeinsamen Bereich hinzugefügt.
+            Ein Klick weiter, dann gibst du nur noch deine eingeladene E-Mail-Adresse ein und
+            wirst direkt dem gemeinsamen Bereich hinzugefügt.
           </p>
           <div className="flex flex-col justify-center gap-3 sm:flex-row">
             <Link

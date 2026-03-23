@@ -47,10 +47,20 @@ function getErrorMessage(error?: string) {
   }
 }
 
+function isInviteCallback(callbackUrl: string) {
+  try {
+    const parsed = new URL(callbackUrl, "http://localhost");
+    return parsed.pathname === "/join" && Boolean(parsed.searchParams.get("token"));
+  } catch {
+    return false;
+  }
+}
+
 export default async function SignInPage({ searchParams }: SignInPageProps) {
   const session = await getAuthSession();
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const callbackUrl = getSafeCallbackUrl(resolvedSearchParams?.callbackUrl);
+  const inviteMode = isInviteCallback(callbackUrl);
 
   if (session?.user) {
     redirect(callbackUrl);
@@ -63,18 +73,31 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
           <div className="space-y-4">
             <p className="text-sm uppercase tracking-[0.2em] text-primary">OKR für Paare</p>
             <h2 className="text-3xl font-semibold text-foreground">
-              Hier startet ihr in euren gemeinsamen Bereich.
+              {inviteMode
+                ? "Euer Einladungslink bringt euch direkt in euren gemeinsamen Bereich."
+                : "Hier startet ihr in euren gemeinsamen Bereich."}
             </h2>
             <p className="text-sm leading-7 text-muted-foreground">
-              Meldet euch mit Einladung oder freigeschalteter E-Mail an. Danach könnt ihr direkt
-              euren gemeinsamen Bereich anlegen und loslegen.
+              {inviteMode
+                ? "Fuer diesen Einstieg braucht ihr nur noch die eingeladene E-Mail-Adresse. Nach der Anmeldung landet ihr direkt im gemeinsamen Bereich."
+                : "Meldet euch mit Einladung oder freigeschalteter E-Mail an. Danach koennt ihr direkt euren gemeinsamen Bereich anlegen und loslegen."}
             </p>
           </div>
 
           <div className="space-y-3 text-sm text-muted-foreground">
-            <p>1. Person 1 meldet sich mit der freigeschalteten E-Mail an.</p>
-            <p>2. Danach wird euer gemeinsamer Bereich angelegt.</p>
-            <p>3. Person 2 kommt anschließend über den Einladungslink dazu.</p>
+            {inviteMode ? (
+              <>
+                <p>1. E-Mail-Adresse eingeben, auf die die Einladung geschickt wurde.</p>
+                <p>2. Anmelden und direkt beitreten.</p>
+                <p>3. Danach koennt ihr sofort mit eurem Wochen-Check und euren Zielen starten.</p>
+              </>
+            ) : (
+              <>
+                <p>1. Person 1 meldet sich mit der freigeschalteten E-Mail an.</p>
+                <p>2. Danach wird euer gemeinsamer Bereich angelegt.</p>
+                <p>3. Person 2 kommt anschliessend ueber den Einladungslink dazu.</p>
+              </>
+            )}
             <Link href="/" className="inline-flex text-primary hover:underline">
               Zur Startseite
             </Link>
@@ -89,6 +112,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
             enableSupportLogin={isSupportAccessConfigured()}
             initialEmail={resolvedSearchParams?.email ?? ""}
             errorMessage={getErrorMessage(resolvedSearchParams?.error)}
+            inviteMode={inviteMode}
           />
         </div>
       </div>

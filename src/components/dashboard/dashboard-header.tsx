@@ -20,6 +20,25 @@ export async function DashboardHeader() {
   const activeCouple = await getActiveCoupleSummary(user);
 
   const coupleName = activeCouple?.name ?? "OKR für Paare";
+  const isAdminView = Boolean(user?.role === "ADMIN" || isAdminEmail(user?.email));
+  const navItems = isAdminView
+    ? [
+        { href: "/dashboard", label: "Dashboard" },
+        { href: "/dashboard/check-in", label: "Wochen-Check" },
+        { href: "/dashboard/timeline", label: "Verlauf" },
+        { href: "/dashboard/board", label: "Board" },
+        { href: "/dashboard/templates", label: "Vorlagen" },
+        { href: "/dashboard/reminders", label: "Erinnerungen" },
+        { href: "/dashboard/thinking-partner", label: "Thinking Partner" },
+        { href: "/dashboard/vision-mission", label: "Vision + Mission" },
+        { href: "/admin", label: "Admin" },
+        { href: "/dashboard/settings", label: "Einstellungen" },
+      ]
+    : [
+        { href: "/dashboard", label: "Dashboard" },
+        { href: "/dashboard/check-in", label: "Wochen-Check" },
+        { href: "/dashboard/vision-mission", label: "Vision + Mission" },
+      ];
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-white/95 backdrop-blur-sm">
@@ -41,20 +60,7 @@ export async function DashboardHeader() {
 
         <DashboardHeaderNav
           className="flex-wrap gap-2"
-          items={[
-            { href: "/dashboard", label: "Dashboard" },
-            { href: "/dashboard/check-in", label: "Check-in" },
-            { href: "/dashboard/timeline", label: "Verlauf" },
-            { href: "/dashboard/board", label: "Board" },
-            { href: "/dashboard/templates", label: "Vorlagen" },
-            { href: "/dashboard/reminders", label: "Erinnerungen" },
-            { href: "/dashboard/thinking-partner", label: "Thinking Partner" },
-            { href: "/dashboard/vision-mission", label: "Vision & Mission" },
-            ...(user?.role === "ADMIN" || isAdminEmail(user?.email)
-              ? [{ href: "/admin", label: "Admin" }]
-              : []),
-            { href: "/dashboard/settings", label: "Einstellungen" },
-          ]}
+          items={navItems}
         />
 
         <div className="flex items-center gap-2">

@@ -14,6 +14,7 @@ type SignInCardProps = {
   enableSupportLogin: boolean;
   initialEmail?: string;
   errorMessage?: string | null;
+  inviteMode?: boolean;
 };
 
 function extractInviteToken(callbackUrl: string) {
@@ -33,6 +34,7 @@ export function SignInCard({
   enableSupportLogin,
   initialEmail = "",
   errorMessage,
+  inviteMode = false,
 }: SignInCardProps) {
   const [email, setEmail] = useState(initialEmail);
   const [devEmail, setDevEmail] = useState(initialEmail || "dev@example.com");
@@ -48,6 +50,7 @@ export function SignInCard({
     const token = extractInviteToken(callbackUrl);
     return token ? "Einladungstoken aus dem Link übernommen." : "";
   }, [callbackUrl]);
+  const hasInviteToken = inviteToken.trim().length > 0;
 
   const handleEmailSignIn = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -129,13 +132,55 @@ export function SignInCard({
   return (
     <div className="w-full max-w-lg rounded-3xl border border-border bg-white p-8 shadow-sm">
       <p className="text-sm uppercase tracking-[0.2em] text-primary">Geschlossene Beta</p>
-      <h1 className="mt-3 text-3xl font-semibold text-foreground">Meldet euch an</h1>
+      <h1 className="mt-3 text-3xl font-semibold text-foreground">
+        {inviteMode ? "Fast geschafft" : "Meldet euch an"}
+      </h1>
       <p className="mt-4 text-sm leading-6 text-muted-foreground">
-        Je nachdem, was ihr bekommen habt, nutzt ihr euren Login-Link, den Einladungslink oder den
-        Support-Code.
+        {inviteMode
+          ? "Gebt nur noch die eingeladene E-Mail-Adresse ein. Den Rest uebernimmt euer Link."
+          : "Je nachdem, was ihr bekommen habt, nutzt ihr euren Login-Link, den Einladungslink oder den Support-Code."}
       </p>
 
-      {enableEmailLogin ? (
+      {inviteMode ? (
+        <div className="mt-8 space-y-2 rounded-2xl border border-border p-4">
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-foreground">Mit Einladung beitreten</p>
+            <p className="text-xs text-muted-foreground">
+              Nutzt die E-Mail-Adresse, auf die die Einladung geschickt wurde.
+            </p>
+          </div>
+          <form className="space-y-4 pt-2" onSubmit={handleInviteSignIn}>
+            <div className="space-y-2">
+              <Label htmlFor="invite-email">E-Mail</Label>
+              <Input
+                id="invite-email"
+                type="email"
+                value={inviteEmail}
+                placeholder="partner@email.de"
+                onChange={(event) => setInviteEmail(event.target.value)}
+                required
+              />
+            </div>
+            {!hasInviteToken ? (
+              <div className="space-y-2">
+                <Label htmlFor="invite-token">Einladungstoken</Label>
+                <Input
+                  id="invite-token"
+                  type="text"
+                  value={inviteToken}
+                  placeholder="Token aus /join?token=..."
+                  onChange={(event) => setInviteToken(event.target.value)}
+                  required
+                />
+              </div>
+            ) : null}
+            {inviteHint ? <p className="text-xs text-muted-foreground">{inviteHint}</p> : null}
+            <Button type="submit" className="w-full rounded-2xl" disabled={submitting !== null}>
+              {submitting === "invite" ? "Pruefe Einladung ..." : "Jetzt beitreten"}
+            </Button>
+          </form>
+        </div>
+      ) : enableEmailLogin ? (
         <form className="mt-8 space-y-4" onSubmit={handleEmailSignIn}>
           <div className="space-y-2">
             <Label htmlFor="email-login">E-Mail</Label>
@@ -166,7 +211,7 @@ export function SignInCard({
         </p>
       )}
 
-      <div className="mt-8 space-y-2 rounded-2xl border border-border p-4">
+      {!inviteMode ? <div className="mt-8 space-y-2 rounded-2xl border border-border p-4">
         <div className="space-y-1">
           <p className="text-sm font-medium text-foreground">Mit Einladungslink beitreten</p>
           <p className="text-xs text-muted-foreground">
@@ -202,9 +247,9 @@ export function SignInCard({
             {submitting === "invite" ? "Prüfe Einladung ..." : "Mit Einladung anmelden"}
           </Button>
         </form>
-      </div>
+      </div> : null}
 
-      {enableSupportLogin ? (
+      {enableSupportLogin && !inviteMode ? (
         <form
           className="mt-4 space-y-4 rounded-2xl border border-dashed border-border p-4"
           onSubmit={handleSupportSignIn}
@@ -252,7 +297,7 @@ export function SignInCard({
 
       {localError ? <p className="mt-4 text-sm text-primary">{localError}</p> : null}
 
-      {enableDevLogin ? (
+      {enableDevLogin && !inviteMode ? (
         <form
           className="mt-8 space-y-4 rounded-2xl border border-dashed border-border p-4"
           onSubmit={handleDevSignIn}

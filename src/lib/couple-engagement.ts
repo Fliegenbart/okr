@@ -25,15 +25,15 @@ export type ConversationTemplate = {
 export const conversationTemplates: ConversationTemplate[] = [
   {
     key: "weekly-checkin",
-    title: "Wochen-Check-in",
+    title: "Wochen-Check",
     description: "Kurz zusammenkommen, Gefühl einordnen und die Woche ordnen.",
     focus: "Wertschätzung, Spannungen, nächste Schritte",
     questions: [
       "Was hat uns diese Woche gut getan?",
       "Wo hat es gehakt oder Druck gegeben?",
-      "Was wollen wir bis zum nächsten Check-in anders machen?",
+      "Was wollen wir bis zum nächsten Wochen-Check anders machen?",
     ],
-    followUps: ["1 Commitment festhalten", "Termin für den nächsten Check-in prüfen"],
+    followUps: ["1 Commitment festhalten", "Termin für den nächsten Wochen-Check prüfen"],
   },
   {
     key: "conflict-reset",

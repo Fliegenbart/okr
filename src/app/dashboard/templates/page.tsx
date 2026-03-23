@@ -60,7 +60,7 @@ export default function TemplatesPage() {
                   href={`/dashboard/check-in?template=${template.key}`}
                   className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
                 >
-                  Im Check-in öffnen
+                  Im Wochen-Check öffnen
                 </Link>
               </CardContent>
             </Card>

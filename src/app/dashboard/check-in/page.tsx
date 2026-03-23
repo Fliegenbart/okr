@@ -50,7 +50,7 @@ export default async function CheckInPage({
   }
 
   const now = new Date();
-  const [recentCheckIns, openCommitments, openReminders] = await Promise.all([
+  const [recentCheckIns, openCommitments] = await Promise.all([
     prisma.checkInSession.findMany({
       where: { coupleId: couple.id },
       include: {
@@ -68,14 +68,6 @@ export default async function CheckInPage({
       },
       orderBy: [{ dueAt: "asc" }, { createdAt: "desc" }],
       take: 8,
-    }),
-    prisma.reminder.findMany({
-      where: { coupleId: couple.id, status: "PENDING", dueAt: { gte: now } },
-      include: {
-        quarter: { select: { title: true } },
-      },
-      orderBy: { dueAt: "asc" },
-      take: 5,
     }),
   ]);
 
@@ -99,9 +91,9 @@ export default async function CheckInPage({
         </Link>
 
         <div className="mt-6 space-y-2">
-          <h1 className="text-3xl font-semibold text-foreground">Check-in & Commitments</h1>
+          <h1 className="text-3xl font-semibold text-foreground">Wochen-Check</h1>
           <p className="text-sm text-muted-foreground">
-            Hier haltet ihr fest, wie es euch gerade geht, was ansteht und was ihr euch vornehmt.
+            Hier haltet ihr fest, wie eure Woche war, was offen ist und was ihr als Nächstes tun wollt.
           </p>
         </div>
 
@@ -119,35 +111,21 @@ export default async function CheckInPage({
           <div className="space-y-6">
             <Card className="rounded-2xl border-border shadow-sm">
               <CardContent className="space-y-3 p-6">
-                <p className="text-sm uppercase tracking-[0.2em] text-primary">Check-in-Status</p>
+                <p className="text-sm uppercase tracking-[0.2em] text-primary">Wochen-Check-Status</p>
                 <p className="text-sm text-muted-foreground">
                   {scheduleEnabled
-                    ? `Euer regelmäßiger Check-in steht fest (${couple.checkInWeekday} / ${couple.checkInTime}).`
-                    : "Euer regelmäßiger Check-in ist noch nicht festgelegt."}
+                    ? `Euer regelmäßiger Wochen-Check steht fest (${couple.checkInWeekday} / ${couple.checkInTime}).`
+                    : "Euer regelmäßiger Wochen-Check ist noch nicht festgelegt."}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   Aktuelles Quartal: {activeQuarter?.title ?? "kein Quartal"}
                 </p>
-                <div className="flex flex-wrap gap-2">
-                  <Link
-                    href="/dashboard/templates"
-                    className="inline-flex items-center justify-center rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground"
-                  >
-                    Vorlagen ansehen
-                  </Link>
-                  <Link
-                    href="/dashboard/reminders"
-                    className="inline-flex items-center justify-center rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground"
-                  >
-                    Erinnerungen öffnen
-                  </Link>
-                </div>
               </CardContent>
             </Card>
 
             <Card className="rounded-2xl border-border shadow-sm">
               <CardHeader>
-                <CardTitle>Neue Zusage</CardTitle>
+              <CardTitle>Neue Zusage</CardTitle>
               </CardHeader>
               <CardContent>
                 <CommitmentForm
@@ -206,7 +184,7 @@ export default async function CheckInPage({
 
           <Card className="rounded-2xl border-border shadow-sm">
             <CardHeader>
-              <CardTitle>Letzte Check-ins</CardTitle>
+              <CardTitle>Letzte Wochen-Checks</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {recentCheckIns.length ? (
@@ -237,53 +215,8 @@ export default async function CheckInPage({
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-muted-foreground">Noch kein Check-in gespeichert.</p>
+                <p className="text-sm text-muted-foreground">Noch kein Wochen-Check gespeichert.</p>
               )}
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="mt-8 grid gap-6 lg:grid-cols-[1fr,1fr]">
-          <Card className="rounded-2xl border-border shadow-sm">
-            <CardHeader>
-              <CardTitle>Bald fällig</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {openReminders.length ? (
-                openReminders.map((reminder) => (
-                  <div key={reminder.id} className="rounded-2xl border border-border bg-card p-4">
-                    <p className="text-sm font-semibold text-foreground">{reminder.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Fällig {dateTimeFormatter.format(reminder.dueAt)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {reminder.quarter?.title
-                        ? `Quartal: ${reminder.quarter.title}`
-                        : "Erinnerung in der App"}
-                    </p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground">Keine anstehenden Erinnerungen.</p>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-2xl border-border shadow-sm">
-            <CardHeader>
-              <CardTitle>Gesprächsstarter</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {conversationTemplates.map((template) => (
-                <Link
-                  key={template.key}
-                  href={`/dashboard/templates?focus=${template.key}`}
-                  className="block rounded-2xl border border-border bg-card p-4 transition hover:border-primary/40 hover:bg-muted/30"
-                >
-                  <p className="text-sm font-semibold text-foreground">{template.title}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{template.description}</p>
-                </Link>
-              ))}
             </CardContent>
           </Card>
         </div>
