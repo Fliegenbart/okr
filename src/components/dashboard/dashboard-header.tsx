@@ -7,7 +7,6 @@ import { LogoutButton } from "@/components/auth/logout-button";
 import { DashboardHeaderNav } from "@/components/dashboard/dashboard-header-nav";
 import { Button } from "@/components/ui/button";
 import { getActiveCoupleSummary, getAuthenticatedViewer } from "@/lib/active-couple";
-import { isAdminEmail } from "@/lib/admin-access";
 
 export async function DashboardHeader() {
   const session = await getAuthSession();
@@ -20,25 +19,11 @@ export async function DashboardHeader() {
   const activeCouple = await getActiveCoupleSummary(user);
 
   const coupleName = activeCouple?.name ?? "OKR für Paare";
-  const isAdminView = Boolean(user?.role === "ADMIN" || isAdminEmail(user?.email));
-  const navItems = isAdminView
-    ? [
-        { href: "/dashboard", label: "Dashboard" },
-        { href: "/dashboard/check-in", label: "Wochen-Check" },
-        { href: "/dashboard/timeline", label: "Verlauf" },
-        { href: "/dashboard/board", label: "Board" },
-        { href: "/dashboard/templates", label: "Vorlagen" },
-        { href: "/dashboard/reminders", label: "Erinnerungen" },
-        { href: "/dashboard/thinking-partner", label: "Thinking Partner" },
-        { href: "/dashboard/vision-mission", label: "Vision + Mission" },
-        { href: "/admin", label: "Admin" },
-        { href: "/dashboard/settings", label: "Einstellungen" },
-      ]
-    : [
-        { href: "/dashboard", label: "Dashboard" },
-        { href: "/dashboard/check-in", label: "Wochen-Check" },
-        { href: "/dashboard/vision-mission", label: "Vision + Mission" },
-      ];
+  const navItems = [
+    { href: "/dashboard", label: "Dashboard" },
+    { href: "/dashboard/check-in", label: "Wochen-Check" },
+    { href: "/dashboard/vision-mission", label: "Vision + Mission" },
+  ];
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-white/95 backdrop-blur-sm">
