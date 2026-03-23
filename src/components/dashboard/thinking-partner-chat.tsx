@@ -66,7 +66,7 @@ type Source = {
 };
 
 const starterPrompts = [
-  "Wir hängen gerade an einem Ziel. Was wäre jetzt ein kleiner nächster Schritt?",
+  "Wir hängen gerade an einem Objective. Was wäre jetzt ein kleiner nächster Schritt?",
   "Unser Fortschritt stockt. Wie kommen wir wieder ins Tun?",
   "Wie können wir unsere gemeinsamen Routinen besser halten?",
 ];
@@ -142,12 +142,12 @@ export function ThinkingPartnerChat({
 
   const applyObjectiveRewrite = useAction(updateObjective, {
     onSuccess: () => {
-      toast.success("Ziel aktualisiert");
+      toast.success("Objective aktualisiert");
       router.refresh();
       setDialog(null);
     },
     onError: ({ error }) => {
-      toast.error("Ziel konnte nicht aktualisiert werden", {
+      toast.error("Objective konnte nicht aktualisiert werden", {
         description: error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
       });
     },
@@ -155,12 +155,12 @@ export function ThinkingPartnerChat({
 
   const applyKeyResultRewrite = useAction(updateKeyResultMeta, {
     onSuccess: () => {
-      toast.success("Messpunkt aktualisiert");
+      toast.success("Key Result aktualisiert");
       router.refresh();
       setDialog(null);
     },
     onError: ({ error }) => {
-      toast.error("Messpunkt konnte nicht aktualisiert werden", {
+      toast.error("Key Result konnte nicht aktualisiert werden", {
         description: error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
       });
     },
@@ -269,7 +269,7 @@ export function ThinkingPartnerChat({
 
     if (action.type === "SAVE_NEXT_ACTION") {
       if (!objectiveId || !structured?.nextStep) {
-        toast.error("Das geht nur, wenn gerade ein Ziel ausgewählt ist.");
+        toast.error("Das geht nur, wenn gerade ein Objective ausgewählt ist.");
         return;
       }
 
@@ -283,7 +283,7 @@ export function ThinkingPartnerChat({
 
     if (action.type === "APPLY_OBJECTIVE_REWRITE") {
       if (!objectiveId || !structured?.objectiveRewrite) {
-        toast.error("Dafür gibt es gerade keinen neuen Zielvorschlag.");
+        toast.error("Dafür gibt es gerade keinen neuen Objective-Vorschlag.");
         return;
       }
 
@@ -298,7 +298,7 @@ export function ThinkingPartnerChat({
 
     if (action.type === "APPLY_KEY_RESULT_REWRITE") {
       if (!keyResultId || !structured?.keyResultRewrite) {
-        toast.error("Dafür gibt es gerade keinen neuen Messpunkt-Vorschlag.");
+        toast.error("Dafür gibt es gerade keinen neuen Key-Result-Vorschlag.");
         return;
       }
 
@@ -519,7 +519,7 @@ export function ThinkingPartnerChat({
               <DialogHeader>
                 <DialogTitle>Nächste Aktion speichern</DialogTitle>
                 <DialogDescription>
-                  Speichert diesen Schritt direkt am Ziel, damit ihr leichter dranbleibt.
+                  Speichert diesen Schritt direkt am Objective, damit ihr leichter dranbleibt.
                 </DialogDescription>
               </DialogHeader>
               <div className="mt-4 space-y-2">
@@ -559,7 +559,7 @@ export function ThinkingPartnerChat({
           {dialog?.kind === "objectiveRewrite" ? (
             <>
               <DialogHeader>
-                <DialogTitle>Ziel neu formulieren</DialogTitle>
+                <DialogTitle>Objective neu formulieren</DialogTitle>
                 <DialogDescription>
                   Übernehmt den Vorschlag oder passt ihn noch an.
                 </DialogDescription>
@@ -618,7 +618,7 @@ export function ThinkingPartnerChat({
           {dialog?.kind === "keyResultRewrite" ? (
             <>
               <DialogHeader>
-                <DialogTitle>Messpunkt vereinfachen</DialogTitle>
+                <DialogTitle>Key Result vereinfachen</DialogTitle>
                 <DialogDescription>
                   Übernehmt den Vorschlag oder passt ihn noch an.
                 </DialogDescription>

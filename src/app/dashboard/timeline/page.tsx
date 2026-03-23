@@ -16,7 +16,7 @@ function kindLabel(kind: string) {
     case "CHECK_IN":
       return "Wochen-Check";
     case "OBJECTIVE_UPDATE":
-      return "Ziel";
+      return "Objective";
     case "COMMITMENT_CREATED":
       return "Zusage";
     case "COMMITMENT_DONE":
@@ -137,7 +137,7 @@ export default async function TimelinePage() {
                   ) : null}
                   <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
                     {event.commitment?.title ? <span>Zusage: {event.commitment.title}</span> : null}
-                    {event.objective?.title ? <span>Ziel: {event.objective.title}</span> : null}
+                    {event.objective?.title ? <span>Objective: {event.objective.title}</span> : null}
                     {event.checkInSession?.title ? (
                       <span>Wochen-Check: {event.checkInSession.title}</span>
                     ) : null}

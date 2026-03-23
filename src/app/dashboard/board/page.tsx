@@ -93,7 +93,7 @@ export default async function BoardPage({ searchParams }: BoardPageProps) {
               <div className="space-y-2">
                 <h1 className="text-3xl font-semibold text-foreground">Euer OKR Board</h1>
                 <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
-                  Hier könnt ihr Gedanken, Ziele und Pläne gemeinsam sammeln. Alles bleibt für euch
+                  Hier könnt ihr Gedanken, Objectives und Pläne gemeinsam sammeln. Alles bleibt für euch
                   beide sichtbar und aktuell.
                 </p>
               </div>

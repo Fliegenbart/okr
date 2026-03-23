@@ -69,7 +69,7 @@ export function KeyResultFields({ idPrefix, value, onChange }: KeyResultFieldsPr
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor={`${idPrefix}-type`}>Messpunkt-Typ</Label>
+          <Label htmlFor={`${idPrefix}-type`}>Key-Result-Typ</Label>
           <select
             id={`${idPrefix}-type`}
             value={value.type}
@@ -209,7 +209,7 @@ export function KeyResultFields({ idPrefix, value, onChange }: KeyResultFieldsPr
           id={`${idPrefix}-description`}
           value={value.description}
           onChange={(nextValue) => patch({ description: nextValue })}
-          placeholder="Was steckt hinter diesem Messpunkt? Was wollt ihr ausprobieren?"
+          placeholder="Was steckt hinter diesem Key Result? Was wollt ihr ausprobieren?"
         />
       </div>
     </div>

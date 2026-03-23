@@ -18,7 +18,7 @@ export default function Home() {
           Was ihr euch gemeinsam vornehmt, bleibt im Alltag sichtbar.
         </h1>
         <p className="mt-4 text-base leading-7 text-muted-foreground">
-          Meldet euch an, haltet eure wichtigsten Ziele fest und bleibt Woche für Woche dran.
+          Meldet euch an, haltet eure wichtigsten Objectives und Key Results fest und bleibt Woche für Woche dran.
         </p>
         <Link
           href="/auth/signin"

@@ -184,7 +184,9 @@ export default async function SettingsPage() {
 
         <Card className="mt-8 rounded-2xl border-border shadow-sm">
           <CardContent className="space-y-4 p-6">
-            <p className="text-sm uppercase tracking-[0.2em] text-primary">Archivierte Ziele</p>
+            <p className="text-sm uppercase tracking-[0.2em] text-primary">
+              Archivierte Objectives
+            </p>
             {couple.objectives.length ? (
               <div className="space-y-3">
                 {couple.objectives.map((objective) => (
@@ -203,7 +205,7 @@ export default async function SettingsPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">Keine archivierten Ziele.</p>
+              <p className="text-sm text-muted-foreground">Keine archivierten Objectives.</p>
             )}
           </CardContent>
         </Card>

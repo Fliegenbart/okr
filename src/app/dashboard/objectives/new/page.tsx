@@ -39,9 +39,9 @@ export default async function ObjectiveNewPage() {
         </Link>
 
         <div className="mt-6 space-y-2">
-          <h1 className="text-3xl font-semibold text-foreground">Neues Ziel</h1>
+          <h1 className="text-3xl font-semibold text-foreground">Neues Objective</h1>
           <p className="text-sm text-muted-foreground">
-            Beschreibt euer Ziel und ergänzt die Messpunkte, an denen ihr Fortschritt erkennt.
+            Beschreibt euer Objective und ergänzt die Key Results, an denen ihr Fortschritt erkennt.
           </p>
         </div>
 

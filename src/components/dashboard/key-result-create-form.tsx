@@ -28,12 +28,12 @@ export function KeyResultCreateForm({
 
   const createAction = useAction(createKeyResult, {
     onSuccess: () => {
-      toast.success("Messpunkt hinzugefügt");
+      toast.success("Key Result hinzugefügt");
       setDraft(createEmptyKeyResultDraft());
       router.refresh();
     },
     onError: ({ error }) => {
-      toast.error("Messpunkt konnte nicht erstellt werden", {
+      toast.error("Key Result konnte nicht erstellt werden", {
         description: error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
       });
     },

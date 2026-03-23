@@ -59,11 +59,11 @@ export function KeyResultEditItem({
 
   const updateAction = useAction(updateKeyResultMeta, {
     onSuccess: () => {
-      toast.success("Messpunkt aktualisiert");
+      toast.success("Key Result aktualisiert");
       router.refresh();
     },
     onError: ({ error }) => {
-      toast.error("Messpunkt konnte nicht aktualisiert werden", {
+      toast.error("Key Result konnte nicht aktualisiert werden", {
         description: error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
       });
     },
@@ -71,11 +71,11 @@ export function KeyResultEditItem({
 
   const deleteAction = useAction(archiveKeyResult, {
     onSuccess: () => {
-      toast.success("Messpunkt archiviert");
+      toast.success("Key Result archiviert");
       router.refresh();
     },
     onError: ({ error }) => {
-      toast.error("Messpunkt konnte nicht archiviert werden", {
+      toast.error("Key Result konnte nicht archiviert werden", {
         description: error.serverError ?? "",
       });
     },
@@ -90,7 +90,7 @@ export function KeyResultEditItem({
   };
 
   const handleDelete = () => {
-    if (window.confirm("Messpunkt wirklich archivieren?")) {
+    if (window.confirm("Key Result wirklich archivieren?")) {
       deleteAction.execute({ keyResultId });
     }
   };
@@ -101,7 +101,7 @@ export function KeyResultEditItem({
       onSubmit={handleUpdate}
     >
       <div className="flex items-start justify-between gap-3">
-        <p className="text-sm font-semibold text-foreground">Messpunkt</p>
+        <p className="text-sm font-semibold text-foreground">Key Result</p>
         <button
           type="button"
           onClick={handleDelete}

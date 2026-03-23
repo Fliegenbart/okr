@@ -269,7 +269,7 @@ export default async function DashboardPage({
                   href="/dashboard/objectives/new"
                   className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary/90"
                 >
-                  Ziel anlegen
+                  Objective anlegen
                 </Link>
                 <Link
                   href="/dashboard/check-in"
@@ -292,7 +292,7 @@ export default async function DashboardPage({
           <div className="space-y-2">
             <h2 className="text-xl font-semibold text-foreground">Euer Score im Quartal</h2>
             <p className="text-sm text-muted-foreground">
-              Hier seht ihr, wie sich eure Ziele im laufenden Quartal entwickeln.
+              Hier seht ihr, wie sich eure Objectives im laufenden Quartal entwickeln.
             </p>
           </div>
 
@@ -336,7 +336,7 @@ export default async function DashboardPage({
                         </p>
                       </div>
                       <div className="rounded-2xl border border-border bg-card p-4">
-                        <p className="text-xs uppercase tracking-[0.2em] text-primary">Ziele</p>
+                        <p className="text-xs uppercase tracking-[0.2em] text-primary">Objectives</p>
                         <p className="mt-2 text-2xl font-semibold text-foreground">
                           {quarterProgressSnapshot.totalObjectives}
                         </p>
@@ -368,7 +368,7 @@ export default async function DashboardPage({
               {quarterProgressSnapshot.objectiveSeries.length ? (
                 <CollapsibleGrid
                   className="grid gap-4 md:grid-cols-2 xl:grid-cols-3"
-                  itemLabel="Ziele"
+                  itemLabel="Objectives"
                 >
                   {quarterProgressSnapshot.objectiveSeries.map((objective) => (
                     <ObjectiveProgressMiniChart
@@ -382,10 +382,10 @@ export default async function DashboardPage({
                 <Card className="rounded-2xl border-border shadow-sm">
                   <CardContent className="space-y-3 p-6">
                     <p className="text-lg font-semibold text-foreground">
-                      Noch keine Ziele in diesem Quartal
+                      Noch keine Objectives in diesem Quartal
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Sobald ihr in {quarterProgressSnapshot.quarterTitle} das erste Ziel anlegt,
+                      Sobald ihr in {quarterProgressSnapshot.quarterTitle} das erste Objective anlegt,
                       erscheint hier der Verlauf.
                     </p>
                   </CardContent>
@@ -397,7 +397,7 @@ export default async function DashboardPage({
               <CardContent className="space-y-3 p-6">
                 <p className="text-lg font-semibold text-foreground">Noch kein Quartal vorhanden</p>
                 <p className="text-sm text-muted-foreground">
-                  Legt zuerst ein Quartal an. Danach zeigen wir euch, wie sich eure Ziele
+                  Legt zuerst ein Quartal an. Danach zeigen wir euch, wie sich eure Objectives
                   entwickeln.
                 </p>
               </CardContent>
@@ -407,7 +407,7 @@ export default async function DashboardPage({
 
         <section className="mt-10 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-foreground">Eure Ziele</h2>
+            <h2 className="text-xl font-semibold text-foreground">Eure Objectives</h2>
             <QuarterFilter
               selectedId={selectedQuarterId}
               options={couple.quarters.map((quarter) => ({
@@ -420,7 +420,7 @@ export default async function DashboardPage({
           {objectiveCards.length ? (
             <div className="grid gap-6 md:grid-cols-2">
               <div className="md:col-span-2">
-                <CollapsibleGrid className="grid gap-6 md:grid-cols-2" itemLabel="Ziele">
+                <CollapsibleGrid className="grid gap-6 md:grid-cols-2" itemLabel="Objectives">
                   {objectiveCards.map((objective) => (
                     <ObjectiveCard
                       key={objective.id}
@@ -438,15 +438,15 @@ export default async function DashboardPage({
           ) : (
             <Card>
               <CardContent className="space-y-3 p-6">
-                <p className="text-lg font-semibold text-foreground">Noch keine Ziele</p>
+                <p className="text-lg font-semibold text-foreground">Noch keine Objectives</p>
                 <p className="text-sm text-muted-foreground">
-                  Sobald ihr euer erstes Ziel anlegt, erscheint es hier.
+                  Sobald ihr euer erstes Objective anlegt, erscheint es hier.
                 </p>
                 <Link
                   href="/dashboard/objectives/new"
                   className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
                 >
-                  Ziel anlegen
+                  Objective anlegen
                 </Link>
               </CardContent>
             </Card>

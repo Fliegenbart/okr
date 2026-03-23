@@ -159,8 +159,8 @@ export default async function CheckInPage({
                       <p className="text-sm font-semibold text-foreground">{commitment.title}</p>
                       <p className="text-xs text-muted-foreground">
                         {commitment.objective?.title
-                          ? `Ziel: ${commitment.objective.title}`
-                          : "Keinem Ziel zugeordnet"}
+                          ? `Objective: ${commitment.objective.title}`
+                          : "Keinem Objective zugeordnet"}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {commitment.owner

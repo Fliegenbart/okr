@@ -54,16 +54,16 @@ export default async function ObjectiveEditPage({ params }: { params: Promise<{ 
         </Link>
 
         <div className="mt-6 space-y-2">
-          <h1 className="text-3xl font-semibold text-foreground">Ziel bearbeiten</h1>
+          <h1 className="text-3xl font-semibold text-foreground">Objective bearbeiten</h1>
           <p className="text-sm text-muted-foreground">
-            Passt euer Ziel und die zugehörigen Messpunkte an.
+            Passt euer Objective und die zugehörigen Key Results an.
           </p>
         </div>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-[1.2fr,0.8fr]">
           <Card className="rounded-2xl border-border shadow-sm">
             <CardContent className="space-y-4 p-6">
-              <p className="text-sm uppercase tracking-[0.2em] text-primary">Ziel</p>
+              <p className="text-sm uppercase tracking-[0.2em] text-primary">Objective</p>
               <ObjectiveEditForm
                 objectiveId={objective.id}
                 title={objective.title}
@@ -80,12 +80,12 @@ export default async function ObjectiveEditPage({ params }: { params: Promise<{ 
           <Card className="rounded-2xl border-border shadow-sm">
             <CardContent className="space-y-4 p-6">
               <p className="text-sm uppercase tracking-[0.2em] text-primary">
-                Neuen Messpunkt ergänzen
+                Neues Key Result ergänzen
               </p>
               <KeyResultCreateForm
                 objectiveId={objective.id}
                 disabled={keyResultLimitReached}
-                disabledReason="Maximal 6 Messpunkte pro Ziel."
+                disabledReason="Maximal 6 Key Results pro Objective."
               />
             </CardContent>
           </Card>
@@ -93,7 +93,7 @@ export default async function ObjectiveEditPage({ params }: { params: Promise<{ 
 
         <Card className="mt-8 rounded-2xl border-border shadow-sm">
           <CardContent className="space-y-4 p-6">
-            <p className="text-sm uppercase tracking-[0.2em] text-primary">Messpunkte bearbeiten</p>
+            <p className="text-sm uppercase tracking-[0.2em] text-primary">Key Results bearbeiten</p>
             <div className="space-y-4">
               {activeKeyResults?.map((keyResult) => (
                 <KeyResultEditItem
@@ -119,7 +119,7 @@ export default async function ObjectiveEditPage({ params }: { params: Promise<{ 
           <Card className="mt-8 rounded-2xl border-border shadow-sm">
             <CardContent className="space-y-4 p-6">
               <p className="text-sm uppercase tracking-[0.2em] text-primary">
-                Archivierte Messpunkte
+                Archivierte Key Results
               </p>
               <div className="space-y-3">
                 {archivedKeyResults.map((keyResult) => (
@@ -130,7 +130,7 @@ export default async function ObjectiveEditPage({ params }: { params: Promise<{ 
                     <div>
                       <p className="text-sm font-semibold text-foreground">{keyResult.title}</p>
                       <p className="text-xs text-muted-foreground">
-                        {keyResult.type === "BINARY" ? "Ja / Nein" : `Ziel: ${keyResult.targetValue}`}
+                        {keyResult.type === "BINARY" ? "Ja / Nein" : `Zielwert: ${keyResult.targetValue}`}
                         {keyResult.unit ? ` ${keyResult.unit}` : ""}
                       </p>
                     </div>

@@ -126,7 +126,7 @@ export default async function AdminOverviewPage() {
     { label: "Admins", value: adminUsers },
     { label: "Paare", value: couples },
     { label: "Boards", value: boards },
-    { label: "Ziele", value: objectives },
+    { label: "Objectives", value: objectives },
     { label: "Transkripte", value: transcripts },
     { label: "Offene Einladungen", value: pendingInvites },
     { label: "Sperren 24h", value: rateLimitEvents24h },

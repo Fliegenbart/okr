@@ -102,14 +102,14 @@ export function CommitmentForm({ ownerOptions, objectiveOptions = [] }: Commitme
       </div>
       {objectiveOptions.length ? (
         <div className="space-y-2">
-          <Label htmlFor="commitment-objective">Ziel</Label>
+          <Label htmlFor="commitment-objective">Objective</Label>
           <select
             id="commitment-objective"
             value={objectiveId}
             onChange={(event) => setObjectiveId(event.target.value)}
             className="h-10 w-full rounded-lg border border-border bg-white px-3 text-sm text-foreground outline-none"
           >
-            <option value="">Keinem Ziel zuordnen</option>
+            <option value="">Keinem Objective zuordnen</option>
             {objectiveOptions.map((objective) => (
               <option key={objective.id} value={objective.id}>
                 {objective.label}

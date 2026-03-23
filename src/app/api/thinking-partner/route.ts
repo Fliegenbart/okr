@@ -305,12 +305,12 @@ export async function POST(req: Request) {
   if (objectiveId && structured?.objectiveRewrite) {
     actions.push({
       type: "APPLY_OBJECTIVE_REWRITE",
-      label: "Ziel neu formulieren",
+      label: "Objective neu formulieren",
     });
   }
 
   if (keyResultId && structured?.keyResultRewrite) {
-    actions.push({ type: "APPLY_KEY_RESULT_REWRITE", label: "Messpunkt vereinfachen" });
+    actions.push({ type: "APPLY_KEY_RESULT_REWRITE", label: "Key Result vereinfachen" });
   }
 
   const sourceMap = new Map<

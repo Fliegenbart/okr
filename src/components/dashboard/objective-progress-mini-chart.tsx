@@ -39,7 +39,7 @@ export function ObjectiveProgressMiniChart({ objective, href }: ObjectiveProgres
           className="block min-w-0 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <QuarterProgressChart data={objective.points} compact={true} showAxes={false} />
-          <p className="mt-2 text-xs font-medium text-primary">Ziel öffnen</p>
+          <p className="mt-2 text-xs font-medium text-primary">Objective öffnen</p>
         </Link>
       </CardContent>
     </Card>

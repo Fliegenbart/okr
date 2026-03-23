@@ -55,7 +55,7 @@ export async function DashboardHeader() {
             </span>
           ) : null}
           <Button asChild size="sm">
-            <Link href="/dashboard/objectives/new">Ziel anlegen</Link>
+            <Link href="/dashboard/objectives/new">Objective anlegen</Link>
           </Button>
           {user?.isPreviewingCouple ? (
             <form action={stopAdminCouplePreview}>

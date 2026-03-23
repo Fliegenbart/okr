@@ -48,12 +48,12 @@ export function ObjectiveForm({ quarters, defaultQuarterId }: ObjectiveFormProps
 
   const createAction = useAction(createObjective, {
     onSuccess: () => {
-      toast.success("Ziel erstellt");
+      toast.success("Objective erstellt");
       router.push("/dashboard");
       router.refresh();
     },
     onError: ({ error }) => {
-      toast.error("Ziel konnte nicht erstellt werden", {
+      toast.error("Objective konnte nicht erstellt werden", {
         description: error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
       });
     },
@@ -72,7 +72,7 @@ export function ObjectiveForm({ quarters, defaultQuarterId }: ObjectiveFormProps
 
   const handleAddKeyResult = () => {
     if (keyResults.length >= 6) {
-      toast.error("Maximal 6 Messpunkte pro Ziel.");
+      toast.error("Maximal 6 Key Results pro Objective.");
       return;
     }
     setKeyResults((prev) => [
@@ -107,12 +107,12 @@ export function ObjectiveForm({ quarters, defaultQuarterId }: ObjectiveFormProps
       .filter((item) => item.title);
 
     if (payloadKeyResults.length < 2) {
-      toast.error("Bitte gib mindestens zwei Messpunkte an.");
+      toast.error("Bitte gib mindestens zwei Key Results an.");
       return;
     }
 
     if (payloadKeyResults.length > 6) {
-      toast.error("Maximal 6 Messpunkte pro Ziel.");
+      toast.error("Maximal 6 Key Results pro Objective.");
       return;
     }
 
@@ -127,7 +127,7 @@ export function ObjectiveForm({ quarters, defaultQuarterId }: ObjectiveFormProps
   return (
     <form className="space-y-8" onSubmit={handleSubmit}>
       <div className="space-y-2">
-        <Label htmlFor="objective-title">Ziel</Label>
+        <Label htmlFor="objective-title">Objective</Label>
         <Input
           id="objective-title"
           value={title}
@@ -145,7 +145,7 @@ export function ObjectiveForm({ quarters, defaultQuarterId }: ObjectiveFormProps
           id="objective-description"
           value={description}
           onChange={(event) => setDescription(event.target.value)}
-          placeholder="Warum ist dieses Ziel gerade wichtig?"
+          placeholder="Warum ist dieses Objective gerade wichtig?"
         />
       </div>
 
@@ -170,14 +170,14 @@ export function ObjectiveForm({ quarters, defaultQuarterId }: ObjectiveFormProps
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <p className="text-sm uppercase tracking-[0.2em] text-primary">Messpunkte</p>
+          <p className="text-sm uppercase tracking-[0.2em] text-primary">Key Results</p>
           <Button
             type="button"
             variant="outline"
             className="rounded-2xl"
             onClick={handleAddKeyResult}
           >
-            + Messpunkt
+            + Key Result
           </Button>
         </div>
 
@@ -188,7 +188,7 @@ export function ObjectiveForm({ quarters, defaultQuarterId }: ObjectiveFormProps
               className="rounded-2xl border border-border bg-card p-4 shadow-sm"
             >
               <div className="flex items-start justify-between gap-3">
-                <p className="text-sm font-semibold text-foreground">Messpunkt {index + 1}</p>
+                <p className="text-sm font-semibold text-foreground">Key Result {index + 1}</p>
                 {keyResults.length > 1 ? (
                   <button
                     type="button"
@@ -228,7 +228,7 @@ export function ObjectiveForm({ quarters, defaultQuarterId }: ObjectiveFormProps
 
       <div className="flex flex-col gap-3 sm:flex-row">
         <Button type="submit" className="rounded-2xl" disabled={createAction.isPending}>
-          Ziel speichern
+          Objective speichern
         </Button>
         <Button
           type="button"

@@ -11,7 +11,7 @@ export function KeyResultRestoreButton({ keyResultId }: { keyResultId: string })
 
   const restoreAction = useAction(restoreKeyResult, {
     onSuccess: () => {
-      toast.success("Messpunkt wiederhergestellt");
+      toast.success("Key Result wiederhergestellt");
       router.refresh();
     },
     onError: ({ error }) => {

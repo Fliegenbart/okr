@@ -134,7 +134,7 @@ export default async function AdminCouplesPage({
                 <th className="pb-3 pr-4 font-medium">Paar</th>
                 <th className="pb-3 pr-4 font-medium">Mitglieder</th>
                 <th className="pb-3 pr-4 font-medium">Boards</th>
-                <th className="pb-3 pr-4 font-medium">Ziele</th>
+                <th className="pb-3 pr-4 font-medium">Objectives</th>
                 <th className="pb-3 pr-4 font-medium">Offene Einladungen</th>
                 <th className="pb-3 pr-4 font-medium">Einladungscode</th>
                 <th className="pb-3 font-medium">Aktivität</th>

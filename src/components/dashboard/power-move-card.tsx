@@ -122,11 +122,11 @@ export function PowerMoveCard({ quarterId, quarterTitle, hasObjectives }: PowerM
 
         {!hasObjectives ? (
           <div className="rounded-lg border border-border bg-muted/50 p-4 text-sm text-muted-foreground">
-            Legt zuerst mindestens ein Ziel an. Danach zeige ich euch den nächsten Schritt, der im
+            Legt zuerst mindestens ein Objective an. Danach zeige ich euch den nächsten Schritt, der im
             Quartal am meisten bewegen kann.
             <div className="mt-3">
               <Button asChild size="sm" variant="outline">
-                <Link href="/dashboard/objectives/new">Ziel anlegen</Link>
+                <Link href="/dashboard/objectives/new">Objective anlegen</Link>
               </Button>
             </div>
           </div>

@@ -274,7 +274,7 @@ export function KeyResultChart({
                 y={targetValue}
                 stroke="#52c1f3"
                 strokeDasharray="4 4"
-                label={{ value: "Ziel", position: "top", fill: "#52c1f3", fontSize: 12 }}
+                label={{ value: "Zielwert", position: "top", fill: "#52c1f3", fontSize: 12 }}
               />
             ) : null}
 

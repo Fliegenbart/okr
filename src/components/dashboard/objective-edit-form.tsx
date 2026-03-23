@@ -33,11 +33,11 @@ export function ObjectiveEditForm({
 
   const updateAction = useAction(updateObjective, {
     onSuccess: () => {
-      toast.success("Ziel gespeichert");
+      toast.success("Objective gespeichert");
       router.refresh();
     },
     onError: ({ error }) => {
-      toast.error("Ziel konnte nicht gespeichert werden", {
+      toast.error("Objective konnte nicht gespeichert werden", {
         description: error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
       });
     },
@@ -62,7 +62,7 @@ export function ObjectiveEditForm({
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
       <div className="space-y-2">
-        <Label htmlFor="edit-objective-title">Ziel</Label>
+        <Label htmlFor="edit-objective-title">Objective</Label>
         <Input
           id="edit-objective-title"
           value={objectiveTitle}

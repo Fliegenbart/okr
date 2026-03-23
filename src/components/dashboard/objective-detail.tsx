@@ -143,12 +143,12 @@ export function ObjectiveDetail({
 
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-foreground">Messpunkte</h2>
+          <h2 className="text-xl font-semibold text-foreground">Key Results</h2>
           <Link
             href={`/dashboard/objectives/${objectiveId}/edit`}
             className="text-xs uppercase tracking-[0.2em] text-primary"
           >
-            Messpunkt ergänzen
+            Key Result ergänzen
           </Link>
         </div>
 

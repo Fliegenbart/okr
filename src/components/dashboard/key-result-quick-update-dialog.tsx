@@ -98,7 +98,7 @@ export function KeyResultQuickUpdateDialog({
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Messpunkt aktualisieren</DialogTitle>
+          <DialogTitle>Key Result aktualisieren</DialogTitle>
           <DialogDescription>{title}</DialogDescription>
         </DialogHeader>
         <form className="space-y-4" onSubmit={handleSubmit}>

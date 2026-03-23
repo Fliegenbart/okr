@@ -203,19 +203,19 @@ export function ObjectiveCard({
                   href={`/dashboard/objectives/${objectiveId}`}
                   className="flex items-center rounded-md px-3 py-2 text-sm text-foreground transition hover:bg-muted"
                 >
-                  Ziel öffnen
+                  Objective öffnen
                 </Link>
                 <Link
                   href={`/dashboard/objectives/${objectiveId}/edit`}
                   className="flex items-center rounded-md px-3 py-2 text-sm text-foreground transition hover:bg-muted"
                 >
-                  Messpunkt ergänzen
+                  Key Result ergänzen
                 </Link>
                 <Link
                   href={`/dashboard/objectives/${objectiveId}/edit`}
                   className="flex items-center rounded-md px-3 py-2 text-sm text-foreground transition hover:bg-muted"
                 >
-                  Ziel bearbeiten
+                  Objective bearbeiten
                 </Link>
                 <Link
                   href={`/dashboard/thinking-partner?objectiveId=${objectiveId}`}
@@ -257,7 +257,7 @@ export function ObjectiveCard({
 
         <div className="space-y-3">
           <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
-            <span>Messpunkte</span>
+            <span>Key Results</span>
             <span>{optimisticKeyResults.length} insgesamt</span>
           </div>
           <div className="divide-y divide-border rounded-lg border border-border bg-white">
@@ -325,7 +325,7 @@ export function ObjectiveCard({
                   <ChevronDown className="h-4 w-4" />
                 </span>
                 <span className="sr-only">
-                  {showAllKeyResults ? "Messpunkte einklappen" : "Messpunkte ausklappen"}
+                  {showAllKeyResults ? "Key Results einklappen" : "Key Results ausklappen"}
                 </span>
               </button>
             </div>

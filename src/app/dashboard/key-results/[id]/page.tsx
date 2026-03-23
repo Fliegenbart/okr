@@ -150,7 +150,7 @@ export default async function KeyResultDetailPage({
           <Card className="rounded-2xl border-border shadow-sm">
             <CardContent className="space-y-1 p-4">
               <p className="text-xs uppercase tracking-[0.2em] text-primary">
-                Ziel
+                Zielwert
               </p>
               <p className="text-lg font-semibold text-foreground">
                 {keyResult.type === "BINARY" ? "Ja / Nein" : keyResult.targetValue}
