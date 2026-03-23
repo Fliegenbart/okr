@@ -7,7 +7,7 @@ import EmailProvider from "next-auth/providers/email";
 import { canEmailSignIn } from "@/lib/beta-access";
 import { isAdminEmail } from "@/lib/admin-access";
 import { prisma } from "@/lib/db";
-import { claimInviteForEmail } from "@/lib/invite-access";
+import { claimInviteByToken } from "@/lib/invite-access";
 import { isEmailConfigured, sendLoginLinkEmail } from "@/lib/email";
 import { logEvent } from "@/lib/monitoring";
 import { assertRateLimit } from "@/lib/rate-limit";
@@ -114,17 +114,16 @@ export const authOptions: NextAuthOptions = {
         },
       },
       async authorize(credentials) {
-        const email = credentials?.email?.toLowerCase().trim();
         const token = credentials?.token?.trim();
 
-        if (!email || !token) return null;
+        if (!token) return null;
 
         await assertCredentialLoginRateLimit({
           action: "auth_invite_login",
-          key: `${email}:${token.slice(0, 12)}`,
+          key: token.slice(0, 24),
         });
 
-        return claimInviteForEmail({ email, token });
+        return claimInviteByToken(token);
       },
     }),
     ...(isSupportAccessConfigured()

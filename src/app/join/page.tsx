@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { getAuthSession } from "@/auth";
+import { InviteJoinButton } from "@/components/auth/invite-join-button";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default async function JoinPage({
@@ -39,11 +40,8 @@ export default async function JoinPage({
   const session = await getAuthSession();
 
   if (session?.user) {
-    redirect(`/dashboard?invite=${inviteToken}`);
+    redirect("/dashboard");
   }
-
-  const callbackUrl = `/join?token=${inviteToken}`;
-  const signInUrl = `/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-6 py-12">
@@ -60,16 +58,11 @@ export default async function JoinPage({
           <p className="text-sm uppercase tracking-[0.2em] text-primary">Einladungslink</p>
           <h1 className="text-2xl font-semibold text-foreground">Du wurdest eingeladen</h1>
           <p className="text-sm text-muted-foreground">
-            Ein Klick weiter, dann gibst du nur noch deine eingeladene E-Mail-Adresse ein und
-            wirst direkt dem gemeinsamen Bereich hinzugefügt.
+            Mit diesem Link gelangst du direkt in euren gemeinsamen Bereich. Du musst nichts mehr
+            abtippen.
           </p>
-          <div className="flex flex-col justify-center gap-3 sm:flex-row">
-            <Link
-              href={signInUrl}
-              className="inline-flex items-center justify-center rounded-2xl bg-secondary px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary hover:text-secondary"
-            >
-              Anmelden
-            </Link>
+          <div className="space-y-3">
+            <InviteJoinButton token={inviteToken} />
             <Link
               href="/"
               className="inline-flex items-center justify-center rounded-2xl border border-border px-4 py-2 text-sm font-medium text-foreground"
