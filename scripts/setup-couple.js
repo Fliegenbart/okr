@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
+const path = require("path");
 const { randomBytes } = require("crypto");
+const { loadEnvConfig } = require("@next/env");
 const { PrismaClient } = require("@prisma/client");
+
+loadEnvConfig(path.join(__dirname, ".."));
 
 const prisma = new PrismaClient();
 const INVITE_EXPIRY_DAYS = 7;
