@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { objectiveKeyResultSchema } from "@/lib/validations/key-result-meta";
+
 const optionalText = z.preprocess(
   (value) => {
     if (typeof value !== "string") return value;
@@ -9,28 +11,12 @@ const optionalText = z.preprocess(
   z.string().max(200).optional()
 );
 
-const numberFromInput = z.preprocess(
-  (value) => {
-    if (typeof value === "string" && value.trim() !== "") {
-      return Number(value);
-    }
-    return value;
-  },
-  z.number({ message: "Bitte gib eine Zahl ein." }).min(0.1, "Ziel muss > 0 sein.")
-);
-
-const keyResultSchema = z.object({
-  title: z.string().trim().min(2, "Bitte gib ein Key Result an.").max(80),
-  targetValue: numberFromInput,
-  unit: optionalText,
-});
-
 export const createObjectiveSchema = z.object({
   title: z.string().trim().min(2, "Bitte gib ein Objective an.").max(120),
   description: optionalText,
   quarterId: z.string().trim().optional(),
   keyResults: z
-    .array(keyResultSchema)
+    .array(objectiveKeyResultSchema)
     .min(2, "Bitte gib mindestens zwei Key Results an.")
     .max(6, "Maximal 6 Key Results pro Objective."),
 });

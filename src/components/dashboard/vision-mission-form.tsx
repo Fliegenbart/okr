@@ -15,10 +15,7 @@ export type VisionMissionFormProps = {
   initialMission?: string | null;
 };
 
-export function VisionMissionForm({
-  initialVision,
-  initialMission,
-}: VisionMissionFormProps) {
+export function VisionMissionForm({ initialVision, initialMission }: VisionMissionFormProps) {
   const router = useRouter();
   const [vision, setVision] = useState(initialVision ?? "");
   const [mission, setMission] = useState(initialMission ?? "");
@@ -30,8 +27,7 @@ export function VisionMissionForm({
     },
     onError: ({ error }) => {
       toast.error("Konnte nicht speichern", {
-        description:
-          error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
+        description: error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
       });
     },
   });
@@ -50,41 +46,35 @@ export function VisionMissionForm({
   return (
     <form className="space-y-6" onSubmit={handleSubmit}>
       <div className="space-y-2">
-        <Label htmlFor="vision-text">Vision</Label>
+        <Label htmlFor="vision-text">Was ist euch wichtig?</Label>
         <Textarea
           id="vision-text"
           value={vision}
           onChange={(event) => setVision(event.target.value)}
-          placeholder="1-3 Sätze: Was wollt ihr gemeinsam leben?"
+          placeholder="1-3 Sätze: Wofür wollt ihr als Paar stehen?"
           rows={4}
         />
         {validationErrors?.fieldErrors?.vision?.[0] ? (
-          <p className="text-sm text-primary">
-            {validationErrors.fieldErrors.vision[0]}
-          </p>
+          <p className="text-sm text-primary">{validationErrors.fieldErrors.vision[0]}</p>
         ) : null}
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="mission-text">Mission</Label>
+        <Label htmlFor="mission-text">Wie wollt ihr das leben?</Label>
         <Textarea
           id="mission-text"
           value={mission}
           onChange={(event) => setMission(event.target.value)}
-          placeholder="1-3 Sätze: Wie wollt ihr das erreichen?"
+          placeholder="1-3 Sätze: Was tut ihr im Alltag dafür?"
           rows={4}
         />
         {validationErrors?.fieldErrors?.mission?.[0] ? (
-          <p className="text-sm text-primary">
-            {validationErrors.fieldErrors.mission[0]}
-          </p>
+          <p className="text-sm text-primary">{validationErrors.fieldErrors.mission[0]}</p>
         ) : null}
       </div>
 
       {saveAction.result.serverError ? (
-        <p className="text-sm text-primary">
-          {saveAction.result.serverError}
-        </p>
+        <p className="text-sm text-primary">{saveAction.result.serverError}</p>
       ) : null}
 
       <Button type="submit" className="rounded-2xl" disabled={saveAction.isPending}>

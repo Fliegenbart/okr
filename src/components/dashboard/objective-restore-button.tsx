@@ -11,7 +11,7 @@ export function ObjectiveRestoreButton({ objectiveId }: { objectiveId: string })
 
   const restoreAction = useAction(restoreObjective, {
     onSuccess: () => {
-      toast.success("Objective wiederhergestellt");
+      toast.success("Ziel wiederhergestellt");
       router.refresh();
     },
     onError: ({ error }) => {

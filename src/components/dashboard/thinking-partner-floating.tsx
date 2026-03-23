@@ -49,7 +49,7 @@ export function ThinkingPartnerFloating({ canUsePersona }: { canUsePersona: bool
           <DialogHeader>
             <DialogTitle>Thinking Partner</DialogTitle>
             <DialogDescription>
-              Schnelle Impulse, klare nächste Schritte, kleine Rituale.
+              Wenn ihr feststeckt, bekommt ihr hier eine kurze Antwort und einen nächsten Schritt.
             </DialogDescription>
           </DialogHeader>
           <div className="mt-4">

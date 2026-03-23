@@ -3,10 +3,7 @@ import Link from "next/link";
 import { CommitmentForm } from "@/components/dashboard/commitment-form";
 import { TimelineNoteForm } from "@/components/dashboard/timeline-note-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  redirectForMissingCouple,
-  requireDashboardSubpageAccess,
-} from "@/lib/dashboard-access";
+import { redirectForMissingCouple, requireDashboardSubpageAccess } from "@/lib/dashboard-access";
 import { prisma } from "@/lib/db";
 
 const dateTimeFormatter = new Intl.DateTimeFormat("de-DE", {
@@ -19,9 +16,9 @@ function kindLabel(kind: string) {
     case "CHECK_IN":
       return "Check-in";
     case "OBJECTIVE_UPDATE":
-      return "Objective";
+      return "Ziel";
     case "COMMITMENT_CREATED":
-      return "Commitment";
+      return "Zusage";
     case "COMMITMENT_DONE":
       return "Erledigt";
     case "NOTE":
@@ -29,7 +26,7 @@ function kindLabel(kind: string) {
     case "MILESTONE":
       return "Meilenstein";
     case "REMINDER":
-      return "Reminder";
+      return "Erinnerung";
     default:
       return kind;
   }
@@ -78,9 +75,9 @@ export default async function TimelinePage() {
         </Link>
 
         <div className="mt-6 space-y-2">
-          <h1 className="text-3xl font-semibold text-foreground">Timeline</h1>
+          <h1 className="text-3xl font-semibold text-foreground">Verlauf</h1>
           <p className="text-sm text-muted-foreground">
-            Hier seht ihr die wichtigsten Ereignisse eurer Beziehung im Verlauf.
+            Hier sammelt sich, was ihr festgehalten, beschlossen oder abgeschlossen habt.
           </p>
         </div>
 
@@ -96,7 +93,7 @@ export default async function TimelinePage() {
 
           <Card className="rounded-2xl border-border shadow-sm">
             <CardHeader>
-              <CardTitle>Neues Commitment</CardTitle>
+              <CardTitle>Neue Zusage</CardTitle>
             </CardHeader>
             <CardContent>
               <CommitmentForm
@@ -126,9 +123,7 @@ export default async function TimelinePage() {
                 >
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="space-y-1">
-                      <p className="text-sm font-semibold text-foreground">
-                        {event.title}
-                      </p>
+                      <p className="text-sm font-semibold text-foreground">{event.title}</p>
                       <p className="text-xs text-muted-foreground">
                         {dateTimeFormatter.format(event.createdAt)}
                       </p>
@@ -138,35 +133,23 @@ export default async function TimelinePage() {
                     </span>
                   </div>
                   {event.summary ? (
-                    <p className="text-sm text-muted-foreground">
-                      {event.summary}
-                    </p>
+                    <p className="text-sm text-muted-foreground">{event.summary}</p>
                   ) : null}
                   <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-                    {event.commitment?.title ? (
-                      <span>Commitment: {event.commitment.title}</span>
-                    ) : null}
-                    {event.objective?.title ? (
-                      <span>Objective: {event.objective.title}</span>
-                    ) : null}
+                    {event.commitment?.title ? <span>Zusage: {event.commitment.title}</span> : null}
+                    {event.objective?.title ? <span>Ziel: {event.objective.title}</span> : null}
                     {event.checkInSession?.title ? (
                       <span>Check-in: {event.checkInSession.title}</span>
                     ) : null}
-                    {event.reminder?.title ? (
-                      <span>Reminder: {event.reminder.title}</span>
-                    ) : null}
+                    {event.reminder?.title ? <span>Erinnerung: {event.reminder.title}</span> : null}
                     {event.createdBy?.name || event.createdBy?.email ? (
-                      <span>
-                        Von {event.createdBy.name ?? event.createdBy.email}
-                      </span>
+                      <span>Von {event.createdBy.name ?? event.createdBy.email}</span>
                     ) : null}
                   </div>
                 </div>
               ))
             ) : (
-              <p className="text-sm text-muted-foreground">
-                Noch keine Timeline-Einträge vorhanden.
-              </p>
+              <p className="text-sm text-muted-foreground">Hier ist noch nichts gespeichert.</p>
             )}
           </CardContent>
         </Card>

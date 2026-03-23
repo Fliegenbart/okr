@@ -2,10 +2,11 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { CollapsibleGrid } from "@/components/dashboard/collapsible-grid";
 import { InvitePartnerCard } from "@/components/dashboard/invite-partner-card";
+import { ObjectiveCard } from "@/components/dashboard/objective-card";
 import { ObjectiveProgressMiniChart } from "@/components/dashboard/objective-progress-mini-chart";
 import { OnboardingCard } from "@/components/dashboard/onboarding-card";
-import { ObjectiveCard } from "@/components/dashboard/objective-card";
 import { PowerMoveCard } from "@/components/dashboard/power-move-card";
 import { ProgressDonut } from "@/components/dashboard/progress-donut";
 import { QuarterProgressChart } from "@/components/dashboard/quarter-progress-chart";
@@ -28,11 +29,8 @@ export default async function DashboardPage({
 }) {
   const headerList = await headers();
   const forwardedProto = headerList.get("x-forwarded-proto") ?? "http";
-  const forwardedHost =
-    headerList.get("x-forwarded-host") ?? headerList.get("host");
-  const requestOrigin = forwardedHost
-    ? `${forwardedProto}://${forwardedHost}`
-    : "";
+  const forwardedHost = headerList.get("x-forwarded-host") ?? headerList.get("host");
+  const requestOrigin = forwardedHost ? `${forwardedProto}://${forwardedHost}` : "";
   const appUrl = (
     process.env.NEXT_PUBLIC_APP_URL ??
     process.env.NEXTAUTH_URL ??
@@ -47,9 +45,7 @@ export default async function DashboardPage({
       <div className="flex min-h-screen items-center justify-center bg-background px-6 py-12">
         <Card className="w-full max-w-md">
           <CardContent className="space-y-3 p-6 text-center">
-            <p className="text-lg font-semibold text-foreground">
-              Bitte melde dich an
-            </p>
+            <p className="text-lg font-semibold text-foreground">Bitte melde dich an</p>
             <p className="text-sm text-muted-foreground">
               Deine Sitzung ist abgelaufen oder ungültig.
             </p>
@@ -71,9 +67,7 @@ export default async function DashboardPage({
       redirect("/admin/couples");
     }
 
-    const canCreateCouple = viewer.email
-      ? await canEmailCreateCouple(viewer.email)
-      : false;
+    const canCreateCouple = viewer.email ? await canEmailCreateCouple(viewer.email) : false;
 
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-6 py-12">
@@ -140,28 +134,24 @@ export default async function DashboardPage({
   }
 
   const activeQuarter =
-    couple.quarters.find(
-      (quarter) => quarter.startsAt <= now && quarter.endsAt >= now
-    ) ?? couple.quarters[0];
+    couple.quarters.find((quarter) => quarter.startsAt <= now && quarter.endsAt >= now) ??
+    couple.quarters[0];
   const preferredQuarterId =
     viewer.userCoupleId === viewer.activeCoupleId
-      ? userPreferences?.preferredQuarterId ?? null
+      ? (userPreferences?.preferredQuarterId ?? null)
       : null;
-  const selectedQuarterId =
-    resolvedSearchParams?.quarter ?? preferredQuarterId ?? "all";
+  const selectedQuarterId = resolvedSearchParams?.quarter ?? preferredQuarterId ?? "all";
   const filteredObjectives =
     selectedQuarterId === "all"
       ? couple.objectives
-      : couple.objectives.filter(
-          (objective) => objective.quarterId === selectedQuarterId
-        );
+      : couple.objectives.filter((objective) => objective.quarterId === selectedQuarterId);
 
   const selectedQuarter =
     selectedQuarterId === "all"
-      ? activeQuarter ?? null
-      : couple.quarters.find((quarter) => quarter.id === selectedQuarterId) ??
+      ? (activeQuarter ?? null)
+      : (couple.quarters.find((quarter) => quarter.id === selectedQuarterId) ??
         activeQuarter ??
-        null;
+        null);
   const quarterProgressObjectives = selectedQuarter
     ? couple.objectives.filter((objective) => objective.quarterId === selectedQuarter.id)
     : [];
@@ -176,6 +166,12 @@ export default async function DashboardPage({
             id: keyResult.id,
             currentValue: keyResult.currentValue,
             targetValue: keyResult.targetValue,
+            startValue: keyResult.startValue,
+            type: keyResult.type,
+            direction: keyResult.direction,
+            redThreshold: keyResult.redThreshold,
+            yellowThreshold: keyResult.yellowThreshold,
+            greenThreshold: keyResult.greenThreshold,
             updates: keyResult.updates.map((update) => ({
               value: update.value,
               previousValue: update.previousValue,
@@ -192,6 +188,12 @@ export default async function DashboardPage({
       objective.keyResults.map((keyResult) => ({
         currentValue: keyResult.currentValue,
         targetValue: keyResult.targetValue,
+        startValue: keyResult.startValue,
+        type: keyResult.type,
+        direction: keyResult.direction,
+        redThreshold: keyResult.redThreshold,
+        yellowThreshold: keyResult.yellowThreshold,
+        greenThreshold: keyResult.greenThreshold,
       }))
     )
   );
@@ -217,42 +219,45 @@ export default async function DashboardPage({
         title: keyResult.title,
         currentValue: keyResult.currentValue,
         targetValue: keyResult.targetValue,
+        startValue: keyResult.startValue,
+        type: keyResult.type,
+        direction: keyResult.direction,
+        redThreshold: keyResult.redThreshold,
+        yellowThreshold: keyResult.yellowThreshold,
+        greenThreshold: keyResult.greenThreshold,
         unit: keyResult.unit,
       })),
       insights: {
         ...insights,
-        lastUpdateAt: insights.lastUpdateAt
-          ? insights.lastUpdateAt.toISOString()
-          : null,
+        lastUpdateAt: insights.lastUpdateAt ? insights.lastUpdateAt.toISOString() : null,
       },
     };
   });
 
-  const [latestCheckIn, openCommitments, upcomingReminders, recentTimeline] =
-    await Promise.all([
-      prisma.checkInSession.findFirst({
-        where: { coupleId: couple.id },
-        orderBy: { createdAt: "desc" },
-      }),
-      prisma.commitment.findMany({
-        where: { coupleId: couple.id, status: "OPEN" },
-        include: {
-          objective: { select: { title: true } },
-        },
-        orderBy: [{ dueAt: "asc" }, { createdAt: "desc" }],
-        take: 4,
-      }),
-      prisma.reminder.findMany({
-        where: { coupleId: couple.id, status: "PENDING" },
-        orderBy: { dueAt: "asc" },
-        take: 4,
-      }),
-      prisma.timelineEvent.findMany({
-        where: { coupleId: couple.id },
-        orderBy: { createdAt: "desc" },
-        take: 3,
-      }),
-    ]);
+  const [latestCheckIn, openCommitments, upcomingReminders, recentTimeline] = await Promise.all([
+    prisma.checkInSession.findFirst({
+      where: { coupleId: couple.id },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.commitment.findMany({
+      where: { coupleId: couple.id, status: "OPEN" },
+      include: {
+        objective: { select: { title: true } },
+      },
+      orderBy: [{ dueAt: "asc" }, { createdAt: "desc" }],
+      take: 4,
+    }),
+    prisma.reminder.findMany({
+      where: { coupleId: couple.id, status: "PENDING" },
+      orderBy: { dueAt: "asc" },
+      take: 4,
+    }),
+    prisma.timelineEvent.findMany({
+      where: { coupleId: couple.id },
+      orderBy: { createdAt: "desc" },
+      take: 3,
+    }),
+  ]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -280,34 +285,26 @@ export default async function DashboardPage({
 
           <Card>
             <CardContent className="space-y-3 p-6">
-              <p className="text-sm font-medium text-primary">
-                Aktuelles Quartal
-              </p>
+              <p className="text-sm font-medium text-primary">Aktuelles Quartal</p>
               {activeQuarter ? (
                 <>
-                  <p className="text-lg font-semibold text-foreground">
-                    {activeQuarter.title}
-                  </p>
+                  <p className="text-lg font-semibold text-foreground">{activeQuarter.title}</p>
                   <p className="text-sm text-muted-foreground">
                     {dateFormatter.format(activeQuarter.startsAt)} –{" "}
                     {dateFormatter.format(activeQuarter.endsAt)}
                   </p>
                 </>
               ) : (
-                <p className="text-sm text-muted-foreground">
-                  Noch kein Quartal angelegt.
-                </p>
+                <p className="text-sm text-muted-foreground">Noch kein Quartal angelegt.</p>
               )}
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="flex flex-col items-start gap-4 p-6">
-              <p className="text-sm font-medium text-primary">
-                Durchschnittlicher Fortschritt
-              </p>
+              <p className="text-sm font-medium text-primary">Fortschritt über alle Ziele</p>
               <p className="text-xs text-muted-foreground">
-                Mittelwert über alle Objectives im gewählten Quartal.
+                So weit seid ihr in diesem Quartal im Schnitt.
               </p>
               <ProgressDonut
                 value={averageProgress}
@@ -324,12 +321,9 @@ export default async function DashboardPage({
 
         <section className="mt-10 space-y-4">
           <div className="space-y-2">
-            <h2 className="text-xl font-semibold text-foreground">
-              Beziehungs-Puls
-            </h2>
+            <h2 className="text-xl font-semibold text-foreground">Was gerade wichtig ist</h2>
             <p className="text-sm text-muted-foreground">
-              Ein kompakter Überblick über Check-ins, Commitments und offene
-              Follow-ups.
+              Hier seht ihr, was zuletzt passiert ist und was als Nächstes ansteht.
             </p>
           </div>
 
@@ -339,38 +333,30 @@ export default async function DashboardPage({
                 <p className="text-sm font-medium text-primary">Letzter Check-in</p>
                 {latestCheckIn ? (
                   <>
-                    <p className="text-lg font-semibold text-foreground">
-                      {latestCheckIn.title}
-                    </p>
+                    <p className="text-lg font-semibold text-foreground">{latestCheckIn.title}</p>
                     <p className="text-sm text-muted-foreground">
                       {dateFormatter.format(latestCheckIn.createdAt)}
                     </p>
                   </>
                 ) : (
-                  <p className="text-sm text-muted-foreground">
-                    Noch kein Check-in gespeichert.
-                  </p>
+                  <p className="text-sm text-muted-foreground">Noch kein Check-in gespeichert.</p>
                 )}
               </CardContent>
             </Card>
 
             <Card>
               <CardContent className="space-y-2 p-6">
-                <p className="text-sm font-medium text-primary">Offene Commitments</p>
-                <p className="text-3xl font-semibold text-foreground">
-                  {openCommitments.length}
-                </p>
+                <p className="text-sm font-medium text-primary">Offene Zusagen</p>
+                <p className="text-3xl font-semibold text-foreground">{openCommitments.length}</p>
                 <p className="text-sm text-muted-foreground">
-                  {openCommitments[0]
-                    ? openCommitments[0].title
-                    : "Alles erledigt"}
+                  {openCommitments[0] ? openCommitments[0].title : "Alles erledigt"}
                 </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardContent className="space-y-2 p-6">
-                <p className="text-sm font-medium text-primary">Nächster Reminder</p>
+                <p className="text-sm font-medium text-primary">Nächste Erinnerung</p>
                 {upcomingReminders[0] ? (
                   <>
                     <p className="text-lg font-semibold text-foreground">
@@ -381,16 +367,14 @@ export default async function DashboardPage({
                     </p>
                   </>
                 ) : (
-                  <p className="text-sm text-muted-foreground">
-                    Keine offenen Reminder.
-                  </p>
+                  <p className="text-sm text-muted-foreground">Keine offene Erinnerung.</p>
                 )}
               </CardContent>
             </Card>
 
             <Card>
               <CardContent className="space-y-2 p-6">
-                <p className="text-sm font-medium text-primary">Letzter Verlauf</p>
+                <p className="text-sm font-medium text-primary">Zuletzt festgehalten</p>
                 {recentTimeline[0] ? (
                   <>
                     <p className="text-lg font-semibold text-foreground">
@@ -401,26 +385,18 @@ export default async function DashboardPage({
                     </p>
                   </>
                 ) : (
-                  <p className="text-sm text-muted-foreground">
-                    Noch kein Verlauf vorhanden.
-                  </p>
+                  <p className="text-sm text-muted-foreground">Noch nichts gespeichert.</p>
                 )}
               </CardContent>
             </Card>
           </div>
         </section>
 
-        <section
-          className="mt-10 space-y-4"
-          data-testid="quarter-progress-section"
-        >
+        <section className="mt-10 space-y-4" data-testid="quarter-progress-section">
           <div className="space-y-2">
-            <h2 className="text-xl font-semibold text-foreground">
-              Quartalsverlauf
-            </h2>
+            <h2 className="text-xl font-semibold text-foreground">So läuft euer Quartal</h2>
             <p className="text-sm text-muted-foreground">
-              Verlauf der Objectives von der Anlage bis heute, mit Soll-Linie bis
-              zum Quartalsende.
+              Hier seht ihr, wie sich eure Ziele bis heute entwickelt haben.
             </p>
           </div>
 
@@ -431,20 +407,15 @@ export default async function DashboardPage({
                   <CardContent className="space-y-5 p-6">
                     <div className="space-y-1">
                       <p className="text-sm uppercase tracking-[0.2em] text-primary">
-                        Gesamtverlauf Quartal
+                        Bisheriger Verlauf
                       </p>
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
                         <span className="font-semibold text-foreground">
                           {quarterProgressSnapshot.quarterTitle}
                         </span>
                         <span className="text-muted-foreground">
-                          {dateFormatter.format(
-                            new Date(quarterProgressSnapshot.quarterStartsAt)
-                          )}{" "}
-                          –{" "}
-                          {dateFormatter.format(
-                            new Date(quarterProgressSnapshot.quarterEndsAt)
-                          )}
+                          {dateFormatter.format(new Date(quarterProgressSnapshot.quarterStartsAt))}{" "}
+                          – {dateFormatter.format(new Date(quarterProgressSnapshot.quarterEndsAt))}
                         </span>
                       </div>
                     </div>
@@ -458,9 +429,7 @@ export default async function DashboardPage({
 
                 <Card className="rounded-2xl border-border shadow-sm">
                   <CardContent className="space-y-4 p-6">
-                    <p className="text-sm uppercase tracking-[0.2em] text-primary">
-                      Quartals-Health
-                    </p>
+                    <p className="text-sm uppercase tracking-[0.2em] text-primary">Überblick</p>
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
                       <div className="rounded-2xl border border-border bg-card p-4">
                         <p className="text-xs uppercase tracking-[0.2em] text-primary">
@@ -471,16 +440,14 @@ export default async function DashboardPage({
                         </p>
                       </div>
                       <div className="rounded-2xl border border-border bg-card p-4">
-                        <p className="text-xs uppercase tracking-[0.2em] text-primary">
-                          Objectives
-                        </p>
+                        <p className="text-xs uppercase tracking-[0.2em] text-primary">Ziele</p>
                         <p className="mt-2 text-2xl font-semibold text-foreground">
                           {quarterProgressSnapshot.totalObjectives}
                         </p>
                       </div>
                       <div className="rounded-2xl border border-border bg-card p-4">
                         <p className="text-xs uppercase tracking-[0.2em] text-primary">
-                          Ohne Update
+                          Ohne neuen Stand
                         </p>
                         <p className="mt-2 text-2xl font-semibold text-foreground">
                           {quarterProgressSnapshot.objectivesWithoutUpdates}
@@ -488,13 +455,13 @@ export default async function DashboardPage({
                       </div>
                       <div className="rounded-2xl border border-border bg-card p-4">
                         <p className="text-xs uppercase tracking-[0.2em] text-primary">
-                          Tage bis Ende
+                          Tage bis zum Ende
                         </p>
                         <p className="mt-2 text-2xl font-semibold text-foreground">
                           {quarterProgressSnapshot.daysRemaining}
                         </p>
                         <p className="mt-1 text-xs text-muted-foreground">
-                          Tag {quarterProgressSnapshot.daysElapsed} im Quartal
+                          Ihr seid an Tag {quarterProgressSnapshot.daysElapsed}
                         </p>
                       </div>
                     </div>
@@ -503,7 +470,10 @@ export default async function DashboardPage({
               </div>
 
               {quarterProgressSnapshot.objectiveSeries.length ? (
-                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                <CollapsibleGrid
+                  className="grid gap-4 md:grid-cols-2 xl:grid-cols-3"
+                  itemLabel="Ziele"
+                >
                   {quarterProgressSnapshot.objectiveSeries.map((objective) => (
                     <ObjectiveProgressMiniChart
                       key={objective.id}
@@ -511,16 +481,16 @@ export default async function DashboardPage({
                       href={`/dashboard/objectives/${objective.id}`}
                     />
                   ))}
-                </div>
+                </CollapsibleGrid>
               ) : (
                 <Card className="rounded-2xl border-border shadow-sm">
                   <CardContent className="space-y-3 p-6">
                     <p className="text-lg font-semibold text-foreground">
-                      Noch keine Objectives in diesem Quartal
+                      Noch keine Ziele in diesem Quartal
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Sobald ihr in {quarterProgressSnapshot.quarterTitle} das erste
-                      Objective anlegt, erscheint hier der Verlauf.
+                      Sobald ihr in {quarterProgressSnapshot.quarterTitle} das erste Ziel anlegt,
+                      erscheint hier der Verlauf.
                     </p>
                   </CardContent>
                 </Card>
@@ -529,12 +499,10 @@ export default async function DashboardPage({
           ) : (
             <Card className="rounded-2xl border-border shadow-sm">
               <CardContent className="space-y-3 p-6">
-                <p className="text-lg font-semibold text-foreground">
-                  Noch kein Quartal vorhanden
-                </p>
+                <p className="text-lg font-semibold text-foreground">Noch kein Quartal vorhanden</p>
                 <p className="text-sm text-muted-foreground">
-                  Lege zuerst ein Quartal an, damit wir den Verlauf eurer OKRs
-                  anzeigen können.
+                  Legt zuerst ein Quartal an. Danach zeigen wir euch, wie sich eure Ziele
+                  entwickeln.
                 </p>
               </CardContent>
             </Card>
@@ -543,9 +511,7 @@ export default async function DashboardPage({
 
         <section className="mt-10 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-foreground">
-              Aktuelle Objectives
-            </h2>
+            <h2 className="text-xl font-semibold text-foreground">Eure Ziele</h2>
             <QuarterFilter
               selectedId={selectedQuarterId}
               options={couple.quarters.map((quarter) => ({
@@ -564,38 +530,39 @@ export default async function DashboardPage({
                   hasObjectives={objectiveCards.length > 0}
                 />
               </div>
-              {objectiveCards.map((objective) => (
-                <ObjectiveCard
-                  key={objective.id}
-                  objectiveId={objective.id}
-                  title={objective.title}
-                  description={objective.description}
-                  nextAction={objective.nextAction}
-                  keyResults={objective.keyResults}
-                  insights={objective.insights}
-                />
-              ))}
+              <div className="md:col-span-2">
+                <CollapsibleGrid className="grid gap-6 md:grid-cols-2" itemLabel="Ziele">
+                  {objectiveCards.map((objective) => (
+                    <ObjectiveCard
+                      key={objective.id}
+                      objectiveId={objective.id}
+                      title={objective.title}
+                      description={objective.description}
+                      nextAction={objective.nextAction}
+                      keyResults={objective.keyResults}
+                      insights={objective.insights}
+                    />
+                  ))}
+                </CollapsibleGrid>
+              </div>
             </div>
           ) : (
             <Card>
               <CardContent className="space-y-3 p-6">
-                <p className="text-lg font-semibold text-foreground">
-                  Noch keine Objectives
-                </p>
+                <p className="text-lg font-semibold text-foreground">Noch keine Ziele</p>
                 <p className="text-sm text-muted-foreground">
-                  Sobald ihr euer erstes Objective anlegt, erscheint es hier.
+                  Sobald ihr euer erstes Ziel anlegt, erscheint es hier.
                 </p>
                 <Link
                   href="/dashboard/objectives/new"
                   className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
                 >
-                  Objective erstellen
+                  Ziel anlegen
                 </Link>
               </CardContent>
             </Card>
           )}
         </section>
-
       </div>
     </div>
   );

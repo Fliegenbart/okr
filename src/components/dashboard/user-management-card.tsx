@@ -27,11 +27,9 @@ export function UserManagementCard({
     <Card className="rounded-2xl border-border shadow-sm">
       <CardContent className="space-y-4 p-6">
         <div className="space-y-1">
-          <p className="text-sm uppercase tracking-[0.2em] text-primary">
-            Nutzerverwaltung
-          </p>
+          <p className="text-sm uppercase tracking-[0.2em] text-primary">Wer ist dabei?</p>
           <p className="text-sm text-muted-foreground">
-            Überblick über euer Couple und offene Einladungen.
+            Hier seht ihr, wer schon dabei ist und ob noch jemand eingeladen wurde.
           </p>
         </div>
 
@@ -61,24 +59,17 @@ export function UserManagementCard({
 
           {pendingInvite ? (
             <div className="rounded-2xl border border-dashed border-border bg-muted/40 p-4">
-              <p className="text-sm font-semibold text-foreground">
-                Einladung ausstehend
-              </p>
+              <p className="text-sm font-semibold text-foreground">Einladung ausstehend</p>
+              <p className="mt-1 text-xs text-muted-foreground">{pendingInvite.email}</p>
               <p className="mt-1 text-xs text-muted-foreground">
-                {pendingInvite.email}
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Gültig bis{" "}
-                {dateFormatter.format(new Date(pendingInvite.expiresAt))}
+                Gültig bis {dateFormatter.format(new Date(pendingInvite.expiresAt))}
               </p>
             </div>
           ) : (
             <div className="rounded-2xl border border-dashed border-border bg-muted/20 p-4">
-              <p className="text-sm font-semibold text-foreground">
-                Keine offene Einladung
-              </p>
+              <p className="text-sm font-semibold text-foreground">Keine offene Einladung</p>
               <p className="mt-1 text-xs text-muted-foreground">
-                Sobald ihr jemanden einladet, erscheint der Status hier.
+                Sobald ihr jemanden einladet, erscheint der Stand hier.
               </p>
             </div>
           )}

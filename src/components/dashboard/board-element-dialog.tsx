@@ -35,7 +35,7 @@ type BoardElementDialogProps = {
   onDelete?: () => void;
 };
 
-const colorOptions = [
+export const BOARD_COLOR_OPTIONS = [
   { value: "#F9E27D", label: "Sonnengelb" },
   { value: "#AEDBFF", label: "Himmelblau" },
   { value: "#BEE8C3", label: "Minze" },
@@ -132,7 +132,7 @@ export function BoardElementDialog({
             <div className="space-y-2">
               <Label>Farbe</Label>
               <div className="flex flex-wrap gap-2">
-                {colorOptions.map((option) => (
+                {BOARD_COLOR_OPTIONS.map((option) => (
                   <button
                     key={option.value}
                     type="button"

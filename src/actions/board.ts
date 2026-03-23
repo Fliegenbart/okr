@@ -7,9 +7,13 @@ import { requireUserWithCouple } from "@/actions/utils";
 import { action } from "@/lib/safe-action";
 import { prisma } from "@/lib/db";
 import {
+  createBoardConnectionSchema,
   createBoardElementSchema,
+  deleteBoardConnectionSchema,
+  deleteBoardElementsSchema,
   deleteBoardElementSchema,
   ensureBoardSchema,
+  moveBoardElementsSchema,
   moveBoardElementSchema,
   updateBoardElementSchema,
 } from "@/lib/validations/board";
@@ -20,6 +24,10 @@ import {
 } from "@/lib/boards";
 
 const BOARD_PATH = "/dashboard/board";
+
+function normalizeConnectionPair(firstElementId: string, secondElementId: string) {
+  return [firstElementId, secondElementId].sort() as [string, string];
+}
 
 async function touchBoard(tx: Prisma.TransactionClient, boardId: string) {
   await tx.board.update({
@@ -218,6 +226,58 @@ export const moveBoardElement = action
     return { success: true };
   });
 
+export const moveBoardElements = action
+  .schema(moveBoardElementsSchema)
+  .action(async ({ parsedInput }) => {
+    const user = await requireUserWithCouple();
+
+    const elements = await prisma.boardElement.findMany({
+      where: {
+        id: {
+          in: parsedInput.moves.map((move) => move.elementId),
+        },
+        board: {
+          coupleId: user.coupleId,
+        },
+      },
+      select: {
+        id: true,
+        boardId: true,
+      },
+    });
+
+    if (elements.length !== parsedInput.moves.length) {
+      throw new Error("Mindestens ein Element wurde nicht gefunden.");
+    }
+
+    const boardIds = new Set(elements.map((element) => element.boardId));
+
+    if (boardIds.size !== 1) {
+      throw new Error("Alle Elemente muessen auf demselben Board liegen.");
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await Promise.all(
+        parsedInput.moves.map((move) =>
+          tx.boardElement.update({
+            where: { id: move.elementId },
+            data: {
+              x: move.x,
+              y: move.y,
+              zIndex: move.zIndex,
+            },
+          })
+        )
+      );
+
+      await touchBoard(tx, elements[0]!.boardId);
+    });
+
+    revalidatePath(BOARD_PATH);
+
+    return { success: true };
+  });
+
 export const deleteBoardElement = action
   .schema(deleteBoardElementSchema)
   .action(async ({ parsedInput }) => {
@@ -248,6 +308,164 @@ export const deleteBoardElement = action
       });
 
       await touchBoard(tx, existingElement.boardId);
+    });
+
+    revalidatePath(BOARD_PATH);
+
+    return { success: true };
+  });
+
+export const deleteBoardElements = action
+  .schema(deleteBoardElementsSchema)
+  .action(async ({ parsedInput }) => {
+    const user = await requireUserWithCouple();
+
+    const elements = await prisma.boardElement.findMany({
+      where: {
+        id: {
+          in: parsedInput.elementIds,
+        },
+        board: {
+          coupleId: user.coupleId,
+        },
+      },
+      select: {
+        id: true,
+        boardId: true,
+      },
+    });
+
+    if (elements.length !== parsedInput.elementIds.length) {
+      throw new Error("Mindestens ein Element wurde nicht gefunden.");
+    }
+
+    const boardIds = new Set(elements.map((element) => element.boardId));
+
+    if (boardIds.size !== 1) {
+      throw new Error("Alle Elemente muessen auf demselben Board liegen.");
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.boardElement.deleteMany({
+        where: {
+          id: {
+            in: parsedInput.elementIds,
+          },
+        },
+      });
+
+      await touchBoard(tx, elements[0]!.boardId);
+    });
+
+    revalidatePath(BOARD_PATH);
+
+    return { success: true };
+  });
+
+export const createBoardConnection = action
+  .schema(createBoardConnectionSchema)
+  .action(async ({ parsedInput }) => {
+    const user = await requireUserWithCouple();
+    const [fromElementId, toElementId] = normalizeConnectionPair(
+      parsedInput.firstElementId,
+      parsedInput.secondElementId
+    );
+
+    const elements = await prisma.boardElement.findMany({
+      where: {
+        id: {
+          in: [fromElementId, toElementId],
+        },
+        board: {
+          coupleId: user.coupleId,
+        },
+      },
+      select: {
+        id: true,
+        boardId: true,
+      },
+    });
+
+    if (elements.length !== 2) {
+      throw new Error("Beide Elemente muessen auf eurem Board liegen.");
+    }
+
+    if (elements[0]!.boardId !== elements[1]!.boardId) {
+      throw new Error("Elemente koennen nur auf demselben Board verbunden werden.");
+    }
+
+    const boardId = elements[0]!.boardId;
+
+    const connection = await prisma.$transaction(async (tx) => {
+      const existingConnection = await tx.boardConnection.findUnique({
+        where: {
+          boardId_fromElementId_toElementId: {
+            boardId,
+            fromElementId,
+            toElementId,
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (existingConnection) {
+        return existingConnection;
+      }
+
+      const createdConnection = await tx.boardConnection.create({
+        data: {
+          boardId,
+          fromElementId,
+          toElementId,
+          color: parsedInput.color ?? "#2854C5",
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      await touchBoard(tx, boardId);
+
+      return createdConnection;
+    });
+
+    revalidatePath(BOARD_PATH);
+
+    return { id: connection.id };
+  });
+
+export const deleteBoardConnection = action
+  .schema(deleteBoardConnectionSchema)
+  .action(async ({ parsedInput }) => {
+    const user = await requireUserWithCouple();
+
+    const existingConnection = await prisma.boardConnection.findFirst({
+      where: {
+        id: parsedInput.connectionId,
+        board: {
+          coupleId: user.coupleId,
+        },
+      },
+      select: {
+        id: true,
+        boardId: true,
+      },
+    });
+
+    if (!existingConnection) {
+      throw new Error("Verbindung nicht gefunden.");
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.boardConnection.delete({
+        where: {
+          id: existingConnection.id,
+        },
+      });
+
+      await touchBoard(tx, existingConnection.boardId);
     });
 
     revalidatePath(BOARD_PATH);

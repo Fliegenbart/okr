@@ -314,6 +314,12 @@ export function buildCoupleContext(couple: {
       objective.keyResults.map((keyResult) => ({
         currentValue: keyResult.currentValue,
         targetValue: keyResult.targetValue,
+        startValue: (keyResult as { startValue?: number }).startValue,
+        type: (keyResult as { type?: "INCREASE_TO" | "STAY_ABOVE" | "STAY_BELOW" | "BINARY" | "TRAFFIC_LIGHT" }).type,
+        direction: (keyResult as { direction?: "HIGHER_IS_BETTER" | "LOWER_IS_BETTER" }).direction,
+        redThreshold: (keyResult as { redThreshold?: number | null }).redThreshold,
+        yellowThreshold: (keyResult as { yellowThreshold?: number | null }).yellowThreshold,
+        greenThreshold: (keyResult as { greenThreshold?: number | null }).greenThreshold,
       }))
     );
 

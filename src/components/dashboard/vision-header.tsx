@@ -6,22 +6,12 @@ type VisionHeaderProps = {
 };
 
 export function VisionHeader({ vision, coupleName }: VisionHeaderProps) {
-  const displayVision = vision?.trim().length
-    ? vision
-    : "Unsere gemeinsame Vision";
+  const displayVision = vision?.trim().length ? vision : "Was uns als Paar wichtig ist";
 
   return (
     <header className="space-y-3">
-      <Image
-        src="/logo.png"
-        alt="OKR für Paare"
-        width={160}
-        height={40}
-        className="h-auto w-32"
-      />
-      <p className="text-sm font-medium text-primary">
-        {coupleName}
-      </p>
+      <Image src="/logo.png" alt="OKR für Paare" width={160} height={40} className="h-auto w-32" />
+      <p className="text-sm font-medium text-primary">{coupleName}</p>
       <blockquote className="text-2xl italic leading-snug text-foreground md:text-3xl">
         &ldquo;{displayVision}&rdquo;
       </blockquote>

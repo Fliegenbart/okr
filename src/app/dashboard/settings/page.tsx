@@ -9,10 +9,7 @@ import { ObjectiveRestoreButton } from "@/components/dashboard/objective-restore
 import { QuarterForm } from "@/components/dashboard/quarter-form";
 import { UserManagementCard } from "@/components/dashboard/user-management-card";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  redirectForMissingCouple,
-  requireDashboardSubpageAccess,
-} from "@/lib/dashboard-access";
+import { redirectForMissingCouple, requireDashboardSubpageAccess } from "@/lib/dashboard-access";
 import { prisma } from "@/lib/db";
 
 const dateFormatter = new Intl.DateTimeFormat("de-DE", {
@@ -22,11 +19,8 @@ const dateFormatter = new Intl.DateTimeFormat("de-DE", {
 export default async function SettingsPage() {
   const headerList = await headers();
   const forwardedProto = headerList.get("x-forwarded-proto") ?? "http";
-  const forwardedHost =
-    headerList.get("x-forwarded-host") ?? headerList.get("host");
-  const requestOrigin = forwardedHost
-    ? `${forwardedProto}://${forwardedHost}`
-    : "";
+  const forwardedHost = headerList.get("x-forwarded-host") ?? headerList.get("host");
+  const requestOrigin = forwardedHost ? `${forwardedProto}://${forwardedHost}` : "";
   const appUrl = (
     process.env.NEXT_PUBLIC_APP_URL ??
     process.env.NEXTAUTH_URL ??
@@ -88,11 +82,9 @@ export default async function SettingsPage() {
         </Link>
 
         <div className="mt-6 space-y-2">
-          <h1 className="text-3xl font-semibold text-foreground">
-            Einstellungen
-          </h1>
+          <h1 className="text-3xl font-semibold text-foreground">Einstellungen</h1>
           <p className="text-sm text-muted-foreground">
-            Verwalte euer Couple, Nutzer, Quartale und Einladungen.
+            Hier verwaltet ihr euren gemeinsamen Bereich, Einladungen und Quartale.
           </p>
         </div>
 
@@ -126,7 +118,7 @@ export default async function SettingsPage() {
           <Card className="rounded-2xl border-border shadow-sm">
             <CardContent className="space-y-4 p-6">
               <p className="text-sm uppercase tracking-[0.2em] text-primary">
-                Couple Details
+                Euer gemeinsamer Bereich
               </p>
               <CoupleSettingsForm name={couple.name} vision={couple.vision} />
             </CardContent>
@@ -135,12 +127,9 @@ export default async function SettingsPage() {
           <Card className="rounded-2xl border-border shadow-sm">
             <CardContent className="space-y-4 p-6">
               <div className="space-y-1">
-                <p className="text-sm uppercase tracking-[0.2em] text-primary">
-                  Konto & Sitzung
-                </p>
+                <p className="text-sm uppercase tracking-[0.2em] text-primary">Konto & Sitzung</p>
                 <p className="text-sm text-muted-foreground">
-                  Du bist aktuell als{" "}
-                  {viewer.email ?? "unbekannter Nutzer"} angemeldet.
+                  Angemeldet als {viewer.email ?? "unbekannter Nutzer"}.
                 </p>
               </div>
               <LogoutButton className="w-full sm:w-auto" />
@@ -151,41 +140,28 @@ export default async function SettingsPage() {
         <div className="mt-8 grid gap-6 lg:grid-cols-[1.2fr,0.8fr]">
           <Card className="rounded-2xl border-border shadow-sm">
             <CardContent className="space-y-4 p-6">
-              <p className="text-sm uppercase tracking-[0.2em] text-primary">
-                Neues Quartal
-              </p>
-              <QuarterForm
-                existingTitles={couple.quarters.map((quarter) => quarter.title)}
-              />
+              <p className="text-sm uppercase tracking-[0.2em] text-primary">Neues Quartal</p>
+              <QuarterForm existingTitles={couple.quarters.map((quarter) => quarter.title)} />
             </CardContent>
           </Card>
 
           <Card className="rounded-2xl border-border shadow-sm">
             <CardContent className="space-y-4 p-6">
-              <p className="text-sm uppercase tracking-[0.2em] text-primary">
-                Vorhandene Quartale
-              </p>
+              <p className="text-sm uppercase tracking-[0.2em] text-primary">Eure Quartale</p>
               {couple.quarters.length ? (
                 <div className="space-y-3">
                   {couple.quarters.map((quarter) => (
-                    <div
-                      key={quarter.id}
-                      className="rounded-2xl border border-border bg-card p-4"
-                    >
-                      <p className="text-sm font-semibold text-foreground">
-                        {quarter.title}
-                      </p>
+                    <div key={quarter.id} className="rounded-2xl border border-border bg-card p-4">
+                      <p className="text-sm font-semibold text-foreground">{quarter.title}</p>
                       <p className="text-xs text-muted-foreground">
-                        {dateFormatter.format(quarter.startsAt)} – {" "}
+                        {dateFormatter.format(quarter.startsAt)} –{" "}
                         {dateFormatter.format(quarter.endsAt)}
                       </p>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">
-                  Noch keine Quartale vorhanden.
-                </p>
+                <p className="text-sm text-muted-foreground">Noch keine Quartale vorhanden.</p>
               )}
             </CardContent>
           </Card>
@@ -193,11 +169,9 @@ export default async function SettingsPage() {
 
         <Card className="mt-8 rounded-2xl border-border shadow-sm">
           <CardContent className="space-y-3 p-6">
-            <p className="text-sm uppercase tracking-[0.2em] text-primary">
-              Vision & Mission
-            </p>
+            <p className="text-sm uppercase tracking-[0.2em] text-primary">Vision & Mission</p>
             <p className="text-sm text-muted-foreground">
-              Ein kurzer, emotionaler Anker für euer Quartal.
+              Haltet fest, was euch wichtig ist und woran ihr euch orientieren wollt.
             </p>
             <Link
               href="/dashboard/vision-mission"
@@ -210,9 +184,7 @@ export default async function SettingsPage() {
 
         <Card className="mt-8 rounded-2xl border-border shadow-sm">
           <CardContent className="space-y-4 p-6">
-            <p className="text-sm uppercase tracking-[0.2em] text-primary">
-              Archivierte Objectives
-            </p>
+            <p className="text-sm uppercase tracking-[0.2em] text-primary">Archivierte Ziele</p>
             {couple.objectives.length ? (
               <div className="space-y-3">
                 {couple.objectives.map((objective) => (
@@ -221,13 +193,9 @@ export default async function SettingsPage() {
                     className="flex items-center justify-between rounded-2xl border border-border bg-card p-4"
                   >
                     <div>
-                      <p className="text-sm font-semibold text-foreground">
-                        {objective.title}
-                      </p>
+                      <p className="text-sm font-semibold text-foreground">{objective.title}</p>
                       {objective.description ? (
-                        <p className="text-xs text-muted-foreground">
-                          {objective.description}
-                        </p>
+                        <p className="text-xs text-muted-foreground">{objective.description}</p>
                       ) : null}
                     </div>
                     <ObjectiveRestoreButton objectiveId={objective.id} />
@@ -235,9 +203,7 @@ export default async function SettingsPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">
-                Keine archivierten Objectives.
-              </p>
+              <p className="text-sm text-muted-foreground">Keine archivierten Ziele.</p>
             )}
           </CardContent>
         </Card>

@@ -35,9 +35,7 @@ export function OnboardingCard({
 }: OnboardingCardProps) {
   const router = useRouter();
   const normalizedInviteToken = initialInviteToken?.trim() ?? "";
-  const [step, setStep] = useState<Step>(
-    normalizedInviteToken ? "join" : "choose"
-  );
+  const [step, setStep] = useState<Step>(normalizedInviteToken ? "join" : "choose");
   const [name, setName] = useState("");
   const [vision, setVision] = useState("");
   const [inviteToken, setInviteToken] = useState(normalizedInviteToken);
@@ -45,29 +43,27 @@ export function OnboardingCard({
   const createAction = useAction(createCouple, {
     onSuccess: ({ data }) => {
       if (data?.inviteCode) {
-        toast.success("Couple erstellt", {
+        toast.success("Bereich angelegt", {
           description: `Euer Einladungscode: ${data.inviteCode}`,
         });
       }
       router.refresh();
     },
     onError: ({ error }) => {
-      toast.error("Konnte Couple nicht erstellen", {
-        description:
-          error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
+      toast.error("Bereich konnte nicht angelegt werden", {
+        description: error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
       });
     },
   });
 
   const joinAction = useAction(acceptInvite, {
     onSuccess: () => {
-      toast.success("Willkommen im Couple");
+      toast.success("Willkommen in eurem gemeinsamen Bereich");
       router.refresh();
     },
     onError: ({ error }) => {
       toast.error("Beitritt fehlgeschlagen", {
-        description:
-          error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
+        description: error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
       });
     },
   });
@@ -86,9 +82,9 @@ export function OnboardingCard({
   const joinErrors = useMemo(() => {
     return joinAction.result.validationErrors as
       | {
-        formErrors?: string[];
-        fieldErrors?: { token?: string[] };
-      }
+          formErrors?: string[];
+          fieldErrors?: { token?: string[] };
+        }
       | undefined;
   }, [joinAction.result.validationErrors]);
 
@@ -111,16 +107,12 @@ export function OnboardingCard({
   return (
     <Card className="mx-auto w-full max-w-xl rounded-2xl border-border shadow-sm">
       <CardHeader>
-        <CardTitle className="text-2xl text-foreground">
-          Willkommen bei OKR für Paare
-        </CardTitle>
+        <CardTitle className="text-2xl text-foreground">Willkommen bei OKR für Paare</CardTitle>
         <CardDescription className="text-muted-foreground">
-          Erstellt euer Couple oder tretet mit einem Einladungslink bei.
+          Legt euren gemeinsamen Bereich an oder tretet mit einem Einladungslink bei.
         </CardDescription>
         {userEmail ? (
-          <p className="text-sm text-muted-foreground">
-            Angemeldet als {userEmail}
-          </p>
+          <p className="text-sm text-muted-foreground">Angemeldet als {userEmail}</p>
         ) : null}
       </CardHeader>
       <Separator className="bg-border" />
@@ -128,16 +120,13 @@ export function OnboardingCard({
         {step === "choose" ? (
           <div className="space-y-4">
             {canCreateCouple ? (
-              <Button
-                className="w-full rounded-2xl"
-                onClick={() => handleStepChange("create")}
-              >
-                Couple gründen
+              <Button className="w-full rounded-2xl" onClick={() => handleStepChange("create")}>
+                Gemeinsamen Bereich anlegen
               </Button>
             ) : (
               <div className="rounded-2xl bg-muted px-4 py-4 text-sm text-muted-foreground">
-                Diese Beta ist aktuell nur auf Einladung verfügbar. Melde dich mit
-                der eingeladenen E-Mail-Adresse an oder nutze euren Partner-Link.
+                Diese Beta ist aktuell nur für freigeschaltete E-Mail-Adressen offen. Melde dich mit
+                der eingeladenen E-Mail an oder nutze euren Partner-Link.
               </div>
             )}
             <Button
@@ -145,7 +134,7 @@ export function OnboardingCard({
               variant="outline"
               onClick={() => handleStepChange("join")}
             >
-              Einladungslink eingeben
+              Mit Einladungslink beitreten
             </Button>
           </div>
         ) : null}
@@ -153,7 +142,7 @@ export function OnboardingCard({
         {step === "create" && canCreateCouple ? (
           <form className="space-y-5" onSubmit={handleCreate}>
             <div className="space-y-2">
-              <Label htmlFor="couple-name">Couple-Name</Label>
+              <Label htmlFor="couple-name">Name eures Bereichs</Label>
               <Input
                 id="couple-name"
                 name="name"
@@ -162,43 +151,31 @@ export function OnboardingCard({
                 onChange={(event) => setName(event.target.value)}
               />
               {createErrors?.fieldErrors?.name?.[0] ? (
-                <p className="text-sm text-primary">
-                  {createErrors.fieldErrors.name[0]}
-                </p>
+                <p className="text-sm text-primary">{createErrors.fieldErrors.name[0]}</p>
               ) : null}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="couple-vision">Vision (optional)</Label>
+              <Label htmlFor="couple-vision">Was soll euch als Paar leiten? (optional)</Label>
               <Input
                 id="couple-vision"
                 name="vision"
-                placeholder="z.B. Wir wachsen gemeinsam"
+                placeholder="z.B. Wir gehen freundlich und klar durch unseren Alltag"
                 value={vision}
                 onChange={(event) => setVision(event.target.value)}
               />
               {createErrors?.fieldErrors?.vision?.[0] ? (
-                <p className="text-sm text-primary">
-                  {createErrors.fieldErrors.vision[0]}
-                </p>
+                <p className="text-sm text-primary">{createErrors.fieldErrors.vision[0]}</p>
               ) : null}
             </div>
             {createAction.result.serverError ? (
-              <p className="text-sm text-primary">
-                {createAction.result.serverError}
-              </p>
+              <p className="text-sm text-primary">{createAction.result.serverError}</p>
             ) : null}
             {createErrors?.formErrors?.[0] ? (
-              <p className="text-sm text-primary">
-                {createErrors.formErrors[0]}
-              </p>
+              <p className="text-sm text-primary">{createErrors.formErrors[0]}</p>
             ) : null}
             <div className="flex flex-col gap-3 sm:flex-row">
-              <Button
-                type="submit"
-                className="rounded-2xl"
-                disabled={isPending}
-              >
-                Couple erstellen
+              <Button type="submit" className="rounded-2xl" disabled={isPending}>
+                Bereich anlegen
               </Button>
               <Button
                 type="button"
@@ -215,42 +192,30 @@ export function OnboardingCard({
         {step === "join" ? (
           <form className="space-y-5" onSubmit={handleJoin}>
             <div className="space-y-2">
-              <Label htmlFor="invite-code">Einladungstoken</Label>
+              <Label htmlFor="invite-code">Code aus eurem Einladungslink</Label>
               <Input
                 id="invite-code"
                 name="token"
-                placeholder="z.B. 8f2d... (aus dem Link)"
+                placeholder="z.B. 8f2d... aus eurem Einladungslink"
                 value={inviteToken}
                 onChange={(event) => setInviteToken(event.target.value)}
               />
               {joinErrors?.fieldErrors?.token?.[0] ? (
-                <p className="text-sm text-primary">
-                  {joinErrors.fieldErrors.token[0]}
-                </p>
+                <p className="text-sm text-primary">{joinErrors.fieldErrors.token[0]}</p>
               ) : null}
             </div>
             {normalizedInviteToken ? (
-              <p className="text-xs text-muted-foreground">
-                Einladung aus dem Link übernommen.
-              </p>
+              <p className="text-xs text-muted-foreground">Einladung aus dem Link übernommen.</p>
             ) : null}
             {joinAction.result.serverError ? (
-              <p className="text-sm text-primary">
-                {joinAction.result.serverError}
-              </p>
+              <p className="text-sm text-primary">{joinAction.result.serverError}</p>
             ) : null}
             {joinErrors?.formErrors?.[0] ? (
-              <p className="text-sm text-primary">
-                {joinErrors.formErrors[0]}
-              </p>
+              <p className="text-sm text-primary">{joinErrors.formErrors[0]}</p>
             ) : null}
             <div className="flex flex-col gap-3 sm:flex-row">
-              <Button
-                type="submit"
-                className="rounded-2xl"
-                disabled={isPending}
-              >
-                Beitreten
+              <Button type="submit" className="rounded-2xl" disabled={isPending}>
+                Jetzt beitreten
               </Button>
               <Button
                 type="button"
@@ -265,7 +230,7 @@ export function OnboardingCard({
         ) : null}
       </CardContent>
       <CardFooter className="text-xs text-muted-foreground">
-        {isPending ? "Speichere..." : ""}
+        {isPending ? "Einen Moment bitte..." : ""}
       </CardFooter>
     </Card>
   );

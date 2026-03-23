@@ -28,6 +28,13 @@ export type BoardSnapshot = {
     height: number;
     zIndex: number;
   }>;
+  connections: Array<{
+    id: string;
+    fromElementId: string;
+    toElementId: string;
+    color: string | null;
+    label: string | null;
+  }>;
 };
 
 export const boardInclude = {
@@ -39,6 +46,9 @@ export const boardInclude = {
   },
   elements: {
     orderBy: [{ zIndex: "asc" }, { createdAt: "asc" }],
+  },
+  connections: {
+    orderBy: [{ createdAt: "asc" }],
   },
 } satisfies Prisma.BoardInclude;
 
@@ -87,6 +97,13 @@ export function serializeBoard(board: BoardWithElements): BoardSnapshot {
       width: element.width,
       height: element.height,
       zIndex: element.zIndex,
+    })),
+    connections: board.connections.map((connection) => ({
+      id: connection.id,
+      fromElementId: connection.fromElementId,
+      toElementId: connection.toElementId,
+      color: connection.color,
+      label: connection.label,
     })),
   };
 }

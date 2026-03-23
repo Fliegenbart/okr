@@ -124,44 +124,44 @@ export default async function AdminOverviewPage() {
   const metrics = [
     { label: "Nutzer", value: totalUsers },
     { label: "Admins", value: adminUsers },
-    { label: "Couples", value: couples },
+    { label: "Paare", value: couples },
     { label: "Boards", value: boards },
-    { label: "Objectives", value: objectives },
-    { label: "Transcripts", value: transcripts },
-    { label: "Aktive Invites", value: pendingInvites },
-    { label: "Rate-Limits 24h", value: rateLimitEvents24h },
+    { label: "Ziele", value: objectives },
+    { label: "Transkripte", value: transcripts },
+    { label: "Offene Einladungen", value: pendingInvites },
+    { label: "Sperren 24h", value: rateLimitEvents24h },
   ];
 
   const quickLinks = [
     {
       href: "/admin/beta",
       label: "Beta",
-      description: "Allowlist für private Paare und Support-Login.",
+      description: "Freischaltungen für die Beta und Support-Zugänge.",
     },
     {
       href: "/admin/invites",
-      label: "Invites",
-      description: "Offene, angenommene und widerrufene Einladungen.",
+      label: "Einladungen",
+      description: "Offene, angenommene und gesperrte Einladungen.",
     },
     {
       href: "/admin/couples",
-      label: "Couples",
-      description: "Mitglieder, Aktivität und offene Probleme.",
+      label: "Paare",
+      description: "Mitglieder, Aktivität und offene Fälle.",
     },
     {
       href: "/admin/boards",
       label: "Boards",
-      description: "Master- und Quarter-Boards mit Versionen.",
+      description: "Boards der Paare und ihre Stände.",
     },
     {
       href: "/admin/ai",
-      label: "AI Ops",
-      description: "Rate Limits, Transcripts und Wissensbasis.",
+      label: "KI",
+      description: "Transkripte, Sperren und Wissensbasis im Blick.",
     },
     {
       href: "/admin/audit",
       label: "Audit",
-      description: "Nachvollziehbarkeit aller kritischen Aktionen.",
+      description: "Wichtige Aktionen und Änderungen nachvollziehen.",
     },
   ];
 
@@ -172,24 +172,23 @@ export default async function AdminOverviewPage() {
           <CardContent className="flex h-full flex-col justify-between gap-6 p-6">
             <div className="space-y-3">
               <p className="text-sm font-semibold uppercase tracking-[0.24em] text-primary">
-                Admin Start
+                Admin-Bereich
               </p>
               <h1 className="text-3xl font-semibold text-foreground">
                 Guten Morgen, {user.name ?? user.email ?? "Admin"}
               </h1>
               <p className="max-w-3xl text-sm text-muted-foreground">
-                Hier findest du die wichtigsten Wege zu Support, Kontrolle und Systemstatus. Der
-                Bereich ist bewusst schlank gehalten, damit du schnell zu Invites, Couples, Boards
-                und Audit-Logs kommst.
+                Hier kommst du schnell zu Freischaltungen, Einladungen, Support-Fällen und den
+                wichtigsten Systemhinweisen.
               </p>
             </div>
 
             <div className="flex flex-wrap gap-2">
               <Button asChild>
-                <Link href="/admin/invites">Invites prüfen</Link>
+                <Link href="/admin/invites">Einladungen prüfen</Link>
               </Button>
               <Button asChild variant="outline">
-                <Link href="/admin/couples">Couples ansehen</Link>
+                <Link href="/admin/couples">Paare ansehen</Link>
               </Button>
               <Button asChild variant="outline">
                 <Link href="/admin/audit">Audit öffnen</Link>
@@ -201,7 +200,7 @@ export default async function AdminOverviewPage() {
         <Card>
           <CardHeader>
             <CardTitle>Schnellzugriff</CardTitle>
-            <CardDescription>Die wichtigsten Admin-Bereiche auf einen Blick.</CardDescription>
+            <CardDescription>Die wichtigsten Bereiche auf einen Blick.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3">
             {quickLinks.map((item) => (
@@ -223,9 +222,9 @@ export default async function AdminOverviewPage() {
       <section className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2">
           {statusPill(`${auditEvents24h} Audit-Events`, "neutral")}
-          {statusPill(`${revokedInvites} Revoked`, revokedInvites > 0 ? "warn" : "neutral")}
+          {statusPill(`${revokedInvites} gesperrt`, revokedInvites > 0 ? "warn" : "neutral")}
         </div>
-        <p className="text-sm text-muted-foreground">Letzte Systemsicht: {formatDate(now)}</p>
+        <p className="text-sm text-muted-foreground">Stand: {formatDate(now)}</p>
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -242,19 +241,19 @@ export default async function AdminOverviewPage() {
       <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <Card>
           <CardHeader>
-            <CardTitle>Letzte Couples</CardTitle>
+            <CardTitle>Zuletzt aktive Paare</CardTitle>
             <CardDescription>
-              Aktuelle Teams mit Mitgliedern, Boards und offenen Einladungen.
+              Paare mit Mitgliedern, Boards und offenen Einladungen.
             </CardDescription>
           </CardHeader>
           <CardContent className="overflow-x-auto pb-6">
             <table className="w-full text-left text-sm">
               <thead className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
                 <tr>
-                  <th className="pb-3 pr-4 font-medium">Couple</th>
+                  <th className="pb-3 pr-4 font-medium">Paar</th>
                   <th className="pb-3 pr-4 font-medium">Mitglieder</th>
                   <th className="pb-3 pr-4 font-medium">Boards</th>
-                  <th className="pb-3 pr-4 font-medium">Offene Invites</th>
+                  <th className="pb-3 pr-4 font-medium">Offene Einladungen</th>
                   <th className="pb-3 font-medium">Aktivität</th>
                 </tr>
               </thead>
@@ -290,8 +289,8 @@ export default async function AdminOverviewPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Letzte Audit Events</CardTitle>
-            <CardDescription>Kritische Admin-Aktionen und Systemereignisse.</CardDescription>
+            <CardTitle>Letzte Audit-Einträge</CardTitle>
+            <CardDescription>Wichtige Admin-Aktionen und Systemereignisse.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {recentAuditLogs.map((entry) => (
@@ -318,8 +317,8 @@ export default async function AdminOverviewPage() {
       <section className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
         <Card>
           <CardHeader>
-            <CardTitle>Letzte Invites</CardTitle>
-            <CardDescription>Status und Zuständigkeit der jüngsten Einladungen.</CardDescription>
+            <CardTitle>Letzte Einladungen</CardTitle>
+            <CardDescription>Status und Verlauf der jüngsten Einladungen.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {recentInvites.map((invite) => {
@@ -361,27 +360,21 @@ export default async function AdminOverviewPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Systemsignale</CardTitle>
-            <CardDescription>Ein schneller Blick auf den Zustand des Betriebs.</CardDescription>
+            <CardTitle>Wichtige Hinweise</CardTitle>
+            <CardDescription>Ein kurzer Blick auf den aktuellen Stand.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2">
             <div className="rounded-xl border border-border bg-muted/40 p-4">
-              <div className="text-xs uppercase tracking-wide text-muted-foreground">
-                Open Admins
-              </div>
+              <div className="text-xs uppercase tracking-wide text-muted-foreground">Admins</div>
               <div className="mt-2 text-2xl font-semibold text-foreground">{adminUsers}</div>
-              <div className="mt-1 text-xs text-muted-foreground">
-                Aktive Rollen mit Adminzugriff
-              </div>
+              <div className="mt-1 text-xs text-muted-foreground">Nutzer mit Adminzugriff</div>
             </div>
             <div className="rounded-xl border border-border bg-muted/40 p-4">
               <div className="text-xs uppercase tracking-wide text-muted-foreground">
-                Revoked Invites
+                Gesperrte Einladungen
               </div>
               <div className="mt-2 text-2xl font-semibold text-foreground">{revokedInvites}</div>
-              <div className="mt-1 text-xs text-muted-foreground">
-                Bereits gesperrte Einladungen
-              </div>
+              <div className="mt-1 text-xs text-muted-foreground">Bereits gesperrte Zugänge</div>
             </div>
             <div className="rounded-xl border border-border bg-muted/40 p-4">
               <div className="text-xs uppercase tracking-wide text-muted-foreground">Audit 24h</div>
@@ -392,12 +385,14 @@ export default async function AdminOverviewPage() {
             </div>
             <div className="rounded-xl border border-border bg-muted/40 p-4">
               <div className="text-xs uppercase tracking-wide text-muted-foreground">
-                Rate Limits 24h
+                Sperren in 24h
               </div>
               <div className="mt-2 text-2xl font-semibold text-foreground">
                 {rateLimitEvents24h}
               </div>
-              <div className="mt-1 text-xs text-muted-foreground">Abgewehrte Abuse-Versuche</div>
+              <div className="mt-1 text-xs text-muted-foreground">
+                Geblockte problematische Versuche
+              </div>
             </div>
           </CardContent>
         </Card>

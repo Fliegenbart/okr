@@ -15,12 +15,10 @@ export default function TemplatesPage() {
         </Link>
 
         <div className="mt-6 space-y-2">
-          <h1 className="text-3xl font-semibold text-foreground">
-            Gesprächsvorlagen
-          </h1>
+          <h1 className="text-3xl font-semibold text-foreground">Gesprächsvorlagen</h1>
           <p className="text-sm text-muted-foreground">
-            Schnelle Startpunkte für wiederkehrende Gespräche und schwierige
-            Situationen.
+            Wenn euch die richtigen Worte fehlen, findet ihr hier gute Einstiege für wichtige
+            Gespräche.
           </p>
         </div>
 
@@ -31,18 +29,16 @@ export default function TemplatesPage() {
                 <CardTitle>{template.title}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  {template.description}
-                </p>
+                <p className="text-sm text-muted-foreground">{template.description}</p>
                 <div className="space-y-2">
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-                    Fokus
+                    Worum es geht
                   </p>
                   <p className="text-sm text-foreground">{template.focus}</p>
                 </div>
                 <div className="space-y-2">
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-                    Leitfragen
+                    Fragen, die helfen
                   </p>
                   <ul className="space-y-2 text-sm text-muted-foreground">
                     {template.questions.map((question) => (
@@ -52,7 +48,7 @@ export default function TemplatesPage() {
                 </div>
                 <div className="space-y-2">
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-                    Follow-ups
+                    Was ihr daraus machen könnt
                   </p>
                   <ul className="space-y-2 text-sm text-muted-foreground">
                     {template.followUps.map((item) => (
@@ -64,7 +60,7 @@ export default function TemplatesPage() {
                   href={`/dashboard/check-in?template=${template.key}`}
                   className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
                 >
-                  Im Check-in nutzen
+                  Im Check-in öffnen
                 </Link>
               </CardContent>
             </Card>
@@ -74,4 +70,3 @@ export default function TemplatesPage() {
     </div>
   );
 }
-

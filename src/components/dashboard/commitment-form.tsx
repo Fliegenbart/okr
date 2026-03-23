@@ -16,10 +16,7 @@ type CommitmentFormProps = {
   objectiveOptions?: Array<{ id: string; label: string }>;
 };
 
-export function CommitmentForm({
-  ownerOptions,
-  objectiveOptions = [],
-}: CommitmentFormProps) {
+export function CommitmentForm({ ownerOptions, objectiveOptions = [] }: CommitmentFormProps) {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [details, setDetails] = useState("");
@@ -29,7 +26,7 @@ export function CommitmentForm({
 
   const action = useAction(createCommitment, {
     onSuccess: () => {
-      toast.success("Commitment gespeichert");
+      toast.success("Zusage gespeichert");
       setTitle("");
       setDetails("");
       setOwnerId("");
@@ -38,9 +35,8 @@ export function CommitmentForm({
       router.refresh();
     },
     onError: ({ error }) => {
-      toast.error("Commitment konnte nicht gespeichert werden", {
-        description:
-          error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
+      toast.error("Zusage konnte nicht gespeichert werden", {
+        description: error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
       });
     },
   });
@@ -59,7 +55,7 @@ export function CommitmentForm({
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
       <div className="space-y-2">
-        <Label htmlFor="commitment-title">Commitment</Label>
+        <Label htmlFor="commitment-title">Zusage</Label>
         <Input
           id="commitment-title"
           value={title}
@@ -79,14 +75,14 @@ export function CommitmentForm({
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="commitment-owner">Owner</Label>
+          <Label htmlFor="commitment-owner">Wer übernimmt es?</Label>
           <select
             id="commitment-owner"
             value={ownerId}
             onChange={(event) => setOwnerId(event.target.value)}
             className="h-10 w-full rounded-lg border border-border bg-white px-3 text-sm text-foreground outline-none"
           >
-            <option value="">Ohne Owner</option>
+            <option value="">Noch offen</option>
             {ownerOptions.map((owner) => (
               <option key={owner.id} value={owner.id}>
                 {owner.label}
@@ -106,14 +102,14 @@ export function CommitmentForm({
       </div>
       {objectiveOptions.length ? (
         <div className="space-y-2">
-          <Label htmlFor="commitment-objective">Objective</Label>
+          <Label htmlFor="commitment-objective">Ziel</Label>
           <select
             id="commitment-objective"
             value={objectiveId}
             onChange={(event) => setObjectiveId(event.target.value)}
             className="h-10 w-full rounded-lg border border-border bg-white px-3 text-sm text-foreground outline-none"
           >
-            <option value="">Keinem Objective zuordnen</option>
+            <option value="">Keinem Ziel zuordnen</option>
             {objectiveOptions.map((objective) => (
               <option key={objective.id} value={objective.id}>
                 {objective.label}
@@ -123,9 +119,8 @@ export function CommitmentForm({
         </div>
       ) : null}
       <Button type="submit" className="rounded-2xl" disabled={action.isPending}>
-        Commitment anlegen
+        Zusage anlegen
       </Button>
     </form>
   );
 }
-

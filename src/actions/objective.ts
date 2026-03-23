@@ -13,10 +13,7 @@ import {
 } from "@/lib/validations/objective";
 import { getQuarterInfo } from "@/lib/quarters";
 import { requireUserWithCouple } from "@/actions/utils";
-import {
-  createTimelineEvent,
-  syncObjectiveCommitment,
-} from "@/lib/couple-engagement";
+import { createTimelineEvent, syncObjectiveCommitment } from "@/lib/couple-engagement";
 
 export const createObjective = action
   .schema(createObjectiveSchema)
@@ -79,9 +76,7 @@ export const createObjective = action
       quarterId = createdQuarter.id;
     }
 
-    const keyResults = parsedInput.keyResults.filter((keyResult) =>
-      keyResult.title.trim()
-    );
+    const keyResults = parsedInput.keyResults.filter((keyResult) => keyResult.title.trim());
 
     if (keyResults.length < 2) {
       throw new Error("Bitte gib mindestens zwei Key Results an.");
@@ -89,18 +84,6 @@ export const createObjective = action
 
     if (keyResults.length > 6) {
       throw new Error("Maximal 6 Key Results pro Objective.");
-    }
-
-    const objectiveCount = await prisma.objective.count({
-      where: {
-        coupleId: user.coupleId,
-        quarterId,
-        archivedAt: null,
-      },
-    });
-
-    if (objectiveCount >= 5) {
-      throw new Error("Maximal 5 Objectives pro Quartal.");
     }
 
     const objective = await prisma.objective.create({
@@ -112,8 +95,18 @@ export const createObjective = action
         keyResults: {
           create: keyResults.map((keyResult) => ({
             title: keyResult.title,
-            targetValue: keyResult.targetValue,
+            type: keyResult.type,
+            direction: keyResult.direction,
+            targetValue: keyResult.type === "BINARY" ? 1 : keyResult.targetValue,
+            startValue: keyResult.type === "BINARY" ? 0 : keyResult.startValue,
+            currentValue: keyResult.type === "BINARY" ? 0 : keyResult.startValue,
+            redThreshold: keyResult.type === "TRAFFIC_LIGHT" ? keyResult.redThreshold : null,
+            yellowThreshold:
+              keyResult.type === "TRAFFIC_LIGHT" ? keyResult.yellowThreshold : null,
+            greenThreshold:
+              keyResult.type === "TRAFFIC_LIGHT" ? keyResult.greenThreshold : null,
             unit: keyResult.unit ?? null,
+            description: keyResult.description ?? null,
           })),
         },
       },
@@ -154,19 +147,6 @@ export const updateObjective = action
 
       if (!quarter) {
         throw new Error("Quartal nicht gefunden.");
-      }
-
-      const objectiveCount = await prisma.objective.count({
-        where: {
-          coupleId: user.coupleId,
-          quarterId: parsedInput.quarterId,
-          archivedAt: null,
-          NOT: { id: objective.id },
-        },
-      });
-
-      if (objectiveCount >= 5) {
-        throw new Error("Maximal 5 Objectives pro Quartal.");
       }
     }
 

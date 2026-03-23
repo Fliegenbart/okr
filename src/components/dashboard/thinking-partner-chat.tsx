@@ -66,9 +66,9 @@ type Source = {
 };
 
 const starterPrompts = [
-  "Wir hängen gerade an einem Objective. Was wäre ein kleiner nächster Schritt?",
-  "Unser Fortschritt stagniert. Wie koennen wir wieder Momentum gewinnen?",
-  "Wie koennen wir unsere gemeinsamen Routinen besser halten?",
+  "Wir hängen gerade an einem Ziel. Was wäre jetzt ein kleiner nächster Schritt?",
+  "Unser Fortschritt stockt. Wie kommen wir wieder ins Tun?",
+  "Wie können wir unsere gemeinsamen Routinen besser halten?",
 ];
 
 function formatTopics(topics: unknown) {
@@ -78,7 +78,7 @@ function formatTopics(topics: unknown) {
     .map((topic) => {
       if (topic === "KONFLIKT") return "Konflikt";
       if (topic === "PRIORISIERUNG") return "Priorisierung";
-      if (topic === "INTIMITAET") return "Intimitaet";
+      if (topic === "INTIMITAET") return "Intimität";
       if (topic === "FINANZEN") return "Finanzen";
       return topic;
     });
@@ -142,12 +142,12 @@ export function ThinkingPartnerChat({
 
   const applyObjectiveRewrite = useAction(updateObjective, {
     onSuccess: () => {
-      toast.success("Objective aktualisiert");
+      toast.success("Ziel aktualisiert");
       router.refresh();
       setDialog(null);
     },
     onError: ({ error }) => {
-      toast.error("Objective konnte nicht aktualisiert werden", {
+      toast.error("Ziel konnte nicht aktualisiert werden", {
         description: error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
       });
     },
@@ -155,12 +155,12 @@ export function ThinkingPartnerChat({
 
   const applyKeyResultRewrite = useAction(updateKeyResultMeta, {
     onSuccess: () => {
-      toast.success("Key Result aktualisiert");
+      toast.success("Messpunkt aktualisiert");
       router.refresh();
       setDialog(null);
     },
     onError: ({ error }) => {
-      toast.error("Key Result konnte nicht aktualisiert werden", {
+      toast.error("Messpunkt konnte nicht aktualisiert werden", {
         description: error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
       });
     },
@@ -269,7 +269,7 @@ export function ThinkingPartnerChat({
 
     if (action.type === "SAVE_NEXT_ACTION") {
       if (!objectiveId || !structured?.nextStep) {
-        toast.error("Das geht nur mit Objective-Fokus.");
+        toast.error("Das geht nur, wenn gerade ein Ziel ausgewählt ist.");
         return;
       }
 
@@ -283,7 +283,7 @@ export function ThinkingPartnerChat({
 
     if (action.type === "APPLY_OBJECTIVE_REWRITE") {
       if (!objectiveId || !structured?.objectiveRewrite) {
-        toast.error("Kein Objective-Rewrite vorhanden.");
+        toast.error("Dafür gibt es gerade keinen neuen Zielvorschlag.");
         return;
       }
 
@@ -298,7 +298,7 @@ export function ThinkingPartnerChat({
 
     if (action.type === "APPLY_KEY_RESULT_REWRITE") {
       if (!keyResultId || !structured?.keyResultRewrite) {
-        toast.error("Kein Key-Result-Rewrite vorhanden.");
+        toast.error("Dafür gibt es gerade keinen neuen Messpunkt-Vorschlag.");
         return;
       }
 
@@ -519,7 +519,7 @@ export function ThinkingPartnerChat({
               <DialogHeader>
                 <DialogTitle>Nächste Aktion speichern</DialogTitle>
                 <DialogDescription>
-                  Speichert diesen Schritt direkt am Objective, damit ihr dranbleibt.
+                  Speichert diesen Schritt direkt am Ziel, damit ihr leichter dranbleibt.
                 </DialogDescription>
               </DialogHeader>
               <div className="mt-4 space-y-2">
@@ -559,9 +559,9 @@ export function ThinkingPartnerChat({
           {dialog?.kind === "objectiveRewrite" ? (
             <>
               <DialogHeader>
-                <DialogTitle>Objective umformulieren</DialogTitle>
+                <DialogTitle>Ziel neu formulieren</DialogTitle>
                 <DialogDescription>
-                  Uebernimm den Vorschlag (du kannst ihn noch anpassen).
+                  Übernehmt den Vorschlag oder passt ihn noch an.
                 </DialogDescription>
               </DialogHeader>
               <div className="mt-4 space-y-4">
@@ -609,7 +609,7 @@ export function ThinkingPartnerChat({
                   }
                   disabled={applyObjectiveRewrite.isPending}
                 >
-                  Uebernehmen
+                  Übernehmen
                 </Button>
               </DialogFooter>
             </>
@@ -618,9 +618,9 @@ export function ThinkingPartnerChat({
           {dialog?.kind === "keyResultRewrite" ? (
             <>
               <DialogHeader>
-                <DialogTitle>Key Result vereinfachen</DialogTitle>
+                <DialogTitle>Messpunkt vereinfachen</DialogTitle>
                 <DialogDescription>
-                  Uebernimm den Vorschlag (du kannst ihn noch anpassen).
+                  Übernehmt den Vorschlag oder passt ihn noch an.
                 </DialogDescription>
               </DialogHeader>
               <div className="mt-4 space-y-4">
@@ -686,7 +686,7 @@ export function ThinkingPartnerChat({
                   }
                   disabled={applyKeyResultRewrite.isPending}
                 >
-                  Uebernehmen
+                  Übernehmen
                 </Button>
               </DialogFooter>
             </>

@@ -21,6 +21,7 @@ import { CelebrationOverlay } from "@/components/dashboard/celebration-overlay";
 import { KeyResultQuickUpdateDialog } from "@/components/dashboard/key-result-quick-update-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { useObjectiveProgress } from "@/hooks/use-objective-progress";
+import { calculateKeyResultProgress, type KeyResultDirection, type KeyResultType } from "@/lib/key-results";
 import { calculateProgress } from "@/lib/progress";
 
 const dateFormatter = new Intl.DateTimeFormat("de-DE", { dateStyle: "medium" });
@@ -30,6 +31,12 @@ export type KeyResultSummary = {
   title: string;
   currentValue: number;
   targetValue: number;
+  startValue: number;
+  type: KeyResultType;
+  direction: KeyResultDirection;
+  redThreshold?: number | null;
+  yellowThreshold?: number | null;
+  greenThreshold?: number | null;
   unit?: string | null;
 };
 
@@ -110,9 +117,7 @@ export function ObjectiveCard({
 }: ObjectiveCardProps) {
   const [showCelebration, setShowCelebration] = useState(false);
   const [showAllKeyResults, setShowAllKeyResults] = useState(false);
-  const celebrationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null
-  );
+  const celebrationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [optimisticKeyResults, applyOptimistic] = useOptimistic(
     keyResults,
@@ -179,17 +184,11 @@ export function ObjectiveCard({
               >
                 {title}
               </Link>
-              {description ? (
-                <p className="text-sm text-muted-foreground">{description}</p>
-              ) : null}
+              {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
               {nextAction ? (
                 <div className="rounded-lg bg-primary/5 px-3 py-2">
-                  <p className="text-xs font-medium text-primary/70">
-                    Nächste Aktion
-                  </p>
-                  <p className="mt-0.5 text-sm font-medium text-primary">
-                    {nextAction}
-                  </p>
+                  <p className="text-xs font-medium text-primary/70">Als Nächstes sinnvoll</p>
+                  <p className="mt-0.5 text-sm font-medium text-primary">{nextAction}</p>
                 </div>
               ) : null}
             </div>
@@ -204,25 +203,25 @@ export function ObjectiveCard({
                   href={`/dashboard/objectives/${objectiveId}`}
                   className="flex items-center rounded-md px-3 py-2 text-sm text-foreground transition hover:bg-muted"
                 >
-                  Details ansehen
+                  Ziel öffnen
                 </Link>
                 <Link
                   href={`/dashboard/objectives/${objectiveId}/edit`}
                   className="flex items-center rounded-md px-3 py-2 text-sm text-foreground transition hover:bg-muted"
                 >
-                  KR anlegen
+                  Messpunkt ergänzen
                 </Link>
                 <Link
                   href={`/dashboard/objectives/${objectiveId}/edit`}
                   className="flex items-center rounded-md px-3 py-2 text-sm text-foreground transition hover:bg-muted"
                 >
-                  Objective bearbeiten
+                  Ziel bearbeiten
                 </Link>
                 <Link
                   href={`/dashboard/thinking-partner?objectiveId=${objectiveId}`}
                   className="flex items-center rounded-md px-3 py-2 text-sm text-foreground transition hover:bg-muted"
                 >
-                  Thinking Partner
+                  Thinking Partner fragen
                 </Link>
               </div>
             </details>
@@ -237,17 +236,13 @@ export function ObjectiveCard({
               transition={{ type: "spring", stiffness: 120, damping: 18 }}
             />
           </div>
-          <span className="text-sm font-medium text-foreground tabular-nums">
-            {progress}%
-          </span>
+          <span className="text-sm font-medium text-foreground tabular-nums">{progress}%</span>
         </div>
 
         <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
           <span>
             Letztes Update:{" "}
-            {insights.lastUpdateAt
-              ? dateFormatter.format(new Date(insights.lastUpdateAt))
-              : "—"}
+            {insights.lastUpdateAt ? dateFormatter.format(new Date(insights.lastUpdateAt)) : "—"}
           </span>
           <span>
             Trend:{" "}
@@ -257,26 +252,17 @@ export function ObjectiveCard({
                 ? `↓ -${insights.updatesPrev7 - insights.updatesLast7}`
                 : "→ 0"}
           </span>
-          <span>
-            Streak: {insights.streakDays} Tage
-          </span>
+          <span>Seit {insights.streakDays} Tagen in Folge dran</span>
         </div>
 
         <div className="space-y-3">
           <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
-            <span>Key Results</span>
-            <span>{optimisticKeyResults.length} KRs</span>
+            <span>Messpunkte</span>
+            <span>{optimisticKeyResults.length} insgesamt</span>
           </div>
           <div className="divide-y divide-border rounded-lg border border-border bg-white">
             {visibleKeyResults.map((keyResult) => {
-              const progressValue = keyResult.targetValue
-                ? Math.min(
-                    Math.round(
-                      (keyResult.currentValue / keyResult.targetValue) * 100
-                    ),
-                    100
-                  )
-                : 0;
+              const progressValue = calculateKeyResultProgress(keyResult);
 
               return (
                 <div
@@ -285,9 +271,7 @@ export function ObjectiveCard({
                 >
                   <div className="flex-1 space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-medium text-foreground">
-                        {keyResult.title}
-                      </p>
+                      <p className="font-medium text-foreground">{keyResult.title}</p>
                       <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
                         {progressValue}%
                       </span>
@@ -315,12 +299,11 @@ export function ObjectiveCard({
                       keyResultId={keyResult.id}
                       title={keyResult.title}
                       currentValue={keyResult.currentValue}
+                      type={keyResult.type}
                       unit={keyResult.unit}
                       buttonSize="sm"
                       buttonClassName="text-xs"
-                      onOptimisticUpdate={(value) =>
-                        handleOptimisticUpdate(keyResult.id, value)
-                      }
+                      onOptimisticUpdate={(value) => handleOptimisticUpdate(keyResult.id, value)}
                     />
                   </div>
                 </div>
@@ -342,9 +325,7 @@ export function ObjectiveCard({
                   <ChevronDown className="h-4 w-4" />
                 </span>
                 <span className="sr-only">
-                  {showAllKeyResults
-                    ? "Key Results einklappen"
-                    : "Key Results ausklappen"}
+                  {showAllKeyResults ? "Messpunkte einklappen" : "Messpunkte ausklappen"}
                 </span>
               </button>
             </div>

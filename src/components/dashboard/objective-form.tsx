@@ -6,6 +6,11 @@ import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
 
 import { createObjective } from "@/actions/objective";
+import {
+  createEmptyKeyResultDraft,
+  KeyResultFields,
+  type KeyResultDraft,
+} from "@/components/dashboard/key-result-fields";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,11 +21,8 @@ export type QuarterOption = {
   title: string;
 };
 
-type KeyResultInput = {
+type KeyResultInput = KeyResultDraft & {
   id: string;
-  title: string;
-  targetValue: string;
-  unit: string;
 };
 
 type ObjectiveFormProps = {
@@ -28,10 +30,7 @@ type ObjectiveFormProps = {
   defaultQuarterId?: string | null;
 };
 
-export function ObjectiveForm({
-  quarters,
-  defaultQuarterId,
-}: ObjectiveFormProps) {
+export function ObjectiveForm({ quarters, defaultQuarterId }: ObjectiveFormProps) {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -39,28 +38,23 @@ export function ObjectiveForm({
   const [keyResults, setKeyResults] = useState<KeyResultInput[]>([
     {
       id: crypto.randomUUID(),
-      title: "",
-      targetValue: "",
-      unit: "",
+      ...createEmptyKeyResultDraft(),
     },
     {
       id: crypto.randomUUID(),
-      title: "",
-      targetValue: "",
-      unit: "",
+      ...createEmptyKeyResultDraft(),
     },
   ]);
 
   const createAction = useAction(createObjective, {
     onSuccess: () => {
-      toast.success("Objective erstellt");
+      toast.success("Ziel erstellt");
       router.push("/dashboard");
       router.refresh();
     },
     onError: ({ error }) => {
-      toast.error("Objective konnte nicht erstellt werden", {
-        description:
-          error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
+      toast.error("Ziel konnte nicht erstellt werden", {
+        description: error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
       });
     },
   });
@@ -78,24 +72,20 @@ export function ObjectiveForm({
 
   const handleAddKeyResult = () => {
     if (keyResults.length >= 6) {
-      toast.error("Maximal 6 Key Results pro Objective.");
+      toast.error("Maximal 6 Messpunkte pro Ziel.");
       return;
     }
     setKeyResults((prev) => [
       ...prev,
       {
         id: crypto.randomUUID(),
-        title: "",
-        targetValue: "",
-        unit: "",
+        ...createEmptyKeyResultDraft(),
       },
     ]);
   };
 
   const handleRemoveKeyResult = (id: string) => {
-    setKeyResults((prev) =>
-      prev.length > 2 ? prev.filter((item) => item.id !== id) : prev
-    );
+    setKeyResults((prev) => (prev.length > 2 ? prev.filter((item) => item.id !== id) : prev));
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -105,17 +95,24 @@ export function ObjectiveForm({
       .map((item) => ({
         title: item.title.trim(),
         targetValue: item.targetValue,
+        type: item.type,
+        direction: item.direction,
+        startValue: item.startValue,
         unit: item.unit.trim(),
+        description: item.description,
+        redThreshold: item.redThreshold,
+        yellowThreshold: item.yellowThreshold,
+        greenThreshold: item.greenThreshold,
       }))
-      .filter((item) => item.title || item.targetValue);
+      .filter((item) => item.title);
 
     if (payloadKeyResults.length < 2) {
-      toast.error("Bitte gib mindestens zwei Key Results an.");
+      toast.error("Bitte gib mindestens zwei Messpunkte an.");
       return;
     }
 
     if (payloadKeyResults.length > 6) {
-      toast.error("Maximal 6 Key Results pro Objective.");
+      toast.error("Maximal 6 Messpunkte pro Ziel.");
       return;
     }
 
@@ -130,17 +127,15 @@ export function ObjectiveForm({
   return (
     <form className="space-y-8" onSubmit={handleSubmit}>
       <div className="space-y-2">
-        <Label htmlFor="objective-title">Objective</Label>
+        <Label htmlFor="objective-title">Ziel</Label>
         <Input
           id="objective-title"
           value={title}
           onChange={(event) => setTitle(event.target.value)}
-          placeholder="z.B. Gemeinsam fit und gesund"
+          placeholder="z.B. Gemeinsam gesünder und aktiver leben"
         />
         {validationErrors?.fieldErrors?.title?.[0] ? (
-          <p className="text-sm text-primary">
-            {validationErrors.fieldErrors.title[0]}
-          </p>
+          <p className="text-sm text-primary">{validationErrors.fieldErrors.title[0]}</p>
         ) : null}
       </div>
 
@@ -150,7 +145,7 @@ export function ObjectiveForm({
           id="objective-description"
           value={description}
           onChange={(event) => setDescription(event.target.value)}
-          placeholder="Warum ist dieses Objective wichtig?"
+          placeholder="Warum ist dieses Ziel gerade wichtig?"
         />
       </div>
 
@@ -175,16 +170,14 @@ export function ObjectiveForm({
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <p className="text-sm uppercase tracking-[0.2em] text-primary">
-            Key Results
-          </p>
+          <p className="text-sm uppercase tracking-[0.2em] text-primary">Messpunkte</p>
           <Button
             type="button"
             variant="outline"
             className="rounded-2xl"
             onClick={handleAddKeyResult}
           >
-            + Key Result
+            + Messpunkt
           </Button>
         </div>
 
@@ -195,9 +188,7 @@ export function ObjectiveForm({
               className="rounded-2xl border border-border bg-card p-4 shadow-sm"
             >
               <div className="flex items-start justify-between gap-3">
-                <p className="text-sm font-semibold text-foreground">
-                  Key Result {index + 1}
-                </p>
+                <p className="text-sm font-semibold text-foreground">Messpunkt {index + 1}</p>
                 {keyResults.length > 1 ? (
                   <button
                     type="button"
@@ -210,69 +201,21 @@ export function ObjectiveForm({
               </div>
 
               <div className="mt-3 space-y-3">
-                <div className="space-y-2">
-                  <Label htmlFor={`kr-title-${keyResult.id}`}>Titel</Label>
-                  <Input
-                    id={`kr-title-${keyResult.id}`}
-                    value={keyResult.title}
-                    onChange={(event) =>
-                      setKeyResults((prev) =>
-                        prev.map((item) =>
-                          item.id === keyResult.id
-                            ? { ...item, title: event.target.value }
-                            : item
-                        )
-                      )
-                    }
-                    placeholder="z.B. 3x Sport/Woche"
-                  />
-                </div>
-                <div className="grid gap-3 sm:grid-cols-[1fr,0.6fr]">
-                  <div className="space-y-2">
-                    <Label htmlFor={`kr-target-${keyResult.id}`}>Zielwert</Label>
-                    <Input
-                      id={`kr-target-${keyResult.id}`}
-                      type="number"
-                      min={0}
-                      step="0.1"
-                      value={keyResult.targetValue}
-                      onChange={(event) =>
-                        setKeyResults((prev) =>
-                          prev.map((item) =>
-                            item.id === keyResult.id
-                              ? { ...item, targetValue: event.target.value }
-                              : item
-                          )
-                        )
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor={`kr-unit-${keyResult.id}`}>Einheit</Label>
-                    <Input
-                      id={`kr-unit-${keyResult.id}`}
-                      value={keyResult.unit}
-                      onChange={(event) =>
-                        setKeyResults((prev) =>
-                          prev.map((item) =>
-                            item.id === keyResult.id
-                              ? { ...item, unit: event.target.value }
-                              : item
-                          )
-                        )
-                      }
-                      placeholder="z.B. Liter/Tag"
-                    />
-                  </div>
-                </div>
+                <KeyResultFields
+                  idPrefix={`kr-${keyResult.id}`}
+                  value={keyResult}
+                  onChange={(nextValue) =>
+                    setKeyResults((prev) =>
+                      prev.map((item) => (item.id === keyResult.id ? { ...nextValue, id: item.id } : item))
+                    )
+                  }
+                />
               </div>
             </div>
           ))}
         </div>
         {validationErrors?.fieldErrors?.keyResults?.[0] ? (
-          <p className="text-sm text-primary">
-            {validationErrors.fieldErrors.keyResults[0]}
-          </p>
+          <p className="text-sm text-primary">{validationErrors.fieldErrors.keyResults[0]}</p>
         ) : null}
       </div>
 
@@ -280,14 +223,12 @@ export function ObjectiveForm({
         <p className="text-sm text-primary">{validationErrors.formErrors[0]}</p>
       ) : null}
       {createAction.result.serverError ? (
-        <p className="text-sm text-primary">
-          {createAction.result.serverError}
-        </p>
+        <p className="text-sm text-primary">{createAction.result.serverError}</p>
       ) : null}
 
       <div className="flex flex-col gap-3 sm:flex-row">
         <Button type="submit" className="rounded-2xl" disabled={createAction.isPending}>
-          Objective speichern
+          Ziel speichern
         </Button>
         <Button
           type="button"

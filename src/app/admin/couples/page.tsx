@@ -103,27 +103,18 @@ export default async function AdminCouplesPage({
   return (
     <div className="space-y-6">
       <section className="space-y-3">
-        <p className="text-sm font-semibold uppercase tracking-[0.24em] text-primary">
-          Couple Management
-        </p>
+        <p className="text-sm font-semibold uppercase tracking-[0.24em] text-primary">Paare</p>
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div className="space-y-2">
-            <h1 className="text-3xl font-semibold text-foreground">
-              Couples im Blick
-            </h1>
+            <h1 className="text-3xl font-semibold text-foreground">Paare im Blick</h1>
             <p className="max-w-3xl text-sm text-muted-foreground">
-              Übersicht über Mitglieder, Boards, Objectives und offene
-              Einladungen.
+              Hier seht ihr, wer schon verbunden ist, was aktiv genutzt wird und wo noch etwas offen
+              ist.
             </p>
           </div>
 
           <form className="flex w-full gap-2 md:w-auto" action="/admin/couples" method="get">
-            <Input
-              name="q"
-              defaultValue={q}
-              placeholder="Couple oder E-Mail"
-              className="md:w-72"
-            />
+            <Input name="q" defaultValue={q} placeholder="Paar oder E-Mail" className="md:w-72" />
             <Button type="submit" variant="outline">
               Suchen
             </Button>
@@ -133,19 +124,19 @@ export default async function AdminCouplesPage({
 
       <Card>
         <CardHeader>
-          <CardTitle>Alle Couples</CardTitle>
-          <CardDescription>{couples.length} Couples gefunden.</CardDescription>
+          <CardTitle>Alle Paare</CardTitle>
+          <CardDescription>{couples.length} Paare gefunden.</CardDescription>
         </CardHeader>
         <CardContent className="overflow-x-auto pb-6">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
               <tr>
-                <th className="pb-3 pr-4 font-medium">Couple</th>
+                <th className="pb-3 pr-4 font-medium">Paar</th>
                 <th className="pb-3 pr-4 font-medium">Mitglieder</th>
                 <th className="pb-3 pr-4 font-medium">Boards</th>
-                <th className="pb-3 pr-4 font-medium">Objectives</th>
-                <th className="pb-3 pr-4 font-medium">Offene Invites</th>
-                <th className="pb-3 pr-4 font-medium">Invite Code</th>
+                <th className="pb-3 pr-4 font-medium">Ziele</th>
+                <th className="pb-3 pr-4 font-medium">Offene Einladungen</th>
+                <th className="pb-3 pr-4 font-medium">Einladungscode</th>
                 <th className="pb-3 font-medium">Aktivität</th>
                 <th className="pb-3 text-right font-medium">Aktion</th>
               </tr>
@@ -155,7 +146,11 @@ export default async function AdminCouplesPage({
                 const memberCount = couple.users.length;
                 const isComplete = memberCount >= 2;
                 const tone = isComplete ? "good" : memberCount === 1 ? "warn" : "bad";
-                const label = isComplete ? "complete" : memberCount === 1 ? "partial" : "empty";
+                const label = isComplete
+                  ? "vollständig"
+                  : memberCount === 1
+                    ? "eine Person"
+                    : "leer";
 
                 return (
                   <tr key={couple.id} className="border-b border-border/60 last:border-0">
@@ -188,13 +183,9 @@ export default async function AdminCouplesPage({
                             <a href="/dashboard">Dashboard öffnen</a>
                           </Button>
                           <form action={stopAdminCouplePreview}>
-                            <input
-                              type="hidden"
-                              name="redirectTo"
-                              value="/admin/couples"
-                            />
+                            <input type="hidden" name="redirectTo" value="/admin/couples" />
                             <Button size="sm" variant="secondary" type="submit">
-                              Preview beenden
+                              Ansicht beenden
                             </Button>
                           </form>
                         </div>
@@ -202,7 +193,7 @@ export default async function AdminCouplesPage({
                         <form action={startAdminCouplePreview.bind(null, couple.id)}>
                           <input type="hidden" name="redirectTo" value="/dashboard" />
                           <Button size="sm" type="submit">
-                            Als Paar ansehen
+                            Als Paar öffnen
                           </Button>
                         </form>
                       )}

@@ -78,17 +78,13 @@ export default async function AdminBoardsPage({
   return (
     <div className="space-y-6">
       <section className="space-y-3">
-        <p className="text-sm font-semibold uppercase tracking-[0.24em] text-primary">
-          Board Oversight
-        </p>
+        <p className="text-sm font-semibold uppercase tracking-[0.24em] text-primary">Boards</p>
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div className="space-y-2">
-            <h1 className="text-3xl font-semibold text-foreground">
-              Boards und Board-Zustand
-            </h1>
+            <h1 className="text-3xl font-semibold text-foreground">Boards im Blick</h1>
             <p className="max-w-3xl text-sm text-muted-foreground">
-              Übersicht über Master- und Quarter-Boards, Elementanzahl,
-              Versionen und den letzten Änderungsstand.
+              Hier seht ihr die Boards der Paare, wie viel darin liegt und wann zuletzt etwas
+              geändert wurde.
             </p>
           </div>
 
@@ -96,7 +92,7 @@ export default async function AdminBoardsPage({
             <Input
               name="q"
               defaultValue={q}
-              placeholder="Board, Key oder Couple"
+              placeholder="Board, Key oder Paar"
               className="md:w-72"
             />
             <Button type="submit" variant="outline">
@@ -116,7 +112,7 @@ export default async function AdminBoardsPage({
             <thead className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
               <tr>
                 <th className="pb-3 pr-4 font-medium">Board</th>
-                <th className="pb-3 pr-4 font-medium">Couple</th>
+                <th className="pb-3 pr-4 font-medium">Paar</th>
                 <th className="pb-3 pr-4 font-medium">Scope</th>
                 <th className="pb-3 pr-4 font-medium">Version</th>
                 <th className="pb-3 pr-4 font-medium">Elemente</th>
@@ -148,9 +144,7 @@ export default async function AdminBoardsPage({
                     <td className="py-4 pr-4">
                       {board.quarter ? (
                         <div>
-                          <div className="font-medium text-foreground">
-                            {board.quarter.title}
-                          </div>
+                          <div className="font-medium text-foreground">{board.quarter.title}</div>
                           <div className="text-xs text-muted-foreground">
                             {formatDate(board.quarter.startsAt)} -{" "}
                             {formatDate(board.quarter.endsAt)}
@@ -160,9 +154,7 @@ export default async function AdminBoardsPage({
                         <span className="text-muted-foreground">n/a</span>
                       )}
                     </td>
-                    <td className="py-4 text-muted-foreground">
-                      {formatDate(board.updatedAt)}
-                    </td>
+                    <td className="py-4 text-muted-foreground">{formatDate(board.updatedAt)}</td>
                   </tr>
                 );
               })}
@@ -173,4 +165,3 @@ export default async function AdminBoardsPage({
     </div>
   );
 }
-

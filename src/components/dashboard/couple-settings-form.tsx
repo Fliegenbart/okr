@@ -23,13 +23,12 @@ export function CoupleSettingsForm({ name, vision }: CoupleSettingsFormProps) {
 
   const updateAction = useAction(updateCouple, {
     onSuccess: () => {
-      toast.success("Couple aktualisiert");
+      toast.success("Bereich aktualisiert");
       router.refresh();
     },
     onError: ({ error }) => {
-      toast.error("Couple konnte nicht aktualisiert werden", {
-        description:
-          error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
+      toast.error("Bereich konnte nicht aktualisiert werden", {
+        description: error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
       });
     },
   });
@@ -48,25 +47,23 @@ export function CoupleSettingsForm({ name, vision }: CoupleSettingsFormProps) {
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
       <div className="space-y-2">
-        <Label htmlFor="couple-name">Couple-Name</Label>
+        <Label htmlFor="couple-name">Name eures Bereichs</Label>
         <Input
           id="couple-name"
           value={coupleName}
           onChange={(event) => setCoupleName(event.target.value)}
         />
         {validationErrors?.fieldErrors?.name?.[0] ? (
-          <p className="text-sm text-primary">
-            {validationErrors.fieldErrors.name[0]}
-          </p>
+          <p className="text-sm text-primary">{validationErrors.fieldErrors.name[0]}</p>
         ) : null}
       </div>
       <div className="space-y-2">
-        <Label htmlFor="couple-vision">Vision</Label>
+        <Label htmlFor="couple-vision">Was soll euch leiten?</Label>
         <Textarea
           id="couple-vision"
           value={coupleVision}
           onChange={(event) => setCoupleVision(event.target.value)}
-          placeholder="Was verbindet euch?"
+          placeholder="Wofür steht ihr als Paar?"
         />
       </div>
       <Button type="submit" className="rounded-2xl" disabled={updateAction.isPending}>

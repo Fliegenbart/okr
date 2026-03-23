@@ -9,6 +9,7 @@ import { CommitmentStatusActions } from "@/components/dashboard/commitment-statu
 import { KeyResultQuickUpdateDialog } from "@/components/dashboard/key-result-quick-update-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { useObjectiveProgress } from "@/hooks/use-objective-progress";
+import { calculateKeyResultProgress, type KeyResultDirection, type KeyResultType } from "@/lib/key-results";
 import { calculateProgress } from "@/lib/progress";
 
 export type ObjectiveDetailProps = {
@@ -22,6 +23,12 @@ export type ObjectiveDetailProps = {
     title: string;
     currentValue: number;
     targetValue: number;
+    startValue: number;
+    type: KeyResultType;
+    direction: KeyResultDirection;
+    redThreshold?: number | null;
+    yellowThreshold?: number | null;
+    greenThreshold?: number | null;
     unit?: string | null;
   }[];
   commitments?: {
@@ -45,9 +52,7 @@ export function ObjectiveDetail({
   commitments = [],
 }: ObjectiveDetailProps) {
   const [showCelebration, setShowCelebration] = useState(false);
-  const celebrationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null
-  );
+  const celebrationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [optimisticKeyResults, applyOptimistic] = useOptimistic(
     keyResults,
@@ -100,40 +105,28 @@ export function ObjectiveDetail({
         <CardContent className="space-y-5 p-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-primary">
-                {quarterTitle}
-              </p>
-              <h1 className="mt-2 text-3xl font-semibold text-foreground">
-                {title}
-              </h1>
+              <p className="text-xs uppercase tracking-[0.2em] text-primary">{quarterTitle}</p>
+              <h1 className="mt-2 text-3xl font-semibold text-foreground">{title}</h1>
               {description ? (
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {description}
-                </p>
+                <p className="mt-2 text-sm text-muted-foreground">{description}</p>
               ) : null}
               {nextAction ? (
                 <p className="mt-3 rounded-2xl border border-border bg-muted/30 px-4 py-3 text-sm text-foreground">
-                  <span className="font-semibold text-primary">Nächste Aktion:</span>{" "}
+                  <span className="font-semibold text-primary">Als Nächstes sinnvoll:</span>{" "}
                   {nextAction}
                 </p>
               ) : null}
             </div>
             <div className="flex items-center gap-4">
               <div className="text-right">
-                <p className="text-sm uppercase tracking-[0.2em] text-primary">
-                  Fortschritt
-                </p>
-                <p className="text-3xl font-semibold text-foreground">
-                  {progress}%
-                </p>
+                <p className="text-sm uppercase tracking-[0.2em] text-primary">Fortschritt</p>
+                <p className="text-3xl font-semibold text-foreground">{progress}%</p>
               </div>
               <div className="flex flex-col items-end gap-2 text-xs uppercase tracking-[0.2em] text-primary">
                 <Link href={`/dashboard/thinking-partner?objectiveId=${objectiveId}`}>
-                  Thinking Partner
+                  Thinking Partner fragen
                 </Link>
-                <Link href={`/dashboard/objectives/${objectiveId}/edit`}>
-                  Bearbeiten
-                </Link>
+                <Link href={`/dashboard/objectives/${objectiveId}/edit`}>Bearbeiten</Link>
               </div>
             </div>
           </div>
@@ -150,37 +143,25 @@ export function ObjectiveDetail({
 
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-foreground">Key Results</h2>
+          <h2 className="text-xl font-semibold text-foreground">Messpunkte</h2>
           <Link
             href={`/dashboard/objectives/${objectiveId}/edit`}
             className="text-xs uppercase tracking-[0.2em] text-primary"
           >
-            KR anlegen
+            Messpunkt ergänzen
           </Link>
         </div>
 
         <div className="space-y-4">
           {optimisticKeyResults.map((keyResult) => {
-            const progressValue = keyResult.targetValue
-              ? Math.min(
-                  Math.round(
-                    (keyResult.currentValue / keyResult.targetValue) * 100
-                  ),
-                  100
-                )
-              : 0;
+            const progressValue = calculateKeyResultProgress(keyResult);
 
             return (
-              <Card
-                key={keyResult.id}
-                className="rounded-2xl border-border shadow-sm"
-              >
+              <Card key={keyResult.id} className="rounded-2xl border-border shadow-sm">
                 <CardContent className="space-y-4 p-5">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div>
-                      <p className="text-lg font-semibold text-foreground">
-                        {keyResult.title}
-                      </p>
+                      <p className="text-lg font-semibold text-foreground">{keyResult.title}</p>
                       <p className="text-xs text-muted-foreground">
                         {keyResult.currentValue} / {keyResult.targetValue}
                         {keyResult.unit ? ` ${keyResult.unit}` : ""}
@@ -197,10 +178,9 @@ export function ObjectiveDetail({
                         keyResultId={keyResult.id}
                         title={keyResult.title}
                         currentValue={keyResult.currentValue}
+                        type={keyResult.type}
                         unit={keyResult.unit}
-                        onOptimisticUpdate={(value) =>
-                          handleOptimisticUpdate(keyResult.id, value)
-                        }
+                        onOptimisticUpdate={(value) => handleOptimisticUpdate(keyResult.id, value)}
                       />
                     </div>
                   </div>
@@ -222,12 +202,8 @@ export function ObjectiveDetail({
       {commitments.length ? (
         <section className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-foreground">
-              Commitments
-            </h2>
-            <span className="text-xs uppercase tracking-[0.2em] text-primary">
-              Follow-through
-            </span>
+            <h2 className="text-xl font-semibold text-foreground">Zusagen</h2>
+            <span className="text-xs uppercase tracking-[0.2em] text-primary">Dranbleiben</span>
           </div>
 
           <div className="space-y-4">
@@ -236,15 +212,11 @@ export function ObjectiveDetail({
                 <CardContent className="space-y-3 p-5">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="space-y-1">
-                      <p className="text-lg font-semibold text-foreground">
-                        {commitment.title}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Status: {commitment.status}
-                      </p>
+                      <p className="text-lg font-semibold text-foreground">{commitment.title}</p>
+                      <p className="text-xs text-muted-foreground">Status: {commitment.status}</p>
                       {commitment.ownerName ? (
                         <p className="text-xs text-muted-foreground">
-                          Owner: {commitment.ownerName}
+                          Verantwortlich: {commitment.ownerName}
                         </p>
                       ) : null}
                       {commitment.dueAt ? (

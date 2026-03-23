@@ -61,6 +61,19 @@ enum TranscriptQualityStatus {
   UNKNOWN
 }
 
+enum KeyResultType {
+  INCREASE_TO
+  STAY_ABOVE
+  STAY_BELOW
+  BINARY
+  TRAFFIC_LIGHT
+}
+
+enum KeyResultDirection {
+  HIGHER_IS_BETTER
+  LOWER_IS_BETTER
+}
+
 model User {
   id                    String            @id @default(cuid())
   name                  String?
@@ -321,17 +334,24 @@ model Reminder {
 }
 
 model KeyResult {
-  id           String            @id @default(cuid())
-  title        String
-  targetValue  Float
-  currentValue Float             @default(0)
-  unit         String?
-  objectiveId  String
-  objective    Objective         @relation(fields: [objectiveId], references: [id], onDelete: Cascade)
-  updates      KeyResultUpdate[]
-  archivedAt   DateTime?
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
+  id             String             @id @default(cuid())
+  title          String
+  type           KeyResultType      @default(INCREASE_TO)
+  direction      KeyResultDirection @default(HIGHER_IS_BETTER)
+  targetValue    Float
+  currentValue   Float              @default(0)
+  startValue     Float              @default(0)
+  redThreshold   Float?
+  yellowThreshold Float?
+  greenThreshold Float?
+  unit           String?
+  description    String?
+  objectiveId    String
+  objective      Objective          @relation(fields: [objectiveId], references: [id], onDelete: Cascade)
+  updates        KeyResultUpdate[]
+  archivedAt     DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
 }
 
 model KeyResultUpdate {

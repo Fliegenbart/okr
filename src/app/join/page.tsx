@@ -12,21 +12,15 @@ export default async function JoinPage({
 }) {
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const inviteToken =
-    resolvedSearchParams?.token?.trim() ??
-    resolvedSearchParams?.code?.trim() ??
-    "";
+    resolvedSearchParams?.token?.trim() ?? resolvedSearchParams?.code?.trim() ?? "";
 
   if (!inviteToken) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-6 py-12">
         <Card className="w-full max-w-md rounded-2xl border-border shadow-sm">
           <CardContent className="space-y-4 p-6 text-center">
-            <p className="text-sm uppercase tracking-[0.2em] text-primary">
-              Einladung
-            </p>
-            <p className="text-lg font-semibold text-foreground">
-              Kein Einladungscode gefunden
-            </p>
+            <p className="text-sm uppercase tracking-[0.2em] text-primary">Einladung</p>
+            <p className="text-lg font-semibold text-foreground">Kein Einladungscode gefunden</p>
             <p className="text-sm text-muted-foreground">
               Bitte prüfe den Link oder starte von der Startseite aus.
             </p>
@@ -49,9 +43,7 @@ export default async function JoinPage({
   }
 
   const callbackUrl = `/join?token=${inviteToken}`;
-  const signInUrl = `/auth/signin?callbackUrl=${encodeURIComponent(
-    callbackUrl
-  )}`;
+  const signInUrl = `/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-6 py-12">
@@ -65,14 +57,10 @@ export default async function JoinPage({
             className="mx-auto h-auto w-36"
             priority
           />
-          <p className="text-sm uppercase tracking-[0.2em] text-primary">
-            Einladungslink
-          </p>
-          <h1 className="text-2xl font-semibold text-foreground">
-            Du wurdest eingeladen
-          </h1>
+          <p className="text-sm uppercase tracking-[0.2em] text-primary">Einladungslink</p>
+          <h1 className="text-2xl font-semibold text-foreground">Du wurdest eingeladen</h1>
           <p className="text-sm text-muted-foreground">
-            Melde dich an, um dem Couple beizutreten. Dein Token: {inviteToken}
+            Melde dich an, dann wirst du direkt dem gemeinsamen Bereich hinzugefügt.
           </p>
           <div className="flex flex-col justify-center gap-3 sm:flex-row">
             <Link

@@ -68,6 +68,12 @@ export default async function ObjectiveDetailPage({
               title: keyResult.title,
               currentValue: keyResult.currentValue,
               targetValue: keyResult.targetValue,
+              startValue: keyResult.startValue,
+              type: keyResult.type,
+              direction: keyResult.direction,
+              redThreshold: keyResult.redThreshold,
+              yellowThreshold: keyResult.yellowThreshold,
+              greenThreshold: keyResult.greenThreshold,
               unit: keyResult.unit,
             }))}
             commitments={objective.commitments.map((commitment) => ({

@@ -5,10 +5,7 @@ import { CheckInComposer } from "@/components/dashboard/check-in-composer";
 import { CommitmentStatusActions } from "@/components/dashboard/commitment-status-actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { conversationTemplates } from "@/lib/couple-engagement";
-import {
-  redirectForMissingCouple,
-  requireDashboardSubpageAccess,
-} from "@/lib/dashboard-access";
+import { redirectForMissingCouple, requireDashboardSubpageAccess } from "@/lib/dashboard-access";
 import { prisma } from "@/lib/db";
 
 const dateTimeFormatter = new Intl.DateTimeFormat("de-DE", {
@@ -83,14 +80,12 @@ export default async function CheckInPage({
   ]);
 
   const activeQuarter =
-    couple.quarters.find(
-      (quarter) => quarter.startsAt <= now && quarter.endsAt >= now
-    ) ?? couple.quarters[0] ?? null;
+    couple.quarters.find((quarter) => quarter.startsAt <= now && quarter.endsAt >= now) ??
+    couple.quarters[0] ??
+    null;
 
   const scheduleEnabled = Boolean(
-    couple.checkInWeekday &&
-      couple.checkInTime &&
-      couple.checkInDurationMinutes
+    couple.checkInWeekday && couple.checkInTime && couple.checkInDurationMinutes
   );
 
   return (
@@ -104,12 +99,9 @@ export default async function CheckInPage({
         </Link>
 
         <div className="mt-6 space-y-2">
-          <h1 className="text-3xl font-semibold text-foreground">
-            Check-in & Commitments
-          </h1>
+          <h1 className="text-3xl font-semibold text-foreground">Check-in & Commitments</h1>
           <p className="text-sm text-muted-foreground">
-            Hier sammelt ihr euren Wochen-Check-in, konkrete Commitments und die
-            nächsten Follow-ups an einem Ort.
+            Hier haltet ihr fest, wie es euch gerade geht, was ansteht und was ihr euch vornehmt.
           </p>
         </div>
 
@@ -127,13 +119,11 @@ export default async function CheckInPage({
           <div className="space-y-6">
             <Card className="rounded-2xl border-border shadow-sm">
               <CardContent className="space-y-3 p-6">
-                <p className="text-sm uppercase tracking-[0.2em] text-primary">
-                  Check-in-Status
-                </p>
+                <p className="text-sm uppercase tracking-[0.2em] text-primary">Check-in-Status</p>
                 <p className="text-sm text-muted-foreground">
                   {scheduleEnabled
-                    ? `Euer regelmäßiger Check-in ist eingerichtet (${couple.checkInWeekday} / ${couple.checkInTime}).`
-                    : "Euer Check-in ist noch nicht terminiert."}
+                    ? `Euer regelmäßiger Check-in steht fest (${couple.checkInWeekday} / ${couple.checkInTime}).`
+                    : "Euer regelmäßiger Check-in ist noch nicht festgelegt."}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   Aktuelles Quartal: {activeQuarter?.title ?? "kein Quartal"}
@@ -143,13 +133,13 @@ export default async function CheckInPage({
                     href="/dashboard/templates"
                     className="inline-flex items-center justify-center rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground"
                   >
-                    Templates ansehen
+                    Vorlagen ansehen
                   </Link>
                   <Link
                     href="/dashboard/reminders"
                     className="inline-flex items-center justify-center rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground"
                   >
-                    Reminder öffnen
+                    Erinnerungen öffnen
                   </Link>
                 </div>
               </CardContent>
@@ -157,7 +147,7 @@ export default async function CheckInPage({
 
             <Card className="rounded-2xl border-border shadow-sm">
               <CardHeader>
-                <CardTitle>Neues Commitment</CardTitle>
+                <CardTitle>Neue Zusage</CardTitle>
               </CardHeader>
               <CardContent>
                 <CommitmentForm
@@ -178,7 +168,7 @@ export default async function CheckInPage({
         <div className="mt-8 grid gap-6 lg:grid-cols-[1fr,1fr]">
           <Card className="rounded-2xl border-border shadow-sm">
             <CardHeader>
-              <CardTitle>Offene Commitments</CardTitle>
+              <CardTitle>Offene Zusagen</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {openCommitments.length ? (
@@ -188,18 +178,16 @@ export default async function CheckInPage({
                     className="space-y-3 rounded-2xl border border-border bg-card p-4"
                   >
                     <div className="space-y-1">
-                      <p className="text-sm font-semibold text-foreground">
-                        {commitment.title}
-                      </p>
+                      <p className="text-sm font-semibold text-foreground">{commitment.title}</p>
                       <p className="text-xs text-muted-foreground">
                         {commitment.objective?.title
-                          ? `Objective: ${commitment.objective.title}`
-                          : "Keinem Objective zugeordnet"}
+                          ? `Ziel: ${commitment.objective.title}`
+                          : "Keinem Ziel zugeordnet"}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {commitment.owner
-                          ? `Owner: ${commitment.owner.name ?? commitment.owner.email ?? "Unbekannt"}`
-                          : "Kein Owner"}
+                          ? `Verantwortlich: ${commitment.owner.name ?? commitment.owner.email ?? "Unbekannt"}`
+                          : "Noch niemand verantwortlich"}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {commitment.dueAt
@@ -211,9 +199,7 @@ export default async function CheckInPage({
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-muted-foreground">
-                  Noch keine offenen Commitments.
-                </p>
+                <p className="text-sm text-muted-foreground">Noch keine offenen Zusagen.</p>
               )}
             </CardContent>
           </Card>
@@ -231,21 +217,17 @@ export default async function CheckInPage({
                   >
                     <div className="flex items-center justify-between gap-4">
                       <div>
-                        <p className="text-sm font-semibold text-foreground">
-                          {checkIn.title}
-                        </p>
+                        <p className="text-sm font-semibold text-foreground">{checkIn.title}</p>
                         <p className="text-xs text-muted-foreground">
                           {dateTimeFormatter.format(checkIn.createdAt)}
                         </p>
                       </div>
                       <span className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-                        Mood {formatMood(checkIn.moodRating)}
+                        Stimmung {formatMood(checkIn.moodRating)}
                       </span>
                     </div>
                     {checkIn.summary ? (
-                      <p className="text-sm text-muted-foreground">
-                        {checkIn.summary}
-                      </p>
+                      <p className="text-sm text-muted-foreground">{checkIn.summary}</p>
                     ) : null}
                     <p className="text-xs text-muted-foreground">
                       {checkIn.quarter?.title
@@ -255,9 +237,7 @@ export default async function CheckInPage({
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-muted-foreground">
-                  Noch kein Check-in gespeichert.
-                </p>
+                <p className="text-sm text-muted-foreground">Noch kein Check-in gespeichert.</p>
               )}
             </CardContent>
           </Card>
@@ -266,39 +246,32 @@ export default async function CheckInPage({
         <div className="mt-8 grid gap-6 lg:grid-cols-[1fr,1fr]">
           <Card className="rounded-2xl border-border shadow-sm">
             <CardHeader>
-              <CardTitle>Bevorstehende Reminder</CardTitle>
+              <CardTitle>Bald fällig</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {openReminders.length ? (
                 openReminders.map((reminder) => (
-                  <div
-                    key={reminder.id}
-                    className="rounded-2xl border border-border bg-card p-4"
-                  >
-                    <p className="text-sm font-semibold text-foreground">
-                      {reminder.title}
-                    </p>
+                  <div key={reminder.id} className="rounded-2xl border border-border bg-card p-4">
+                    <p className="text-sm font-semibold text-foreground">{reminder.title}</p>
                     <p className="text-xs text-muted-foreground">
                       Fällig {dateTimeFormatter.format(reminder.dueAt)}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {reminder.quarter?.title
                         ? `Quartal: ${reminder.quarter.title}`
-                        : "In-App Reminder"}
+                        : "Erinnerung in der App"}
                     </p>
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-muted-foreground">
-                  Keine anstehenden Reminder.
-                </p>
+                <p className="text-sm text-muted-foreground">Keine anstehenden Erinnerungen.</p>
               )}
             </CardContent>
           </Card>
 
           <Card className="rounded-2xl border-border shadow-sm">
             <CardHeader>
-              <CardTitle>Template-Shortcuts</CardTitle>
+              <CardTitle>Gesprächsstarter</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {conversationTemplates.map((template) => (
@@ -307,12 +280,8 @@ export default async function CheckInPage({
                   href={`/dashboard/templates?focus=${template.key}`}
                   className="block rounded-2xl border border-border bg-card p-4 transition hover:border-primary/40 hover:bg-muted/30"
                 >
-                  <p className="text-sm font-semibold text-foreground">
-                    {template.title}
-                  </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {template.description}
-                  </p>
+                  <p className="text-sm font-semibold text-foreground">{template.title}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{template.description}</p>
                 </Link>
               ))}
             </CardContent>

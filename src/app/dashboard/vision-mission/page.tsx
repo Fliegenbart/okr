@@ -2,10 +2,7 @@ import Link from "next/link";
 
 import { VisionMissionForm } from "@/components/dashboard/vision-mission-form";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  redirectForMissingCouple,
-  requireDashboardSubpageAccess,
-} from "@/lib/dashboard-access";
+import { redirectForMissingCouple, requireDashboardSubpageAccess } from "@/lib/dashboard-access";
 import { prisma } from "@/lib/db";
 
 export default async function VisionMissionPage() {
@@ -34,20 +31,16 @@ export default async function VisionMissionPage() {
         </Link>
 
         <div className="mt-6 space-y-2">
-          <h1 className="text-3xl font-semibold text-foreground">
-            Vision & Mission
-          </h1>
+          <h1 className="text-3xl font-semibold text-foreground">Vision & Mission</h1>
           <p className="text-sm text-muted-foreground">
-            Ein kurzer Check-in, der euch emotional verankert.
+            Schreibt in wenigen Sätzen auf, was euch wichtig ist und wie ihr im Alltag danach
+            handeln wollt.
           </p>
         </div>
 
         <Card className="mt-8 rounded-2xl border-border shadow-sm">
           <CardContent className="p-6">
-            <VisionMissionForm
-              initialVision={couple.vision}
-              initialMission={couple.mission}
-            />
+            <VisionMissionForm initialVision={couple.vision} initialMission={couple.mission} />
           </CardContent>
         </Card>
       </div>

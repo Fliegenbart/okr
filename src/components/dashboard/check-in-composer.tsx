@@ -25,9 +25,7 @@ export function CheckInComposer({
 }: CheckInComposerProps) {
   const router = useRouter();
   const defaultTemplate =
-    templates.find((template) => template.key === selectedTemplateKey) ??
-    templates[0] ??
-    null;
+    templates.find((template) => template.key === selectedTemplateKey) ?? templates[0] ?? null;
 
   const [templateKey, setTemplateKey] = useState(defaultTemplate?.key ?? "");
   const [title, setTitle] = useState(defaultTemplate?.title ?? "Wochen-Check-in");
@@ -53,8 +51,7 @@ export function CheckInComposer({
     },
     onError: ({ error }) => {
       toast.error("Check-in konnte nicht gespeichert werden", {
-        description:
-          error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
+        description: error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
       });
     },
   });
@@ -89,15 +86,14 @@ export function CheckInComposer({
     <div className="grid gap-6 lg:grid-cols-[1.2fr,0.8fr]">
       <form className="space-y-5" onSubmit={handleSubmit}>
         <div className="space-y-2">
-          <Label htmlFor="checkin-template">Template</Label>
+          <Label htmlFor="checkin-template">Vorlage</Label>
           <select
             id="checkin-template"
             value={templateKey}
             onChange={(event) => {
               const nextKey = event.target.value;
               setTemplateKey(nextKey);
-              const nextTemplate =
-                templates.find((template) => template.key === nextKey) ?? null;
+              const nextTemplate = templates.find((template) => template.key === nextKey) ?? null;
               if (nextTemplate) {
                 setTitle(nextTemplate.title);
               }
@@ -120,9 +116,7 @@ export function CheckInComposer({
             onChange={(event) => setTitle(event.target.value)}
           />
           {validationErrors?.fieldErrors?.title?.[0] ? (
-            <p className="text-sm text-primary">
-              {validationErrors.fieldErrors.title[0]}
-            </p>
+            <p className="text-sm text-primary">{validationErrors.fieldErrors.title[0]}</p>
           ) : null}
         </div>
 
@@ -165,31 +159,27 @@ export function CheckInComposer({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="checkin-summary">Kurz-Summary</Label>
+          <Label htmlFor="checkin-summary">Kurz zusammenfassen</Label>
           <Textarea
             id="checkin-summary"
             value={summary}
             onChange={(event) => setSummary(event.target.value)}
             rows={3}
-            placeholder="1-2 Sätze, die den Check-in zusammenfassen"
+            placeholder="1-2 Sätze: Was ist heute wichtig?"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="checkin-next-steps">
-            Nächste Schritte
-          </Label>
+          <Label htmlFor="checkin-next-steps">Nächste Schritte</Label>
           <Textarea
             id="checkin-next-steps"
             value={nextSteps}
             onChange={(event) => setNextSteps(event.target.value)}
             rows={4}
-            placeholder="Eine Zeile pro Commitment oder nächster Aktion"
+            placeholder="Eine Zeile pro Zusage oder nächstem Schritt"
           />
           {validationErrors?.fieldErrors?.nextSteps?.[0] ? (
-            <p className="text-sm text-primary">
-              {validationErrors.fieldErrors.nextSteps[0]}
-            </p>
+            <p className="text-sm text-primary">{validationErrors.fieldErrors.nextSteps[0]}</p>
           ) : null}
         </div>
 
@@ -198,27 +188,28 @@ export function CheckInComposer({
             Check-in speichern
           </Button>
           <p className="text-xs text-muted-foreground">
-            {quarterTitle ? `Aktuelles Quartal: ${quarterTitle}` : "Ohne aktuelles Quartal gespeichert."}
+            {quarterTitle
+              ? `Aktuelles Quartal: ${quarterTitle}`
+              : "Wird ohne aktives Quartal gespeichert."}
           </p>
         </div>
       </form>
 
       <aside className="space-y-4 rounded-2xl border border-border bg-muted/20 p-5">
         <div className="space-y-2">
-          <p className="text-sm uppercase tracking-[0.2em] text-primary">
-            Template-Vorschau
-          </p>
+          <p className="text-sm uppercase tracking-[0.2em] text-primary">Vorschau</p>
           <h2 className="text-xl font-semibold text-foreground">
             {selectedTemplate?.title ?? "Check-in"}
           </h2>
           <p className="text-sm text-muted-foreground">
-            {selectedTemplate?.description ?? "Ein kompakter Raum für ehrliche Reflexion."}
+            {selectedTemplate?.description ??
+              "Ein ruhiger Rahmen, um ehrlich auf eure Woche zu schauen."}
           </p>
         </div>
 
         <div className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-            Fokus
+            Worum es heute geht
           </p>
           <p className="text-sm text-foreground">
             {selectedTemplate?.focus ?? "Wertschätzung, Spannungen, nächste Schritte"}
@@ -227,7 +218,7 @@ export function CheckInComposer({
 
         <div className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-            Leitfragen
+            Hilfreiche Fragen
           </p>
           <ul className="space-y-2 text-sm text-muted-foreground">
             {(selectedTemplate?.questions ?? []).map((question) => (
@@ -238,7 +229,7 @@ export function CheckInComposer({
 
         <div className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-            Nächster Nutzen
+            Was ihr daraus mitnehmen könnt
           </p>
           <ul className="space-y-2 text-sm text-muted-foreground">
             {(selectedTemplate?.followUps ?? []).map((item) => (
@@ -250,4 +241,3 @@ export function CheckInComposer({
     </div>
   );
 }
-

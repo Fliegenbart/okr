@@ -5,6 +5,7 @@ import { getAuthenticatedViewer } from "@/lib/active-couple";
 import { assertRateLimit } from "@/lib/rate-limit";
 import { prisma } from "@/lib/db";
 import { generateChatCompletion, generateToolCallCompletion, type LlmMessage } from "@/lib/llm";
+import { calculateKeyResultProgress } from "@/lib/key-results";
 import { calculateProgress } from "@/lib/progress";
 import {
   buildKnowledgeContext,
@@ -223,13 +224,17 @@ export async function POST(req: Request) {
       objective.keyResults.map((kr) => ({
         currentValue: kr.currentValue,
         targetValue: kr.targetValue,
+        startValue: kr.startValue,
+        type: kr.type,
+        direction: kr.direction,
+        redThreshold: kr.redThreshold,
+        yellowThreshold: kr.yellowThreshold,
+        greenThreshold: kr.greenThreshold,
       }))
     );
 
     const keyResults = objective.keyResults.map((kr) => {
-      const krProgress = kr.targetValue
-        ? Math.min(Math.round((kr.currentValue / kr.targetValue) * 100), 100)
-        : 0;
+      const krProgress = calculateKeyResultProgress(kr);
       const lastUpdateAt = kr.updates[0]?.createdAt ?? null;
       const daysSinceUpdate = lastUpdateAt ? diffDays(lastUpdateAt, now) : null;
 

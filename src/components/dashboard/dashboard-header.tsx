@@ -35,46 +35,42 @@ export async function DashboardHeader() {
                 className="object-contain"
               />
             </span>
-            <span className="text-sm font-semibold text-foreground">
-              {coupleName}
-            </span>
+            <span className="text-sm font-semibold text-foreground">{coupleName}</span>
           </Link>
         </div>
 
         <DashboardHeaderNav
           className="flex-wrap gap-2"
-        items={[
-          { href: "/dashboard", label: "Dashboard" },
-          { href: "/dashboard/check-in", label: "Check-in" },
-          { href: "/dashboard/timeline", label: "Timeline" },
-          { href: "/dashboard/board", label: "Board" },
-          { href: "/dashboard/templates", label: "Templates" },
-          { href: "/dashboard/reminders", label: "Reminder" },
-          { href: "/dashboard/thinking-partner", label: "Thinking Partner" },
-          { href: "/dashboard/vision-mission", label: "Vision & Mission" },
-          ...(user?.role === "ADMIN" || isAdminEmail(user?.email)
-            ? [{ href: "/admin", label: "Admin" }]
-            : []),
-          { href: "/dashboard/settings", label: "Einstellungen" },
-        ]}
-      />
+          items={[
+            { href: "/dashboard", label: "Dashboard" },
+            { href: "/dashboard/check-in", label: "Check-in" },
+            { href: "/dashboard/timeline", label: "Verlauf" },
+            { href: "/dashboard/board", label: "Board" },
+            { href: "/dashboard/templates", label: "Vorlagen" },
+            { href: "/dashboard/reminders", label: "Erinnerungen" },
+            { href: "/dashboard/thinking-partner", label: "Thinking Partner" },
+            { href: "/dashboard/vision-mission", label: "Vision & Mission" },
+            ...(user?.role === "ADMIN" || isAdminEmail(user?.email)
+              ? [{ href: "/admin", label: "Admin" }]
+              : []),
+            { href: "/dashboard/settings", label: "Einstellungen" },
+          ]}
+        />
 
         <div className="flex items-center gap-2">
           {user?.isPreviewingCouple ? (
             <span className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-              Admin Preview
+              Admin-Ansicht
             </span>
           ) : null}
           <Button asChild size="sm">
-            <Link href="/dashboard/objectives/new">
-              Objective erstellen
-            </Link>
+            <Link href="/dashboard/objectives/new">Ziel anlegen</Link>
           </Button>
           {user?.isPreviewingCouple ? (
             <form action={stopAdminCouplePreview}>
               <input type="hidden" name="redirectTo" value="/admin/couples" />
               <Button size="sm" variant="outline" type="submit">
-                Preview beenden
+                Ansicht beenden
               </Button>
             </form>
           ) : null}

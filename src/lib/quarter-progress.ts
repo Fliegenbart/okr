@@ -1,4 +1,5 @@
 import { calculateProgress } from "@/lib/progress";
+import type { KeyResultDirection, KeyResultType } from "@/lib/key-results";
 
 type QuarterInput = {
   id: string;
@@ -17,6 +18,12 @@ type KeyResultInput = {
   id: string;
   currentValue: number;
   targetValue: number;
+  startValue: number;
+  type: KeyResultType;
+  direction: KeyResultDirection;
+  redThreshold?: number | null;
+  yellowThreshold?: number | null;
+  greenThreshold?: number | null;
   updates: KeyResultUpdateInput[];
 };
 
@@ -129,6 +136,9 @@ function getObjectiveStartDate(
 }
 
 function getKeyResultStartValue(keyResult: KeyResultInput) {
+  if (typeof keyResult.startValue === "number") {
+    return keyResult.startValue;
+  }
   const firstUpdate = [...keyResult.updates].sort(
     (left, right) => left.createdAt.getTime() - right.createdAt.getTime()
   )[0];
@@ -189,6 +199,12 @@ function buildObjectiveSeries(
           return {
             currentValue: value,
             targetValue: keyResult.targetValue,
+            startValue: keyResult.startValue,
+            type: keyResult.type,
+            direction: keyResult.direction,
+            redThreshold: keyResult.redThreshold,
+            yellowThreshold: keyResult.yellowThreshold,
+            greenThreshold: keyResult.greenThreshold,
           };
         })
       : [];

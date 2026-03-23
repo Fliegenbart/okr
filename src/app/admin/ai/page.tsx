@@ -34,12 +34,7 @@ export default async function AdminAiPage() {
   const now = new Date();
   const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
-  const [
-    transcripts,
-    rateLimitEvents24h,
-    rateLimitEvents,
-    recentTranscripts,
-  ] = await Promise.all([
+  const [transcripts, rateLimitEvents24h, rateLimitEvents, recentTranscripts] = await Promise.all([
     prisma.transcript.count(),
     prisma.rateLimitEvent.count({ where: { createdAt: { gte: last24h } } }),
     prisma.rateLimitEvent.findMany({
@@ -67,15 +62,11 @@ export default async function AdminAiPage() {
   return (
     <div className="space-y-6">
       <section className="space-y-3">
-        <p className="text-sm font-semibold uppercase tracking-[0.24em] text-primary">
-          AI Operations
-        </p>
+        <p className="text-sm font-semibold uppercase tracking-[0.24em] text-primary">KI-Bereich</p>
         <div className="space-y-2">
-          <h1 className="text-3xl font-semibold text-foreground">
-            Thinking Partner und Transcript-Kontrolle
-          </h1>
+          <h1 className="text-3xl font-semibold text-foreground">Thinking Partner im Blick</h1>
           <p className="max-w-3xl text-sm text-muted-foreground">
-            Metriken für Wissensbasis, Rate Limits und importierte Transcripts.
+            Hier seht ihr, wie viele Inhalte importiert wurden und ob es zuletzt Sperren gab.
           </p>
         </div>
       </section>
@@ -104,18 +95,16 @@ export default async function AdminAiPage() {
       <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
         <Card>
           <CardHeader>
-            <CardTitle>Jüngste Transcripts</CardTitle>
-            <CardDescription>
-              Importierte Wissensbasis mit Couple-Scope.
-            </CardDescription>
+            <CardTitle>Zuletzt importierte Inhalte</CardTitle>
+            <CardDescription>Die letzten Einträge in der Wissensbasis.</CardDescription>
           </CardHeader>
           <CardContent className="overflow-x-auto pb-6">
             <table className="w-full text-left text-sm">
               <thead className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
                 <tr>
                   <th className="pb-3 pr-4 font-medium">Titel</th>
-                  <th className="pb-3 pr-4 font-medium">Couple</th>
-                  <th className="pb-3 pr-4 font-medium">Chunks</th>
+                  <th className="pb-3 pr-4 font-medium">Paar</th>
+                  <th className="pb-3 pr-4 font-medium">Abschnitte</th>
                   <th className="pb-3 font-medium">Import</th>
                 </tr>
               </thead>
@@ -144,27 +133,18 @@ export default async function AdminAiPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Rate-Limit Verlauf</CardTitle>
-            <CardDescription>
-              Die letzten geblockten oder protokollierten API-Versuche.
-            </CardDescription>
+            <CardTitle>Zuletzt geblockte Anfragen</CardTitle>
+            <CardDescription>Die letzten geblockten oder protokollierten Versuche.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {rateLimitEvents.map((event) => (
-              <div
-                key={event.id}
-                className="rounded-xl border border-border bg-muted/40 p-4"
-              >
+              <div key={event.id} className="rounded-xl border border-border bg-muted/40 p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <div className="text-sm font-semibold text-foreground">
-                      {event.action}
-                    </div>
+                    <div className="text-sm font-semibold text-foreground">{event.action}</div>
                     <div className="text-xs text-muted-foreground">{event.key}</div>
                   </div>
-                  <div className="text-xs text-muted-foreground">
-                    {formatDate(event.createdAt)}
-                  </div>
+                  <div className="text-xs text-muted-foreground">{formatDate(event.createdAt)}</div>
                 </div>
               </div>
             ))}
@@ -174,4 +154,3 @@ export default async function AdminAiPage() {
     </div>
   );
 }
-

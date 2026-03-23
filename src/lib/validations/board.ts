@@ -110,6 +110,42 @@ export const moveBoardElementSchema = z.object({
   zIndex: z.number().int().min(0).max(10000),
 });
 
+export const moveBoardElementsSchema = z.object({
+  moves: z
+    .array(
+      z.object({
+        elementId: idSchema,
+        x: coordinateSchema,
+        y: coordinateSchema,
+        zIndex: z.number().int().min(0).max(10000),
+      })
+    )
+    .min(1, "Bitte mindestens ein Element verschieben.")
+    .max(24, "Bitte nicht zu viele Elemente gleichzeitig verschieben."),
+});
+
 export const deleteBoardElementSchema = z.object({
   elementId: idSchema,
+});
+
+export const deleteBoardElementsSchema = z.object({
+  elementIds: z
+    .array(idSchema)
+    .min(1, "Bitte mindestens ein Element auswaehlen.")
+    .max(24, "Bitte nicht zu viele Elemente gleichzeitig loeschen."),
+});
+
+export const createBoardConnectionSchema = z
+  .object({
+    firstElementId: idSchema,
+    secondElementId: idSchema,
+    color: optionalColor,
+  })
+  .refine(
+    (value) => value.firstElementId !== value.secondElementId,
+    "Bitte zwei unterschiedliche Elemente auswaehlen."
+  );
+
+export const deleteBoardConnectionSchema = z.object({
+  connectionId: idSchema,
 });

@@ -2,10 +2,7 @@ import Link from "next/link";
 
 import { ObjectiveForm } from "@/components/dashboard/objective-form";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  redirectForMissingCouple,
-  requireDashboardSubpageAccess,
-} from "@/lib/dashboard-access";
+import { redirectForMissingCouple, requireDashboardSubpageAccess } from "@/lib/dashboard-access";
 import { prisma } from "@/lib/db";
 
 export default async function ObjectiveNewPage() {
@@ -42,11 +39,9 @@ export default async function ObjectiveNewPage() {
         </Link>
 
         <div className="mt-6 space-y-2">
-          <h1 className="text-3xl font-semibold text-foreground">
-            Neues Objective
-          </h1>
+          <h1 className="text-3xl font-semibold text-foreground">Neues Ziel</h1>
           <p className="text-sm text-muted-foreground">
-            Definiert ein klares Ziel und die wichtigsten Key Results.
+            Haltet fest, worauf ihr gemeinsam hinarbeiten wollt und woran ihr Fortschritt erkennt.
           </p>
         </div>
 

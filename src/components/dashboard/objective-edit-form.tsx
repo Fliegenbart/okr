@@ -28,22 +28,17 @@ export function ObjectiveEditForm({
 }: ObjectiveEditFormProps) {
   const router = useRouter();
   const [objectiveTitle, setObjectiveTitle] = useState(title);
-  const [objectiveDescription, setObjectiveDescription] = useState(
-    description ?? ""
-  );
-  const [selectedQuarterId, setSelectedQuarterId] = useState(
-    quarterId ?? ""
-  );
+  const [objectiveDescription, setObjectiveDescription] = useState(description ?? "");
+  const [selectedQuarterId, setSelectedQuarterId] = useState(quarterId ?? "");
 
   const updateAction = useAction(updateObjective, {
     onSuccess: () => {
-      toast.success("Objective gespeichert");
+      toast.success("Ziel gespeichert");
       router.refresh();
     },
     onError: ({ error }) => {
-      toast.error("Objective konnte nicht gespeichert werden", {
-        description:
-          error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
+      toast.error("Ziel konnte nicht gespeichert werden", {
+        description: error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
       });
     },
   });
@@ -67,16 +62,14 @@ export function ObjectiveEditForm({
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
       <div className="space-y-2">
-        <Label htmlFor="edit-objective-title">Objective</Label>
+        <Label htmlFor="edit-objective-title">Ziel</Label>
         <Input
           id="edit-objective-title"
           value={objectiveTitle}
           onChange={(event) => setObjectiveTitle(event.target.value)}
         />
         {validationErrors?.fieldErrors?.title?.[0] ? (
-          <p className="text-sm text-primary">
-            {validationErrors.fieldErrors.title[0]}
-          </p>
+          <p className="text-sm text-primary">{validationErrors.fieldErrors.title[0]}</p>
         ) : null}
       </div>
 

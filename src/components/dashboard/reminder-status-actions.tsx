@@ -12,9 +12,7 @@ type ReminderStatusActionsProps = {
   reminderId: string;
 };
 
-export function ReminderStatusActions({
-  reminderId,
-}: ReminderStatusActionsProps) {
+export function ReminderStatusActions({ reminderId }: ReminderStatusActionsProps) {
   const router = useRouter();
 
   const action = useAction(updateReminderStatus, {
@@ -22,9 +20,8 @@ export function ReminderStatusActions({
       router.refresh();
     },
     onError: ({ error }) => {
-      toast.error("Reminder konnte nicht aktualisiert werden", {
-        description:
-          error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
+      toast.error("Erinnerung konnte nicht aktualisiert werden", {
+        description: error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
       });
     },
   });
@@ -53,4 +50,3 @@ export function ReminderStatusActions({
     </div>
   );
 }
-

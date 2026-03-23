@@ -18,15 +18,14 @@ export function TimelineNoteForm() {
 
   const action = useAction(createTimelineNote, {
     onSuccess: () => {
-      toast.success("Timeline-Eintrag gespeichert");
+      toast.success("Eintrag gespeichert");
       setTitle("");
       setSummary("");
       router.refresh();
     },
     onError: ({ error }) => {
-      toast.error("Timeline-Eintrag konnte nicht gespeichert werden", {
-        description:
-          error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
+      toast.error("Eintrag konnte nicht gespeichert werden", {
+        description: error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
       });
     },
   });
@@ -63,4 +62,3 @@ export function TimelineNoteForm() {
     </form>
   );
 }
-

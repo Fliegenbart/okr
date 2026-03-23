@@ -63,18 +63,18 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
           <div className="space-y-4">
             <p className="text-sm uppercase tracking-[0.2em] text-primary">OKR für Paare</p>
             <h2 className="text-3xl font-semibold text-foreground">
-              Ein ruhiger, kontrollierter MVP statt offener Wildbahn.
+              Hier startet ihr in euren gemeinsamen Bereich.
             </h2>
             <p className="text-sm leading-7 text-muted-foreground">
-              Wir starten bewusst als geschlossene Beta. So können wir das Tool gemeinsam mit euch
-              sauber schärfen, bevor wir es breiter öffnen.
+              Meldet euch mit Einladung oder freigeschalteter E-Mail an. Danach könnt ihr direkt
+              euren gemeinsamen Bereich anlegen und loslegen.
             </p>
           </div>
 
           <div className="space-y-3 text-sm text-muted-foreground">
-            <p>1. Person 1 wird von uns freigeschaltet.</p>
-            <p>2. Nach dem Login kann das Couple angelegt werden.</p>
-            <p>3. Person 2 kommt über den Partner-Invite dazu.</p>
+            <p>1. Person 1 meldet sich mit der freigeschalteten E-Mail an.</p>
+            <p>2. Danach wird euer gemeinsamer Bereich angelegt.</p>
+            <p>3. Person 2 kommt anschließend über den Einladungslink dazu.</p>
             <Link href="/" className="inline-flex text-primary hover:underline">
               Zur Startseite
             </Link>

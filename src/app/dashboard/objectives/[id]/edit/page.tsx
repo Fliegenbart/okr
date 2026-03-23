@@ -7,17 +7,10 @@ import { KeyResultRestoreButton } from "@/components/dashboard/key-result-restor
 import { ObjectiveDeleteCard } from "@/components/dashboard/objective-delete-card";
 import { ObjectiveEditForm } from "@/components/dashboard/objective-edit-form";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  redirectForMissingCouple,
-  requireDashboardSubpageAccess,
-} from "@/lib/dashboard-access";
+import { redirectForMissingCouple, requireDashboardSubpageAccess } from "@/lib/dashboard-access";
 import { prisma } from "@/lib/db";
 
-export default async function ObjectiveEditPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function ObjectiveEditPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
   const viewer = await requireDashboardSubpageAccess(
     `/dashboard/objectives/${resolvedParams.id}/edit`
@@ -38,12 +31,8 @@ export default async function ObjectiveEditPage({
     }),
   ]);
 
-  const activeKeyResults = objective?.keyResults.filter(
-    (keyResult) => !keyResult.archivedAt
-  );
-  const archivedKeyResults = objective?.keyResults.filter(
-    (keyResult) => keyResult.archivedAt
-  );
+  const activeKeyResults = objective?.keyResults.filter((keyResult) => !keyResult.archivedAt);
+  const archivedKeyResults = objective?.keyResults.filter((keyResult) => keyResult.archivedAt);
   const keyResultLimitReached = (activeKeyResults?.length ?? 0) >= 6;
 
   if (!couple) {
@@ -65,20 +54,16 @@ export default async function ObjectiveEditPage({
         </Link>
 
         <div className="mt-6 space-y-2">
-          <h1 className="text-3xl font-semibold text-foreground">
-            Objective bearbeiten
-          </h1>
+          <h1 className="text-3xl font-semibold text-foreground">Ziel bearbeiten</h1>
           <p className="text-sm text-muted-foreground">
-            Passe Objective und Key Results an.
+            Passt euer Ziel und die zugehörigen Messpunkte an.
           </p>
         </div>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-[1.2fr,0.8fr]">
           <Card className="rounded-2xl border-border shadow-sm">
             <CardContent className="space-y-4 p-6">
-              <p className="text-sm uppercase tracking-[0.2em] text-primary">
-                Objective Details
-              </p>
+              <p className="text-sm uppercase tracking-[0.2em] text-primary">Ziel</p>
               <ObjectiveEditForm
                 objectiveId={objective.id}
                 title={objective.title}
@@ -95,12 +80,12 @@ export default async function ObjectiveEditPage({
           <Card className="rounded-2xl border-border shadow-sm">
             <CardContent className="space-y-4 p-6">
               <p className="text-sm uppercase tracking-[0.2em] text-primary">
-                Neues Key Result
+                Neuen Messpunkt ergänzen
               </p>
               <KeyResultCreateForm
                 objectiveId={objective.id}
                 disabled={keyResultLimitReached}
-                disabledReason="Maximal 6 Key Results pro Objective."
+                disabledReason="Maximal 6 Messpunkte pro Ziel."
               />
             </CardContent>
           </Card>
@@ -108,17 +93,22 @@ export default async function ObjectiveEditPage({
 
         <Card className="mt-8 rounded-2xl border-border shadow-sm">
           <CardContent className="space-y-4 p-6">
-            <p className="text-sm uppercase tracking-[0.2em] text-primary">
-              Key Results bearbeiten
-            </p>
+            <p className="text-sm uppercase tracking-[0.2em] text-primary">Messpunkte bearbeiten</p>
             <div className="space-y-4">
               {activeKeyResults?.map((keyResult) => (
                 <KeyResultEditItem
                   key={keyResult.id}
                   keyResultId={keyResult.id}
                   title={keyResult.title}
+                  type={keyResult.type}
+                  direction={keyResult.direction}
                   targetValue={keyResult.targetValue}
+                  startValue={keyResult.startValue}
                   unit={keyResult.unit}
+                  description={keyResult.description}
+                  redThreshold={keyResult.redThreshold}
+                  yellowThreshold={keyResult.yellowThreshold}
+                  greenThreshold={keyResult.greenThreshold}
                 />
               ))}
             </div>
@@ -129,7 +119,7 @@ export default async function ObjectiveEditPage({
           <Card className="mt-8 rounded-2xl border-border shadow-sm">
             <CardContent className="space-y-4 p-6">
               <p className="text-sm uppercase tracking-[0.2em] text-primary">
-                Archivierte Key Results
+                Archivierte Messpunkte
               </p>
               <div className="space-y-3">
                 {archivedKeyResults.map((keyResult) => (
@@ -138,11 +128,9 @@ export default async function ObjectiveEditPage({
                     className="flex items-center justify-between rounded-2xl border border-border bg-card p-4"
                   >
                     <div>
-                      <p className="text-sm font-semibold text-foreground">
-                        {keyResult.title}
-                      </p>
+                      <p className="text-sm font-semibold text-foreground">{keyResult.title}</p>
                       <p className="text-xs text-muted-foreground">
-                        Ziel: {keyResult.targetValue}
+                        {keyResult.type === "BINARY" ? "Ja / Nein" : `Ziel: ${keyResult.targetValue}`}
                         {keyResult.unit ? ` ${keyResult.unit}` : ""}
                       </p>
                     </div>
@@ -156,9 +144,7 @@ export default async function ObjectiveEditPage({
 
         <Card className="mt-8 rounded-2xl border-border shadow-sm">
           <CardContent className="space-y-4 p-6">
-            <p className="text-sm uppercase tracking-[0.2em] text-primary">
-              Danger Zone
-            </p>
+            <p className="text-sm uppercase tracking-[0.2em] text-primary">Löschen</p>
             <ObjectiveDeleteCard objectiveId={objective.id} />
           </CardContent>
         </Card>

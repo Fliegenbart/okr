@@ -31,7 +31,7 @@ export function AdminHeader({ user, previewCouple }: AdminHeaderProps) {
               />
             </span>
             <div className="flex flex-col">
-              <span className="text-sm font-semibold text-foreground">Admin Console</span>
+              <span className="text-sm font-semibold text-foreground">Admin-Bereich</span>
               <span className="text-xs text-muted-foreground">{user.email ?? "ohne E-Mail"}</span>
             </div>
           </Link>
@@ -40,12 +40,12 @@ export function AdminHeader({ user, previewCouple }: AdminHeaderProps) {
         <DashboardHeaderNav
           className="flex-wrap gap-2"
           items={[
-            { href: "/admin", label: "Overview" },
+            { href: "/admin", label: "Übersicht" },
             { href: "/admin/beta", label: "Beta" },
-            { href: "/admin/invites", label: "Invites" },
-            { href: "/admin/couples", label: "Couples" },
+            { href: "/admin/invites", label: "Einladungen" },
+            { href: "/admin/couples", label: "Paare" },
             { href: "/admin/boards", label: "Boards" },
-            { href: "/admin/ai", label: "AI Ops" },
+            { href: "/admin/ai", label: "KI" },
             { href: "/admin/audit", label: "Audit" },
           ]}
         />
@@ -53,22 +53,20 @@ export function AdminHeader({ user, previewCouple }: AdminHeaderProps) {
         <div className="flex items-center gap-2">
           {previewCouple ? (
             <span className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-              Preview: {previewCouple.name}
+              Ansicht: {previewCouple.name}
             </span>
           ) : null}
           <span className="rounded-full border border-border bg-muted px-3 py-1 text-xs font-semibold text-foreground">
             {user.role}
           </span>
           <Button asChild size="sm" variant="outline">
-            <Link href="/dashboard">
-              {previewCouple ? "Zum Paar-Dashboard" : "Zur App"}
-            </Link>
+            <Link href="/dashboard">{previewCouple ? "Zum Paar-Dashboard" : "Zur App"}</Link>
           </Button>
           {previewCouple ? (
             <form action={stopAdminCouplePreview}>
               <input type="hidden" name="redirectTo" value="/admin/couples" />
               <Button size="sm" variant="secondary" type="submit">
-                Preview beenden
+                Ansicht beenden
               </Button>
             </form>
           ) : null}

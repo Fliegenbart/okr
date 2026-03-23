@@ -6,48 +6,76 @@ import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
 
 import { archiveKeyResult, updateKeyResultMeta } from "@/actions/key-result";
+import {
+  createEmptyKeyResultDraft,
+  KeyResultFields,
+} from "@/components/dashboard/key-result-fields";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import type { KeyResultDirection, KeyResultType } from "@/lib/key-results";
 
 export type KeyResultEditItemProps = {
   keyResultId: string;
   title: string;
+  type: KeyResultType;
+  direction: KeyResultDirection;
   targetValue: number;
+  startValue: number;
   unit?: string | null;
+  description?: string | null;
+  redThreshold?: number | null;
+  yellowThreshold?: number | null;
+  greenThreshold?: number | null;
 };
 
 export function KeyResultEditItem({
   keyResultId,
   title,
+  type,
+  direction,
   targetValue,
+  startValue,
   unit,
+  description,
+  redThreshold,
+  yellowThreshold,
+  greenThreshold,
 }: KeyResultEditItemProps) {
   const router = useRouter();
-  const [krTitle, setKrTitle] = useState(title);
-  const [krTarget, setKrTarget] = useState(String(targetValue));
-  const [krUnit, setKrUnit] = useState(unit ?? "");
+  const [draft, setDraft] = useState({
+    ...createEmptyKeyResultDraft(),
+    title,
+    type,
+    direction,
+    targetValue: String(targetValue),
+    startValue: String(startValue),
+    unit: unit ?? "",
+    description: description ?? "",
+    redThreshold: redThreshold !== null && redThreshold !== undefined ? String(redThreshold) : "",
+    yellowThreshold:
+      yellowThreshold !== null && yellowThreshold !== undefined ? String(yellowThreshold) : "",
+    greenThreshold:
+      greenThreshold !== null && greenThreshold !== undefined ? String(greenThreshold) : "",
+  });
 
   const updateAction = useAction(updateKeyResultMeta, {
     onSuccess: () => {
-      toast.success("Key Result aktualisiert");
+      toast.success("Messpunkt aktualisiert");
       router.refresh();
     },
     onError: ({ error }) => {
-      toast.error("Key Result konnte nicht aktualisiert werden", {
-        description:
-          error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
+      toast.error("Messpunkt konnte nicht aktualisiert werden", {
+        description: error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
       });
     },
   });
 
   const deleteAction = useAction(archiveKeyResult, {
     onSuccess: () => {
-      toast.success("Key Result archiviert");
+      toast.success("Messpunkt archiviert");
       router.refresh();
     },
     onError: ({ error }) => {
-      toast.error("Key Result konnte nicht archiviert werden", {
+      toast.error("Messpunkt konnte nicht archiviert werden", {
         description: error.serverError ?? "",
       });
     },
@@ -57,14 +85,12 @@ export function KeyResultEditItem({
     event.preventDefault();
     updateAction.execute({
       keyResultId,
-      title: krTitle,
-      targetValue: krTarget,
-      unit: krUnit,
+      ...draft,
     });
   };
 
   const handleDelete = () => {
-    if (window.confirm("Key Result wirklich archivieren?")) {
+    if (window.confirm("Messpunkt wirklich archivieren?")) {
       deleteAction.execute({ keyResultId });
     }
   };
@@ -75,7 +101,7 @@ export function KeyResultEditItem({
       onSubmit={handleUpdate}
     >
       <div className="flex items-start justify-between gap-3">
-        <p className="text-sm font-semibold text-foreground">Key Result</p>
+        <p className="text-sm font-semibold text-foreground">Messpunkt</p>
         <button
           type="button"
           onClick={handleDelete}
@@ -84,35 +110,7 @@ export function KeyResultEditItem({
           Archivieren
         </button>
       </div>
-      <div className="space-y-2">
-        <Label htmlFor={`kr-edit-title-${keyResultId}`}>Titel</Label>
-        <Input
-          id={`kr-edit-title-${keyResultId}`}
-          value={krTitle}
-          onChange={(event) => setKrTitle(event.target.value)}
-        />
-      </div>
-      <div className="grid gap-3 sm:grid-cols-[1fr,0.6fr]">
-        <div className="space-y-2">
-          <Label htmlFor={`kr-edit-target-${keyResultId}`}>Zielwert</Label>
-          <Input
-            id={`kr-edit-target-${keyResultId}`}
-            type="number"
-            min={0}
-            step="0.1"
-            value={krTarget}
-            onChange={(event) => setKrTarget(event.target.value)}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor={`kr-edit-unit-${keyResultId}`}>Einheit</Label>
-          <Input
-            id={`kr-edit-unit-${keyResultId}`}
-            value={krUnit}
-            onChange={(event) => setKrUnit(event.target.value)}
-          />
-        </div>
-      </div>
+      <KeyResultFields idPrefix={`kr-edit-${keyResultId}`} value={draft} onChange={setDraft} />
       <Button type="submit" className="rounded-2xl" disabled={updateAction.isPending}>
         Speichern
       </Button>

@@ -16,19 +16,19 @@ export function ObjectiveDeleteCard({ objectiveId }: ObjectiveDeleteCardProps) {
 
   const deleteAction = useAction(archiveObjective, {
     onSuccess: () => {
-      toast.success("Objective archiviert");
+      toast.success("Ziel archiviert");
       router.push("/dashboard");
       router.refresh();
     },
     onError: ({ error }) => {
-      toast.error("Objective konnte nicht archiviert werden", {
+      toast.error("Ziel konnte nicht archiviert werden", {
         description: error.serverError ?? "",
       });
     },
   });
 
   const handleDelete = () => {
-    if (window.confirm("Objective wirklich archivieren?")) {
+    if (window.confirm("Ziel wirklich archivieren?")) {
       deleteAction.execute({ objectiveId });
     }
   };
@@ -36,7 +36,7 @@ export function ObjectiveDeleteCard({ objectiveId }: ObjectiveDeleteCardProps) {
   return (
     <div className="space-y-3">
       <p className="text-sm text-muted-foreground">
-        Dieses Objective und alle zugehörigen Key Results werden archiviert.
+        Dieses Ziel und alle zugehörigen Messpunkte werden archiviert.
       </p>
       <Button
         type="button"
@@ -45,7 +45,7 @@ export function ObjectiveDeleteCard({ objectiveId }: ObjectiveDeleteCardProps) {
         onClick={handleDelete}
         disabled={deleteAction.isPending}
       >
-        Objective archivieren
+        Ziel archivieren
       </Button>
     </div>
   );

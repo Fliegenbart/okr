@@ -5,10 +5,7 @@ import { BoardWorkspace } from "@/components/dashboard/board-workspace";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ensureBoardForCouple, serializeBoard } from "@/lib/boards";
-import {
-  redirectForMissingCouple,
-  requireDashboardSubpageAccess,
-} from "@/lib/dashboard-access";
+import { redirectForMissingCouple, requireDashboardSubpageAccess } from "@/lib/dashboard-access";
 import { prisma } from "@/lib/db";
 import { cn } from "@/lib/utils";
 
@@ -55,9 +52,8 @@ export default async function BoardPage({ searchParams }: BoardPageProps) {
 
   const now = new Date();
   const activeQuarter =
-    couple.quarters.find(
-      (quarter) => quarter.startsAt <= now && quarter.endsAt >= now
-    ) ?? couple.quarters[0];
+    couple.quarters.find((quarter) => quarter.startsAt <= now && quarter.endsAt >= now) ??
+    couple.quarters[0];
 
   const requestedQuarter =
     resolvedSearchParams?.quarterId && couple.quarters.length
@@ -65,7 +61,7 @@ export default async function BoardPage({ searchParams }: BoardPageProps) {
       : null;
 
   const shouldUseMaster = resolvedSearchParams?.scope === "master" || !activeQuarter;
-  const selectedQuarter = shouldUseMaster ? null : requestedQuarter ?? activeQuarter;
+  const selectedQuarter = shouldUseMaster ? null : (requestedQuarter ?? activeQuarter);
 
   try {
     const board = await ensureBoardForCouple({
@@ -92,22 +88,19 @@ export default async function BoardPage({ searchParams }: BoardPageProps) {
           <div className="mt-6 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="space-y-3">
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">
-                Gemeinsamer Thinking Space
+                Gemeinsam festhalten
               </p>
               <div className="space-y-2">
-                <h1 className="text-3xl font-semibold text-foreground">
-                  Euer OKR Board
-                </h1>
+                <h1 className="text-3xl font-semibold text-foreground">Euer OKR Board</h1>
                 <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
-                  Hier koennt ihr OKRs, Roadmap, Zielsätze und lose Gedanken frei
-                  aufskizzieren. Das Board synchronisiert sich automatisch zwischen
-                  beiden Partnern.
+                  Hier könnt ihr Gedanken, Ziele und Pläne gemeinsam sammeln. Alles bleibt für euch
+                  beide sichtbar und aktuell.
                 </p>
               </div>
             </div>
 
             <Button asChild variant="outline" className="rounded-2xl">
-              <Link href={currentHref}>Aktuelles Board teilen</Link>
+              <Link href={currentHref}>Dieses Board teilen</Link>
             </Button>
           </div>
 
@@ -121,7 +114,7 @@ export default async function BoardPage({ searchParams }: BoardPageProps) {
                   : "border-border bg-white text-foreground hover:bg-muted"
               )}
             >
-              Master-Board
+              Gesamtübersicht
             </Link>
 
             {couple.quarters.map((quarter) => {
@@ -168,15 +161,14 @@ export default async function BoardPage({ searchParams }: BoardPageProps) {
           <Card className="mt-8 rounded-2xl border-border shadow-sm">
             <CardContent className="space-y-4 p-6">
               <p className="text-sm uppercase tracking-[0.2em] text-primary">
-                Board noch nicht bereit
+                Bereich noch nicht bereit
               </p>
               <h1 className="text-2xl font-semibold text-foreground">
-                Das Board braucht noch die neuesten Datenbank-Migrationen.
+                Dieser Bereich braucht noch ein technisches Update.
               </h1>
               <p className="text-sm leading-6 text-muted-foreground">
-                Die App ist bereits deployed, aber die neuen Board-Tabellen sind auf
-                der produktiven Datenbank noch nicht vorhanden. Sobald `prisma migrate
-                deploy` gelaufen ist, funktioniert der Bereich automatisch.
+                Im Hintergrund fehlt noch ein Datenbank-Update. Sobald es eingespielt ist, könnt ihr
+                das Board ganz normal nutzen.
               </p>
             </CardContent>
           </Card>

@@ -56,7 +56,7 @@ export function InviteCodeCard({ inviteCode, appUrl }: InviteCodeCardProps) {
       try {
         await navigator.share({
           title: "OKR für Paare",
-          text: "Komm in unser Couple!",
+          text: "Komm in unseren gemeinsamen Bereich!",
           url: inviteUrl,
         });
         toast.success("Einladung geteilt");
@@ -71,9 +71,7 @@ export function InviteCodeCard({ inviteCode, appUrl }: InviteCodeCardProps) {
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm uppercase tracking-[0.2em] text-primary">
-          Einladungscode
-        </p>
+        <p className="text-sm uppercase tracking-[0.2em] text-primary">Einladungscode</p>
         <Button
           type="button"
           variant="outline"
@@ -93,15 +91,9 @@ export function InviteCodeCard({ inviteCode, appUrl }: InviteCodeCardProps) {
       </div>
 
       <div className="space-y-2">
-        <p className="text-sm uppercase tracking-[0.2em] text-primary">
-          Einladungslink
-        </p>
+        <p className="text-sm uppercase tracking-[0.2em] text-primary">Einladungslink</p>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <Input
-            value={inviteUrl || "Link wird vorbereitet..."}
-            readOnly
-            className="rounded-2xl"
-          />
+          <Input value={inviteUrl || "Link wird vorbereitet..."} readOnly className="rounded-2xl" />
           <div className="flex gap-2">
             <Button
               type="button"
@@ -137,9 +129,7 @@ export function InviteCodeCard({ inviteCode, appUrl }: InviteCodeCardProps) {
             <div className="h-[120px] w-[120px] animate-pulse rounded-xl bg-muted" />
           )}
         </div>
-        <p className="text-sm text-muted-foreground">
-          QR-Code scannen, um sofort beizutreten.
-        </p>
+        <p className="text-sm text-muted-foreground">QR-Code scannen, um sofort beizutreten.</p>
       </div>
     </div>
   );

@@ -160,20 +160,14 @@ export function CheckInScheduleCard({
   const router = useRouter();
 
   const [isEnabled, setIsEnabled] = useState(enabled);
-  const [selectedWeekday, setSelectedWeekday] = useState<number>(
-    weekday ?? 6
-  );
+  const [selectedWeekday, setSelectedWeekday] = useState<number>(weekday ?? 6);
   const [selectedTime, setSelectedTime] = useState(time ?? "19:00");
-  const [selectedDuration, setSelectedDuration] = useState(
-    durationMinutes ?? 15
-  );
+  const [selectedDuration, setSelectedDuration] = useState(durationMinutes ?? 15);
 
   const detectedTimeZone = useMemo(() => {
     const tz =
       timeZone ||
-      (typeof Intl !== "undefined"
-        ? Intl.DateTimeFormat().resolvedOptions().timeZone
-        : null);
+      (typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : null);
     return tz || "";
   }, [timeZone]);
 
@@ -184,8 +178,7 @@ export function CheckInScheduleCard({
     },
     onError: ({ error }) => {
       toast.error("Konnte nicht speichern", {
-        description:
-          error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
+        description: error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
       });
     },
   });
@@ -240,12 +233,9 @@ export function CheckInScheduleCard({
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm uppercase tracking-[0.2em] text-primary">
-            Wochen-Check-in
-          </p>
+          <p className="text-sm uppercase tracking-[0.2em] text-primary">Wochen-Check-in</p>
           <p className="text-sm text-muted-foreground">
-            Tragt euren Check-in als wiederkehrenden Termin ein - das ist die beste
-            Reminder-Logik für Smartphone.
+            Tragt euren Check-in als festen Termin ein, damit er im Alltag nicht untergeht.
           </p>
         </div>
         <label className="flex items-center gap-2 text-sm text-foreground">
@@ -291,9 +281,7 @@ export function CheckInScheduleCard({
             <select
               id="checkin-duration"
               value={selectedDuration}
-              onChange={(event) =>
-                setSelectedDuration(Number(event.target.value))
-              }
+              onChange={(event) => setSelectedDuration(Number(event.target.value))}
               className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
             >
               {[10, 15, 20, 30, 45].map((value) => (
@@ -322,7 +310,7 @@ export function CheckInScheduleCard({
           onClick={() => window.open(googleUrl, "_blank")}
           disabled={!isEnabled}
         >
-          Zu Google Calendar
+          In Google Calendar öffnen
         </Button>
         <Button
           type="button"

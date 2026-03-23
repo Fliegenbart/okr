@@ -68,26 +68,18 @@ export default async function AdminInvitesPage({
     <div className="space-y-6">
       <section className="space-y-3">
         <p className="text-sm font-semibold uppercase tracking-[0.24em] text-primary">
-          Invite Management
+          Einladungen
         </p>
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div className="space-y-2">
-            <h1 className="text-3xl font-semibold text-foreground">
-              Einladungen verwalten
-            </h1>
+            <h1 className="text-3xl font-semibold text-foreground">Einladungen verwalten</h1>
             <p className="max-w-3xl text-sm text-muted-foreground">
-              Alle offenen, angenommenen und widerrufenen Invites in einer
-              Liste. Hier lassen sich problematische Einladungen gezielt sperren.
+              Hier seht ihr alle offenen, angenommenen und gesperrten Einladungen an einem Ort.
             </p>
           </div>
 
           <form className="flex w-full gap-2 md:w-auto" action="/admin/invites" method="get">
-            <Input
-              name="q"
-              defaultValue={q}
-              placeholder="E-Mail oder Couple"
-              className="md:w-72"
-            />
+            <Input name="q" defaultValue={q} placeholder="E-Mail oder Paar" className="md:w-72" />
             <Button type="submit" variant="outline">
               Suchen
             </Button>
@@ -97,17 +89,15 @@ export default async function AdminInvitesPage({
 
       <Card>
         <CardHeader>
-          <CardTitle>Invites</CardTitle>
-          <CardDescription>
-            {invites.length} Einladungen gefunden.
-          </CardDescription>
+          <CardTitle>Einladungen</CardTitle>
+          <CardDescription>{invites.length} Einladungen gefunden.</CardDescription>
         </CardHeader>
         <CardContent className="overflow-x-auto pb-6">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
               <tr>
                 <th className="pb-3 pr-4 font-medium">E-Mail</th>
-                <th className="pb-3 pr-4 font-medium">Couple</th>
+                <th className="pb-3 pr-4 font-medium">Paar</th>
                 <th className="pb-3 pr-4 font-medium">Status</th>
                 <th className="pb-3 pr-4 font-medium">Erstellt</th>
                 <th className="pb-3 pr-4 font-medium">Läuft aus</th>
@@ -129,20 +119,18 @@ export default async function AdminInvitesPage({
                       : "neutral";
 
                 const label = isRevoked
-                  ? "revoked"
+                  ? "gesperrt"
                   : isAccepted
-                    ? "accepted"
+                    ? "angenommen"
                     : isExpired
-                      ? "expired"
-                      : "pending";
+                      ? "abgelaufen"
+                      : "offen";
 
                 return (
                   <tr key={invite.id} className="border-b border-border/60 last:border-0">
                     <td className="py-4 pr-4">
                       <div className="font-medium text-foreground">{invite.email}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {invite.id.slice(0, 8)}
-                      </div>
+                      <div className="text-xs text-muted-foreground">{invite.id.slice(0, 8)}</div>
                     </td>
                     <td className="py-4 pr-4">{invite.couple.name}</td>
                     <td className="py-4 pr-4">{statusPill(label, tone)}</td>
@@ -154,15 +142,13 @@ export default async function AdminInvitesPage({
                     </td>
                     <td className="py-4">
                       {isRevoked || isAccepted ? (
-                        <span className="text-xs text-muted-foreground">
-                          Keine Aktion
-                        </span>
+                        <span className="text-xs text-muted-foreground">Keine Aktion</span>
                       ) : (
                         <ConfirmActionDialog
-                          triggerLabel="Widerrufen"
-                          title="Einladung widerrufen"
+                          triggerLabel="Sperren"
+                          title="Einladung sperren"
                           description={`Die Einladung an ${invite.email} für ${invite.couple.name} wird sofort gesperrt.`}
-                          confirmLabel="Invite widerrufen"
+                          confirmLabel="Einladung sperren"
                           action={revokeInvite.bind(null, invite.id)}
                         />
                       )}
@@ -177,4 +163,3 @@ export default async function AdminInvitesPage({
     </div>
   );
 }
-

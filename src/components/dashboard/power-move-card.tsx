@@ -30,11 +30,7 @@ export type PowerMoveCardProps = {
   hasObjectives: boolean;
 };
 
-export function PowerMoveCard({
-  quarterId,
-  quarterTitle,
-  hasObjectives,
-}: PowerMoveCardProps) {
+export function PowerMoveCard({ quarterId, quarterTitle, hasObjectives }: PowerMoveCardProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [reply, setReply] = useState<string | null>(null);
   const [structured, setStructured] = useState<StructuredAnswer | null>(null);
@@ -55,7 +51,7 @@ export function PowerMoveCard({
       const data = await response.json();
 
       if (!response.ok) {
-        toast.error("Powermove konnte nicht geladen werden", {
+        toast.error("Vorschlag konnte gerade nicht geladen werden", {
           description: data?.error ?? "",
         });
         return;
@@ -65,12 +61,8 @@ export function PowerMoveCard({
         data?.structured && typeof data.structured === "object"
           ? (data.structured as StructuredAnswer)
           : null;
-      const nextActions = Array.isArray(data?.actions)
-        ? (data.actions as Action[])
-        : [];
-      const nextSources = Array.isArray(data?.sources)
-        ? (data.sources as Source[])
-        : [];
+      const nextActions = Array.isArray(data?.actions) ? (data.actions as Action[]) : [];
+      const nextSources = Array.isArray(data?.sources) ? (data.sources as Source[]) : [];
       const nextReply = typeof data?.reply === "string" ? data.reply : null;
 
       setStructured(nextStructured);
@@ -79,10 +71,10 @@ export function PowerMoveCard({
       setReply(nextReply);
 
       if (!nextStructured) {
-        toast.message("Powermove geladen");
+        toast.message("Vorschlag geladen");
       }
     } catch {
-      toast.error("Powermove konnte nicht geladen werden");
+      toast.error("Vorschlag konnte gerade nicht geladen werden");
     } finally {
       setIsLoading(false);
     }
@@ -114,31 +106,27 @@ export function PowerMoveCard({
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-1">
             <p className="text-sm font-semibold text-primary">
-              Powermove fürs Quartal
+              Wichtigster Schritt für dieses Quartal
             </p>
             <p className="text-sm text-muted-foreground">
               {quarterTitle ? quarterTitle : "Aktuelles Quartal"}
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              onClick={loadPowerMove}
-              disabled={!hasObjectives || isLoading}
-            >
+            <Button size="sm" onClick={loadPowerMove} disabled={!hasObjectives || isLoading}>
               <Sparkles className="h-4 w-4" />
-              {structured ? "Neu berechnen" : "Powermove finden"}
+              {structured ? "Neu laden" : "Vorschlag holen"}
             </Button>
           </div>
         </div>
 
         {!hasObjectives ? (
           <div className="rounded-lg border border-border bg-muted/50 p-4 text-sm text-muted-foreground">
-            Legt zuerst mindestens ein Objective an, dann kann ich den größten
-            Hebel für euer Quartal finden.
+            Legt zuerst mindestens ein Ziel an. Danach zeige ich euch den nächsten Schritt, der im
+            Quartal am meisten bewegen kann.
             <div className="mt-3">
               <Button asChild size="sm" variant="outline">
-                <Link href="/dashboard/objectives/new">Objective erstellen</Link>
+                <Link href="/dashboard/objectives/new">Ziel anlegen</Link>
               </Button>
             </div>
           </div>
@@ -147,22 +135,14 @@ export function PowerMoveCard({
         {hasObjectives && structured ? (
           <div className="space-y-4">
             <div className="rounded-lg bg-primary/5 p-5">
-              <p className="text-xs font-medium text-muted-foreground">
-                Powermove
-              </p>
-              <p className="mt-2 text-lg font-semibold text-foreground">
-                {structured.nextStep}
-              </p>
-              <p className="mt-3 text-sm text-muted-foreground">
-                {structured.summary}
-              </p>
+              <p className="text-xs font-medium text-muted-foreground">Euer nächster Schritt</p>
+              <p className="mt-2 text-lg font-semibold text-foreground">{structured.nextStep}</p>
+              <p className="mt-3 text-sm text-muted-foreground">{structured.summary}</p>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="rounded-lg border border-border bg-white p-4">
-                <p className="text-xs font-medium text-muted-foreground">
-                  Impulse
-                </p>
+                <p className="text-xs font-medium text-muted-foreground">Warum das gerade hilft</p>
                 <ul className="mt-3 space-y-2 text-sm text-foreground">
                   {structured.impulses.map((impulse) => (
                     <li key={impulse} className="flex gap-2">
@@ -175,7 +155,7 @@ export function PowerMoveCard({
 
               <div className="rounded-lg border border-border bg-white p-4">
                 <p className="text-xs font-medium text-muted-foreground">
-                  Rückfragen
+                  Fragen für euer Gespräch
                 </p>
                 <ul className="mt-3 space-y-2 text-sm text-foreground">
                   {structured.questions.map((question) => (
@@ -209,17 +189,13 @@ export function PowerMoveCard({
             {sources.length ? (
               <details className="rounded-lg border border-border bg-white p-4">
                 <summary className="cursor-pointer list-none text-xs font-medium text-muted-foreground">
-                  Quellen (Calls)
+                  Grundlage aus euren Sessions
                 </summary>
                 <div className="mt-3 space-y-3">
                   {sources.slice(0, 3).map((source) => (
                     <div key={source.title} className="space-y-1">
-                      <p className="text-sm font-medium text-foreground">
-                        {source.title}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {source.excerpt}…
-                      </p>
+                      <p className="text-sm font-medium text-foreground">{source.title}</p>
+                      <p className="text-sm text-muted-foreground">{source.excerpt}…</p>
                     </div>
                   ))}
                 </div>
@@ -240,14 +216,12 @@ export function PowerMoveCard({
 
         {hasObjectives && !structured && !reply ? (
           <div className="rounded-lg border border-border bg-muted/50 p-4 text-sm text-muted-foreground">
-            Ein Powermove ist der kleinste Schritt mit dem größten Hebel.
-            Klick auf <span className="font-medium">Powermove finden</span>.
+            Hier bekommt ihr einen Vorschlag, welcher nächste Schritt euch im Quartal gerade am
+            meisten hilft. Klickt auf <span className="font-medium">Vorschlag holen</span>.
           </div>
         ) : null}
 
-        {isLoading ? (
-          <p className="text-sm text-muted-foreground">Analysiere…</p>
-        ) : null}
+        {isLoading ? <p className="text-sm text-muted-foreground">Analysiere…</p> : null}
       </CardContent>
     </Card>
   );

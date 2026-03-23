@@ -85,7 +85,7 @@ export function InvitePartnerCard({
       try {
         await navigator.share({
           title: "OKR für Paare",
-          text: "Komm in unser Couple!",
+          text: "Komm in unseren gemeinsamen Bereich!",
           url: inviteUrl,
         });
         toast.success("Einladung geteilt");
@@ -100,9 +100,7 @@ export function InvitePartnerCard({
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm font-medium text-primary">
-          Partner einladen
-        </p>
+        <p className="text-sm font-medium text-primary">Partner einladen</p>
       </div>
 
       <div className="space-y-3">
@@ -124,7 +122,7 @@ export function InvitePartnerCard({
         </Button>
         {isCoupleFull ? (
           <p className="text-xs text-muted-foreground">
-            Euer Couple ist bereits voll.
+            Euer gemeinsamer Bereich ist bereits vollständig.
           </p>
         ) : null}
       </div>
@@ -141,9 +139,7 @@ export function InvitePartnerCard({
           </div>
 
           <div className="space-y-2">
-            <p className="text-xs font-medium text-primary">
-              Einladungslink
-            </p>
+            <p className="text-xs font-medium text-primary">Einladungslink</p>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <Input
                 value={inviteUrl || "Link wird vorbereitet..."}
@@ -185,14 +181,12 @@ export function InvitePartnerCard({
                 <div className="h-[120px] w-[120px] animate-pulse rounded-xl bg-muted" />
               )}
             </div>
-            <p className="text-sm text-muted-foreground">
-              QR-Code scannen, um sofort beizutreten.
-            </p>
+            <p className="text-sm text-muted-foreground">QR-Code scannen, um sofort beizutreten.</p>
           </div>
         </div>
       ) : (
         <p className="text-xs text-muted-foreground">
-          Erstelle einen Link, um deinen Partner einzuladen.
+          Erstellt hier einen Link, damit die zweite Person dazukommen kann.
         </p>
       )}
 

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { KeyResultChart } from "@/components/dashboard/key-result-chart";
+import { SimpleRichTextContent } from "@/components/dashboard/simple-rich-text";
 import { KeyResultUpdateForm } from "@/components/dashboard/key-result-update-form";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -9,6 +10,11 @@ import {
   requireDashboardSubpageAccess,
 } from "@/lib/dashboard-access";
 import { prisma } from "@/lib/db";
+import {
+  getKeyResultDirectionLabel,
+  getKeyResultSummaryText,
+  getKeyResultTypeLabel,
+} from "@/lib/key-results";
 
 const dateTimeFormatter = new Intl.DateTimeFormat("de-DE", {
   dateStyle: "medium",
@@ -33,7 +39,11 @@ export default async function KeyResultDetailPage({
       },
     },
     include: {
-      objective: true,
+      objective: {
+        include: {
+          quarter: true,
+        },
+      },
       updates: {
         orderBy: { createdAt: "asc" },
       },
@@ -57,34 +67,10 @@ export default async function KeyResultDetailPage({
     (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
   );
 
-  const chartData = sortedUpdates.length
-    ? (() => {
-        const [first, ...rest] = sortedUpdates;
-        const data = [];
-        if (first.previousValue !== null && first.previousValue !== undefined) {
-          data.push({
-            date: new Date(first.createdAt.getTime() - 60 * 1000).toISOString(),
-            value: first.previousValue,
-          });
-        }
-        data.push({
-          date: first.createdAt.toISOString(),
-          value: first.value,
-        });
-        rest.forEach((update) => {
-          data.push({
-            date: update.createdAt.toISOString(),
-            value: update.value,
-          });
-        });
-        return data;
-      })()
-    : [
-        {
-          date: keyResult.updatedAt.toISOString(),
-          value: keyResult.currentValue,
-        },
-      ];
+  const chartData = sortedUpdates.map((update) => ({
+    date: update.createdAt.toISOString(),
+    value: update.value,
+  }));
 
   const activityUpdates = [...sortedUpdates]
     .reverse()
@@ -92,8 +78,7 @@ export default async function KeyResultDetailPage({
       const previousValue =
         update.previousValue ??
         list[index + 1]?.value ??
-        update.previousValue ??
-        0;
+        keyResult.startValue;
       return {
         id: update.id,
         value: update.value,
@@ -103,8 +88,7 @@ export default async function KeyResultDetailPage({
       };
     });
 
-  const startValue =
-    sortedUpdates[0]?.previousValue ?? sortedUpdates[0]?.value ?? 0;
+  const startValue = keyResult.startValue;
 
   return (
     <div className="min-h-screen bg-background">
@@ -124,8 +108,7 @@ export default async function KeyResultDetailPage({
             {keyResult.title}
           </h1>
           <p className="text-sm text-muted-foreground">
-            Aktuell {keyResult.currentValue} von {keyResult.targetValue}
-            {keyResult.unit ? ` ${keyResult.unit}` : ""}
+            {getKeyResultSummaryText(keyResult)}
           </p>
           <div className="flex flex-wrap gap-3 pt-2">
             <Link
@@ -170,21 +153,49 @@ export default async function KeyResultDetailPage({
                 Ziel
               </p>
               <p className="text-lg font-semibold text-foreground">
-                {keyResult.targetValue}
+                {keyResult.type === "BINARY" ? "Ja / Nein" : keyResult.targetValue}
               </p>
             </CardContent>
           </Card>
           <Card className="rounded-2xl border-border shadow-sm">
             <CardContent className="space-y-1 p-4">
               <p className="text-xs uppercase tracking-[0.2em] text-primary">
-                Einheit
+                Typ
               </p>
               <p className="text-lg font-semibold text-foreground">
-                {keyResult.unit ? keyResult.unit : "—"}
+                {getKeyResultTypeLabel(keyResult.type)}
               </p>
             </CardContent>
           </Card>
         </div>
+
+        <div className="mt-4 grid gap-4 sm:grid-cols-3">
+          <Card className="rounded-2xl border-border shadow-sm">
+            <CardContent className="space-y-1 p-4">
+              <p className="text-xs uppercase tracking-[0.2em] text-primary">Richtung</p>
+              <p className="text-lg font-semibold text-foreground">
+                {getKeyResultDirectionLabel(keyResult.direction)}
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="rounded-2xl border-border shadow-sm sm:col-span-2">
+            <CardContent className="space-y-2 p-4">
+              <p className="text-xs uppercase tracking-[0.2em] text-primary">Beschreibung</p>
+              {keyResult.description ? (
+                <SimpleRichTextContent value={keyResult.description} />
+              ) : (
+                <p className="text-sm text-muted-foreground">Noch keine Beschreibung hinterlegt.</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+        {keyResult.type === "TRAFFIC_LIGHT" ? (
+          <p className="mt-3 text-sm text-muted-foreground">
+            Ampel-Regel: rot bei {keyResult.redThreshold ?? "—"}, gelb bei{" "}
+            {keyResult.yellowThreshold ?? "—"}, grün bei {keyResult.greenThreshold ?? "—"}
+            {keyResult.unit ? ` ${keyResult.unit}` : ""}.
+          </p>
+        ) : null}
 
         <div className="mt-8 grid gap-6 lg:grid-cols-[1.4fr,0.6fr]">
           <Card className="rounded-2xl border-border shadow-sm">
@@ -194,7 +205,15 @@ export default async function KeyResultDetailPage({
               </p>
               <KeyResultChart
                 data={chartData}
+                type={keyResult.type}
+                direction={keyResult.direction}
                 targetValue={keyResult.targetValue}
+                startValue={keyResult.startValue}
+                quarterStartsAt={keyResult.objective.quarter.startsAt.toISOString()}
+                quarterEndsAt={keyResult.objective.quarter.endsAt.toISOString()}
+                redThreshold={keyResult.redThreshold}
+                yellowThreshold={keyResult.yellowThreshold}
+                greenThreshold={keyResult.greenThreshold}
                 unit={keyResult.unit}
               />
             </CardContent>
@@ -208,6 +227,7 @@ export default async function KeyResultDetailPage({
               <KeyResultUpdateForm
                 keyResultId={keyResult.id}
                 currentValue={keyResult.currentValue}
+                type={keyResult.type}
                 unit={keyResult.unit}
               />
             </CardContent>

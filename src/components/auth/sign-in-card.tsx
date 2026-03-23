@@ -129,12 +129,10 @@ export function SignInCard({
   return (
     <div className="w-full max-w-lg rounded-3xl border border-border bg-white p-8 shadow-sm">
       <p className="text-sm uppercase tracking-[0.2em] text-primary">Geschlossene Beta</p>
-      <h1 className="mt-3 text-3xl font-semibold text-foreground">
-        Melde dich über Einladung oder Support an
-      </h1>
+      <h1 className="mt-3 text-3xl font-semibold text-foreground">Meldet euch an</h1>
       <p className="mt-4 text-sm leading-6 text-muted-foreground">
-        Eingeladene Paare nutzen ihren Einladungslink, wir intern nutzen den Support-Zugang. So
-        bleibt die Beta geschlossen, auch wenn E-Mail-SMTP gerade nicht verfügbar ist.
+        Je nachdem, was ihr bekommen habt, nutzt ihr euren Login-Link, den Einladungslink oder den
+        Support-Code.
       </p>
 
       {enableEmailLogin ? (
@@ -163,17 +161,17 @@ export function SignInCard({
         </form>
       ) : (
         <p className="mt-8 rounded-2xl bg-muted px-4 py-3 text-sm text-muted-foreground">
-          E-Mail-Login ist aktuell nicht konfiguriert. Nutze bitte den Einladungslink oder den
-          Support-Zugang.
+          Der Login per E-Mail ist gerade nicht aktiv. Nutzt stattdessen euren Einladungslink oder
+          den Support-Code.
         </p>
       )}
 
       <div className="mt-8 space-y-2 rounded-2xl border border-border p-4">
         <div className="space-y-1">
-          <p className="text-sm font-medium text-foreground">Invite-Zugang für Paare</p>
+          <p className="text-sm font-medium text-foreground">Mit Einladungslink beitreten</p>
           <p className="text-xs text-muted-foreground">
-            Nutze den Token aus eurem Partner-Link. Der Token steht im Einladungslink nach
-            `/join?token=...`.
+            Wenn ihr einen Partner-Link bekommen habt, braucht ihr nur die E-Mail und den Token aus
+            diesem Link.
           </p>
         </div>
         <form className="space-y-4 pt-2" onSubmit={handleInviteSignIn}>
@@ -212,9 +210,11 @@ export function SignInCard({
           onSubmit={handleSupportSignIn}
         >
           <div className="space-y-1">
-            <p className="text-sm font-medium text-foreground">Support-Zugang für Admins</p>
+            <p className="text-sm font-medium text-foreground">
+              Mit freigeschalteter E-Mail anmelden
+            </p>
             <p className="text-xs text-muted-foreground">
-              Nur freigeschaltete Admin- oder Support-Adressen können sich mit dem Code anmelden.
+              Nutze die E-Mail, die für die Beta hinterlegt wurde, zusammen mit dem Support-Code.
             </p>
           </div>
           <div className="space-y-2">
@@ -245,7 +245,7 @@ export function SignInCard({
             className="w-full rounded-2xl"
             disabled={submitting !== null}
           >
-            {submitting === "support" ? "Prüfe Support ..." : "Support-Zugang"}
+            {submitting === "support" ? "Prüfe Zugang ..." : "Mit Support-Code anmelden"}
           </Button>
         </form>
       ) : null}

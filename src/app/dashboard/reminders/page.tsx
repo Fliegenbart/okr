@@ -2,10 +2,7 @@ import Link from "next/link";
 
 import { ReminderStatusActions } from "@/components/dashboard/reminder-status-actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  redirectForMissingCouple,
-  requireDashboardSubpageAccess,
-} from "@/lib/dashboard-access";
+import { redirectForMissingCouple, requireDashboardSubpageAccess } from "@/lib/dashboard-access";
 import { prisma } from "@/lib/db";
 
 const dateTimeFormatter = new Intl.DateTimeFormat("de-DE", {
@@ -70,9 +67,9 @@ export default async function RemindersPage() {
         </Link>
 
         <div className="mt-6 space-y-2">
-          <h1 className="text-3xl font-semibold text-foreground">Reminder</h1>
+          <h1 className="text-3xl font-semibold text-foreground">Erinnerungen</h1>
           <p className="text-sm text-muted-foreground">
-            Hier sammelt ihr anstehende Check-ins, Commitments und Quarter-Reviews.
+            Hier seht ihr, was bald ansteht und was ihr schon erledigt habt.
           </p>
         </div>
 
@@ -89,27 +86,23 @@ export default async function RemindersPage() {
                     className="space-y-3 rounded-2xl border border-border bg-card p-4"
                   >
                     <div className="space-y-1">
-                      <p className="text-sm font-semibold text-foreground">
-                        {reminder.title}
-                      </p>
+                      <p className="text-sm font-semibold text-foreground">{reminder.title}</p>
                       <p className="text-xs text-muted-foreground">
                         Fällig {dateTimeFormatter.format(reminder.dueAt)}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {reminder.quarter?.title
-                          ? `Quarter: ${reminder.quarter.title}`
+                          ? `Quartal: ${reminder.quarter.title}`
                           : reminder.commitment?.title
-                            ? `Commitment: ${reminder.commitment.title}`
-                            : "System-Reminder"}
+                            ? `Zusage: ${reminder.commitment.title}`
+                            : "System-Erinnerung"}
                       </p>
                     </div>
                     <ReminderStatusActions reminderId={reminder.id} />
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-muted-foreground">
-                  Keine offenen Reminder.
-                </p>
+                <p className="text-sm text-muted-foreground">Keine offenen Erinnerungen.</p>
               )}
             </CardContent>
           </Card>
@@ -126,9 +119,7 @@ export default async function RemindersPage() {
                     className="space-y-2 rounded-2xl border border-border bg-card p-4"
                   >
                     <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-semibold text-foreground">
-                        {reminder.title}
-                      </p>
+                      <p className="text-sm font-semibold text-foreground">{reminder.title}</p>
                       <span className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
                         {statusLabel(reminder.status)}
                       </span>
@@ -138,17 +129,15 @@ export default async function RemindersPage() {
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {reminder.quarter?.title
-                        ? `Quarter: ${reminder.quarter.title}`
+                        ? `Quartal: ${reminder.quarter.title}`
                         : reminder.commitment?.title
-                          ? `Commitment: ${reminder.commitment.title}`
-                          : "System-Reminder"}
+                          ? `Zusage: ${reminder.commitment.title}`
+                          : "System-Erinnerung"}
                     </p>
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-muted-foreground">
-                  Noch keine erledigten Reminder.
-                </p>
+                <p className="text-sm text-muted-foreground">Noch keine erledigten Erinnerungen.</p>
               )}
             </CardContent>
           </Card>

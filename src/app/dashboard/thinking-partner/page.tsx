@@ -58,21 +58,22 @@ export default async function ThinkingPartnerPage({
         <div className="mt-6 space-y-2">
           <h1 className="text-3xl font-semibold text-foreground">Thinking Partner</h1>
           <p className="text-sm text-muted-foreground">
-            Ein kurzer, klarer Impuls für euren nächsten Schritt.
+            Hier könnt ihr Gedanken sortieren und den nächsten sinnvollen Schritt finden.
           </p>
           {canUsePersona ? (
             <p className="text-sm text-muted-foreground">
-              Beta: Ihr koennt hier zwischen Daniel- und Christiane-Stil wechseln.
+              Beta: Wenn ihr freigeschaltet seid, könnt ihr hier zwischen Daniel und Christiane
+              wählen.
             </p>
           ) : null}
           {objective ? (
             <p className="text-sm text-muted-foreground">
-              Fokus: <span className="font-medium">{objective.title}</span>
+              Gerade im Blick: <span className="font-medium">{objective.title}</span>
             </p>
           ) : null}
           {keyResult ? (
             <p className="text-sm text-muted-foreground">
-              Fokus KR: <span className="font-medium">{keyResult.title}</span>
+              Gerade im Blick: <span className="font-medium">{keyResult.title}</span>
             </p>
           ) : null}
         </div>
