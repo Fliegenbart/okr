@@ -11,6 +11,8 @@ export default async function VisionMissionPage() {
   const couple = await prisma.couple.findUnique({
     where: { id: viewer.activeCoupleId },
     select: {
+      name: true,
+      avatarImage: true,
       vision: true,
       mission: true,
     },
@@ -39,7 +41,12 @@ export default async function VisionMissionPage() {
 
         <Card className="mt-8 rounded-2xl border-border shadow-sm">
           <CardContent className="p-6">
-            <VisionMissionForm initialVision={couple.vision} initialMission={couple.mission} />
+            <VisionMissionForm
+              initialVision={couple.vision}
+              initialMission={couple.mission}
+              initialAvatarImage={couple.avatarImage}
+              coupleName={couple.name}
+            />
           </CardContent>
         </Card>
       </div>

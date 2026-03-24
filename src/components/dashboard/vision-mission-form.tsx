@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
@@ -13,16 +13,35 @@ import { Textarea } from "@/components/ui/textarea";
 export type VisionMissionFormProps = {
   initialVision?: string | null;
   initialMission?: string | null;
+  initialAvatarImage?: string | null;
+  coupleName?: string;
 };
 
-export function VisionMissionForm({ initialVision, initialMission }: VisionMissionFormProps) {
+function getInitials(name?: string) {
+  if (!name) return "OK";
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
+export function VisionMissionForm({
+  initialVision,
+  initialMission,
+  initialAvatarImage,
+  coupleName,
+}: VisionMissionFormProps) {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [vision, setVision] = useState(initialVision ?? "");
   const [mission, setMission] = useState(initialMission ?? "");
+  const [avatarImage, setAvatarImage] = useState(initialAvatarImage ?? "");
 
   const saveAction = useAction(upsertVisionMission, {
     onSuccess: () => {
-      toast.success("Vision & Mission gespeichert");
+      toast.success("Vision, Mission und Foto gespeichert");
       router.refresh();
     },
     onError: ({ error }) => {
@@ -38,13 +57,91 @@ export function VisionMissionForm({ initialVision, initialMission }: VisionMissi
       }
     | undefined;
 
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Bitte wählt ein Bild aus.");
+      return;
+    }
+
+    if (file.size > 900_000) {
+      toast.error("Das Bild ist noch zu groß. Bitte wählt eine kleinere Datei.");
+      return;
+    }
+
+    const nextImage = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : "");
+      reader.onerror = () => reject(new Error("Bild konnte nicht gelesen werden."));
+      reader.readAsDataURL(file);
+    }).catch(() => "");
+
+    if (!nextImage) {
+      toast.error("Das Bild konnte nicht geladen werden.");
+      return;
+    }
+
+    setAvatarImage(nextImage);
+  };
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    saveAction.execute({ vision, mission });
+    saveAction.execute({ vision, mission, avatarImage: avatarImage || null });
   };
 
   return (
     <form className="space-y-6" onSubmit={handleSubmit}>
+      <div className="space-y-3">
+        <Label>Paarfoto</Label>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <div className="relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-border bg-muted">
+            {avatarImage ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={avatarImage} alt="Paarfoto" className="h-full w-full object-cover" />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-primary/10 text-2xl font-semibold text-primary">
+                {getInitials(coupleName)}
+              </div>
+            )}
+          </div>
+          <div className="space-y-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleFileChange}
+            />
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="rounded-2xl"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                Foto auswählen
+              </Button>
+              {avatarImage ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="rounded-2xl"
+                  onClick={() => setAvatarImage("")}
+                >
+                  Foto entfernen
+                </Button>
+              ) : null}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Ladet hier euer Paarfoto hoch. Ein kleines, quadratisches Bild funktioniert am besten.
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div className="space-y-2">
         <Label htmlFor="vision-text">Was ist euch wichtig?</Label>
         <Textarea

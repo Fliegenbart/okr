@@ -15,6 +15,7 @@ export const upsertVisionMission = action
     await prisma.couple.update({
       where: { id: user.coupleId },
       data: {
+        avatarImage: parsedInput.avatarImage ?? null,
         vision: parsedInput.vision ?? null,
         mission: parsedInput.mission ?? null,
       },

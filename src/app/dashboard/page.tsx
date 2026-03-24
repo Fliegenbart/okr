@@ -5,6 +5,7 @@ import { CollapsibleGrid } from "@/components/dashboard/collapsible-grid";
 import { ObjectiveCard } from "@/components/dashboard/objective-card";
 import { ObjectiveProgressMiniChart } from "@/components/dashboard/objective-progress-mini-chart";
 import { OnboardingCard } from "@/components/dashboard/onboarding-card";
+import { PowerMoveCard } from "@/components/dashboard/power-move-card";
 import { ProgressDonut } from "@/components/dashboard/progress-donut";
 import { QuarterProgressChart } from "@/components/dashboard/quarter-progress-chart";
 import { QuarterFilter } from "@/components/dashboard/quarter-filter";
@@ -224,7 +225,11 @@ export default async function DashboardPage({
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto w-full max-w-5xl px-6 py-10">
-        <VisionHeader vision={couple.vision} coupleName={couple.name} />
+        <VisionHeader
+          vision={couple.vision}
+          coupleName={couple.name}
+          avatarImage={couple.avatarImage}
+        />
 
         <div className="mt-8 grid gap-6 md:grid-cols-3">
           <Card>
@@ -323,6 +328,12 @@ export default async function DashboardPage({
                     <QuarterProgressChart
                       data={quarterProgressSnapshot.aggregateSeries}
                       todayKey={quarterProgressSnapshot.todayKey}
+                    />
+
+                    <PowerMoveCard
+                      quarterId={selectedQuarter?.id ?? null}
+                      quarterTitle={quarterProgressSnapshot.quarterTitle}
+                      hasObjectives={quarterProgressSnapshot.totalObjectives > 0}
                     />
                   </CardContent>
                 </Card>

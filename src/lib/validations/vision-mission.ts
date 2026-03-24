@@ -12,4 +12,10 @@ const optionalText = z.preprocess(
 export const visionMissionSchema = z.object({
   vision: optionalText,
   mission: optionalText,
+  avatarImage: z
+    .string()
+    .trim()
+    .max(1_500_000, "Bitte ein kleineres Bild wählen.")
+    .optional()
+    .nullable(),
 });
