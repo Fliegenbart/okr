@@ -294,6 +294,10 @@ export default async function DashboardPage({
             <p className="text-sm text-muted-foreground">
               Hier seht ihr, wie sich eure Objectives im laufenden Quartal entwickeln.
             </p>
+            <p className="text-xs text-muted-foreground">
+              Pink zeigt euren echten Stand. Blau gestrichelt zeigt, wo ihr heute idealerweise
+              stehen wuerdet.
+            </p>
           </div>
 
           {quarterProgressSnapshot ? (

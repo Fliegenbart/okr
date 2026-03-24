@@ -121,7 +121,7 @@ export function QuarterProgressChart({
           />
           {!compact ? <Tooltip content={<ProgressTooltip />} /> : null}
           <Line
-            type="monotone"
+            type="linear"
             dataKey="idealProgress"
             stroke="#52c1f3"
             strokeWidth={compact ? 1.5 : 2}
@@ -131,7 +131,7 @@ export function QuarterProgressChart({
             isAnimationActive={false}
           />
           <Line
-            type="monotone"
+            type="linear"
             dataKey="actualProgress"
             stroke="#ff0086"
             strokeWidth={compact ? 2 : 3}
