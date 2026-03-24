@@ -395,7 +395,7 @@ export function buildPersonaContext({
     : "keine stabilen Wiederholungen gefunden";
   const vocabulary = profile?.vocabulary.length
     ? profile.vocabulary.slice(0, 8).join(", ")
-    : "keine stabilen Signalwoerter gefunden";
+    : "keine stabilen Signalwörter gefunden";
   const avoidPatterns = profile?.avoidPatterns.length
     ? profile.avoidPatterns.join(" | ")
     : "Keine Diagnosen, keine erfundenen Erinnerungen.";
@@ -406,10 +406,10 @@ export function buildPersonaContext({
     : "Keine Stilbeispiele gefunden.";
 
   return [
-    `Gewaehlte Persona: ${speakerLabel}`,
+    `Gewählte Persona: ${speakerLabel}`,
     `Profil: ${profile?.styleSummary ?? "Kein gespeichertes Persona-Profil gefunden."}`,
     `Ton: ${toneDescriptors}`,
-    `Typische Woerter: ${vocabulary}`,
+    `Typische Wörter: ${vocabulary}`,
     `Wiederkehrende Formulierungen: ${recurringPhrases}`,
     `No-Gos: ${avoidPatterns}`,
     "",

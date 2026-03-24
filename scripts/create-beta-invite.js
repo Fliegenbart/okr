@@ -28,7 +28,7 @@ async function main() {
   if (invite.note) {
     console.log(`Notiz: ${invite.note}`);
   }
-  console.log("Naechster Schritt: Person 1 nutzt /auth/signin mit genau dieser E-Mail.");
+  console.log("Nächster Schritt: Person 1 nutzt /auth/signin mit genau dieser E-Mail.");
 }
 
 main()

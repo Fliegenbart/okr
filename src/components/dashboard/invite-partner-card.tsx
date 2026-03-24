@@ -134,7 +134,7 @@ export function InvitePartnerCard({
               Einladung für <span className="font-medium">{invite.email}</span>
             </p>
             <p className="text-xs text-muted-foreground">
-              Gueltig bis {dateFormatter.format(new Date(invite.expiresAt))}
+              Gültig bis {dateFormatter.format(new Date(invite.expiresAt))}
             </p>
           </div>
 

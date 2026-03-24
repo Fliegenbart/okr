@@ -102,7 +102,7 @@ async function main() {
   console.log(`Couple angelegt: ${result.couple.name}`);
   console.log(`Invite-Code: ${result.couple.inviteCode}`);
   console.log(`Person 1: ${result.invite.email}`);
-  console.log(`Gueltig bis: ${result.invite.expiresAt.toISOString()}`);
+  console.log(`Gültig bis: ${result.invite.expiresAt.toISOString()}`);
   console.log(`Startlink: ${joinUrl}`);
 }
 

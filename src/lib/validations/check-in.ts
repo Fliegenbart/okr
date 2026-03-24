@@ -4,7 +4,7 @@ export const checkInScheduleSchema = z
   .object({
     enabled: z.boolean(),
     weekday: z
-      .number({ message: "Bitte waehle einen Wochentag." })
+      .number({ message: "Bitte wähle einen Wochentag." })
       .int()
       .min(1)
       .max(7)

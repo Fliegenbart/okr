@@ -76,6 +76,30 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
     redirect(callbackUrl);
   }
 
+  if (adminMode) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-6 py-12">
+        <div className="w-full max-w-lg space-y-4">
+          <SignInCard
+            callbackUrl={callbackUrl}
+            enableDevLogin={isDevLoginEnabled()}
+            enableEmailLogin={isEmailConfigured()}
+            enableSupportLogin={isSupportAccessConfigured()}
+            initialEmail={resolvedSearchParams?.email ?? ""}
+            errorMessage={getErrorMessage(resolvedSearchParams?.error)}
+            inviteMode={inviteMode}
+            adminMode={adminMode}
+          />
+          <div className="text-center">
+            <Link href="/" className="text-sm text-primary hover:underline">
+              Zur Startseite
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-6 py-12">
       <div className="w-full max-w-5xl rounded-[2rem] border border-border bg-card p-6 shadow-sm md:grid md:grid-cols-[0.9fr,1.1fr] md:gap-8 md:p-10">
@@ -91,10 +115,10 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
             </h2>
             <p className="text-sm leading-7 text-muted-foreground">
               {adminMode
-                ? "Fuer den Admin-Zugang nutzt ihr einfach eure freigeschaltete Admin-E-Mail und den Support-Code. Danach landet ihr direkt in der Uebersicht."
+                ? "Für den Admin-Zugang nutzt ihr einfach eure freigeschaltete Admin-E-Mail und den Support-Code. Danach landet ihr direkt in der Übersicht."
                 : inviteMode
-                ? "Fuer diesen Einstieg braucht ihr nur noch die eingeladene E-Mail-Adresse. Nach der Anmeldung landet ihr direkt im gemeinsamen Bereich."
-                : "Meldet euch mit Einladung oder freigeschalteter E-Mail an. Danach koennt ihr direkt euren gemeinsamen Bereich anlegen und loslegen."}
+                ? "Für diesen Einstieg braucht ihr nur noch die eingeladene E-Mail-Adresse. Nach der Anmeldung landet ihr direkt im gemeinsamen Bereich."
+                : "Meldet euch mit Einladung oder freigeschalteter E-Mail an. Danach könnt ihr direkt euren gemeinsamen Bereich anlegen und loslegen."}
             </p>
           </div>
 
@@ -109,13 +133,13 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
               <>
                 <p>1. E-Mail-Adresse eingeben, auf die die Einladung geschickt wurde.</p>
                 <p>2. Anmelden und direkt beitreten.</p>
-                <p>3. Danach koennt ihr sofort mit eurem Wochen-Check und euren Zielen starten.</p>
+                <p>3. Danach könnt ihr sofort mit eurem Wochen-Check und euren Zielen starten.</p>
               </>
             ) : (
               <>
                 <p>1. Person 1 meldet sich mit der freigeschalteten E-Mail an.</p>
                 <p>2. Danach wird euer gemeinsamer Bereich angelegt.</p>
-                <p>3. Person 2 kommt anschliessend ueber den Einladungslink dazu.</p>
+                <p>3. Person 2 kommt anschließend über den Einladungslink dazu.</p>
               </>
             )}
             <Link href="/" className="inline-flex text-primary hover:underline">

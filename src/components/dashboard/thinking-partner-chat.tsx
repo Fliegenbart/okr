@@ -331,7 +331,7 @@ export function ThinkingPartnerChat({
             Persona Beta
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Waehlt, ob die Antwort mehr nach Daniel oder Christiane klingen soll. Beim Wechsel
+            Wählt, ob die Antwort mehr nach Daniel oder Christiane klingen soll. Beim Wechsel
             startet der Chat bewusst frisch, damit die Stimme sauber bleibt.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">

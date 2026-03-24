@@ -141,7 +141,7 @@ export function SignInCard({
         {adminMode
           ? "Hier gibt es nur den schnellen Admin-Zugang. Kein Umweg, keine extra Auswahl."
           : inviteMode
-          ? "Gebt nur noch die eingeladene E-Mail-Adresse ein. Den Rest uebernimmt euer Link."
+          ? "Gebt nur noch die eingeladene E-Mail-Adresse ein. Den Rest übernimmt euer Link."
           : "Je nachdem, was ihr bekommen habt, nutzt ihr euren Login-Link, den Einladungslink oder den Support-Code."}
       </p>
 
@@ -171,12 +171,12 @@ export function SignInCard({
               />
             </div>
             <Button type="submit" className="w-full rounded-2xl" disabled={submitting !== null}>
-              {submitting === "support" ? "Pruefe Admin-Zugang ..." : "In den Admin-Bereich"}
+              {submitting === "support" ? "Prüfe Admin-Zugang ..." : "In den Admin-Bereich"}
             </Button>
           </form>
         ) : (
           <p className="mt-8 rounded-2xl bg-muted px-4 py-3 text-sm text-muted-foreground">
-            Fuer den Admin-Zugang fehlt gerade der Support-Code in der Konfiguration.
+            Für den Admin-Zugang fehlt gerade der Support-Code in der Konfiguration.
           </p>
         )
       ) : inviteMode ? (
@@ -214,7 +214,7 @@ export function SignInCard({
             ) : null}
             {inviteHint ? <p className="text-xs text-muted-foreground">{inviteHint}</p> : null}
             <Button type="submit" className="w-full rounded-2xl" disabled={submitting !== null}>
-              {submitting === "invite" ? "Pruefe Einladung ..." : "Jetzt beitreten"}
+              {submitting === "invite" ? "Prüfe Einladung ..." : "Jetzt beitreten"}
             </Button>
           </form>
         </div>

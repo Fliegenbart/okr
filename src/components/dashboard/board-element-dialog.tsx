@@ -111,7 +111,7 @@ export function BoardElementDialog({
                 placeholder={
                   draft.type === "FRAME"
                     ? "z. B. Roadmap"
-                    : "Kurzer Titel fuer die Karte"
+                    : "Kurzer Titel für die Karte"
                 }
               />
             </div>
@@ -125,7 +125,7 @@ export function BoardElementDialog({
                   onDraftChange({ ...draft, content: event.target.value })
                 }
                 rows={5}
-                placeholder="Gedanken, Zielsatz, naechster Schritt oder kleine Skizze in Textform ..."
+                placeholder="Gedanken, Zielsatz, nächster Schritt oder kleine Skizze in Textform ..."
               />
             </div>
 
@@ -164,7 +164,7 @@ export function BoardElementDialog({
                 disabled={isDeleting || isSaving}
                 className="rounded-2xl"
               >
-                {isDeleting ? "Loesche ..." : "Loeschen"}
+                {isDeleting ? "Lösche ..." : "Löschen"}
               </Button>
             ) : null}
             <Button
@@ -186,7 +186,7 @@ export function BoardElementDialog({
                 ? "Speichere ..."
                 : mode === "create"
                   ? "Element anlegen"
-                  : "Aenderungen speichern"}
+                  : "Änderungen speichern"}
             </Button>
           </DialogFooter>
         </div>

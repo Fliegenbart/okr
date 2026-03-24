@@ -58,7 +58,7 @@ export const ensureBoardSchema = z
     if (value.scope === "QUARTER" && !value.quarterId) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Bitte ein Quartal waehlen.",
+        message: "Bitte ein Quartal wählen.",
         path: ["quarterId"],
       });
     }
@@ -131,8 +131,8 @@ export const deleteBoardElementSchema = z.object({
 export const deleteBoardElementsSchema = z.object({
   elementIds: z
     .array(idSchema)
-    .min(1, "Bitte mindestens ein Element auswaehlen.")
-    .max(24, "Bitte nicht zu viele Elemente gleichzeitig loeschen."),
+    .min(1, "Bitte mindestens ein Element auswählen.")
+    .max(24, "Bitte nicht zu viele Elemente gleichzeitig löschen."),
 });
 
 export const createBoardConnectionSchema = z
@@ -143,7 +143,7 @@ export const createBoardConnectionSchema = z
   })
   .refine(
     (value) => value.firstElementId !== value.secondElementId,
-    "Bitte zwei unterschiedliche Elemente auswaehlen."
+    "Bitte zwei unterschiedliche Elemente auswählen."
   );
 
 export const deleteBoardConnectionSchema = z.object({

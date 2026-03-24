@@ -174,7 +174,7 @@ function getDefaultElements(
     return [
       {
         type: "FRAME",
-        title: "Zielsaetze",
+        title: "Zielsätze",
         x: 120,
         y: 120,
         width: 560,
@@ -186,7 +186,7 @@ function getDefaultElements(
         type: "TEXT",
         title: "Was soll uns tragen?",
         content:
-          "Formuliert hier die Saetze, die euch durch schwierige Wochen fuehren sollen.",
+          "Formuliert hier die Sätze, die euch durch schwierige Wochen führen sollen.",
         x: 160,
         y: 200,
         width: 320,
@@ -207,7 +207,7 @@ function getDefaultElements(
       {
         type: "NOTE",
         title: "In 12 Monaten",
-        content: "Wie soll sich euer Alltag, eure Energie und eure Beziehung anfuehlen?",
+        content: "Wie soll sich euer Alltag, eure Energie und eure Beziehung anfühlen?",
         x: 810,
         y: 210,
         width: 260,
@@ -227,8 +227,8 @@ function getDefaultElements(
       },
       {
         type: "NOTE",
-        title: "Naechster Meilenstein",
-        content: "Welcher konkrete Schritt bringt euch in den naechsten 30 Tagen sichtbar weiter?",
+        title: "Nächster Meilenstein",
+        content: "Welcher konkrete Schritt bringt euch in den nächsten 30 Tagen sichtbar weiter?",
         x: 170,
         y: 740,
         width: 280,
@@ -248,7 +248,7 @@ function getDefaultElements(
       },
       {
         type: "NOTE",
-        title: "Spaeter spannend",
+        title: "Später spannend",
         content: "Alles sammeln, was wichtig klingt, aber noch nicht sofort auf die Roadmap muss.",
         x: 1480,
         y: 220,
@@ -273,7 +273,7 @@ function getDefaultElements(
     },
     {
       type: "NOTE",
-      title: "Wofuer treten wir an?",
+      title: "Wofür treten wir an?",
       content: "Schreibt die 1-3 wichtigsten Outcomes dieses Quartals auf.",
       x: 180,
       y: 220,
@@ -326,7 +326,7 @@ function getDefaultElements(
     },
     {
       type: "FRAME",
-      title: "Naechste Schritte",
+      title: "Nächste Schritte",
       x: 720,
       y: 640,
       width: 520,
@@ -337,7 +337,7 @@ function getDefaultElements(
     {
       type: "NOTE",
       title: "Diese Woche",
-      content: "Was koennt ihr sofort starten, damit das Quartal nicht nur ein guter Vorsatz bleibt?",
+      content: "Was könnt ihr sofort starten, damit das Quartal nicht nur ein guter Vorsatz bleibt?",
       x: 780,
       y: 740,
       width: 260,

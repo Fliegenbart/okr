@@ -82,7 +82,7 @@ export default async function BoardPage({ searchParams }: BoardPageProps) {
             href="/dashboard"
             className="text-xs font-semibold uppercase tracking-[0.2em] text-primary"
           >
-            Zurueck zum Dashboard
+            Zurück zum Dashboard
           </Link>
 
           <div className="mt-6 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
@@ -155,7 +155,7 @@ export default async function BoardPage({ searchParams }: BoardPageProps) {
             href="/dashboard"
             className="text-xs font-semibold uppercase tracking-[0.2em] text-primary"
           >
-            Zurueck zum Dashboard
+            Zurück zum Dashboard
           </Link>
 
           <Card className="mt-8 rounded-2xl border-border shadow-sm">

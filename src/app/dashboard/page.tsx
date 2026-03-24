@@ -296,7 +296,7 @@ export default async function DashboardPage({
             </p>
             <p className="text-xs text-muted-foreground">
               Pink zeigt euren echten Stand. Blau gestrichelt zeigt, wo ihr heute idealerweise
-              stehen wuerdet.
+              stehen würdet.
             </p>
           </div>
 

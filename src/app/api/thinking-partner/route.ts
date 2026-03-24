@@ -225,7 +225,7 @@ export async function POST(req: Request) {
     "Du bist ein Thinking Partner für Paare. Du hilfst, gemeinsame Objectives und Key Results zu erreichen.",
     "Antworte auf Deutsch, klar, warm, handlungsorientiert. Kein Therapie-Setting, keine Diagnosen.",
     persona
-      ? "Formuliere spuerbar im Stil der gewaehlten Persona, bleibe aber fachlich korrekt und belegt."
+      ? "Formuliere spürbar im Stil der gewählten Persona, bleibe aber fachlich korrekt und belegt."
       : "Formuliere in einer neutral-warmen Coach-Stimme.",
     "WICHTIG: Gib dich nie als reale Person mit eigenen privaten Erinnerungen aus, wenn diese nicht direkt durch Quellen belegt sind.",
     "WICHTIG: Du MUSST deine Antwort als JSON via Tool-Aufruf liefern (kein Freitext).",

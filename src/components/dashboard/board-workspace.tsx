@@ -698,13 +698,13 @@ export function BoardWorkspace({ initialBoard }: BoardWorkspaceProps) {
 
   const deleteAction = useAction(deleteBoardElement, {
     onSuccess: () => {
-      toast.success("Element geloescht");
+      toast.success("Element gelöscht");
       setSelectedElementIds([]);
       setDialogState(null);
       void refreshBoardSnapshot();
     },
     onError: ({ error }) => {
-      toast.error("Element konnte nicht geloescht werden", {
+      toast.error("Element konnte nicht gelöscht werden", {
         description:
           error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
       });
@@ -713,13 +713,13 @@ export function BoardWorkspace({ initialBoard }: BoardWorkspaceProps) {
 
   const deleteSelectionAction = useAction(deleteBoardElements, {
     onSuccess: () => {
-      toast.success("Auswahl geloescht");
+      toast.success("Auswahl gelöscht");
       setSelectedElementIds([]);
       setDialogState(null);
       void refreshBoardSnapshot();
     },
     onError: ({ error }) => {
-      toast.error("Auswahl konnte nicht geloescht werden", {
+      toast.error("Auswahl konnte nicht gelöscht werden", {
         description:
           error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
       });
@@ -741,11 +741,11 @@ export function BoardWorkspace({ initialBoard }: BoardWorkspaceProps) {
 
   const deleteConnectionAction = useAction(deleteBoardConnection, {
     onSuccess: () => {
-      toast.success("Verbindung geloest");
+      toast.success("Verbindung gelöst");
       void refreshBoardSnapshot();
     },
     onError: ({ error }) => {
-      toast.error("Verbindung konnte nicht geloest werden", {
+      toast.error("Verbindung konnte nicht gelöst werden", {
         description:
           error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
       });
@@ -1475,10 +1475,10 @@ export function BoardWorkspace({ initialBoard }: BoardWorkspaceProps) {
               Enter bearbeitet, Entf löscht
             </span>
             <span className="rounded-full border border-white/90 bg-white/92 px-3 py-1.5 text-[11px] font-semibold text-[#5f708f] shadow-sm">
-              Shift-Klick waehlt mehrere Karten
+              Shift-Klick wählt mehrere Karten
             </span>
             <span className="rounded-full border border-white/90 bg-white/92 px-3 py-1.5 text-[11px] font-semibold text-[#5f708f] shadow-sm">
-              C verbindet zwei ausgewaehlte Karten
+              C verbindet zwei ausgewählte Karten
             </span>
           </div>
 
@@ -1496,7 +1496,7 @@ export function BoardWorkspace({ initialBoard }: BoardWorkspaceProps) {
                   <Layers3 className="h-3.5 w-3.5" />
                   {selectedElements.length === 1
                     ? getElementLabel(selectedElements[0]!.type)
-                    : `${selectedElements.length} ausgewaehlt`}
+                    : `${selectedElements.length} ausgewählt`}
                 </div>
                 {selectedElements.length === 1 && selectedElement ? (
                   <button
@@ -1529,7 +1529,7 @@ export function BoardWorkspace({ initialBoard }: BoardWorkspaceProps) {
                     )}
                   >
                     <Link2 className="h-4 w-4" />
-                    {selectedPairConnection ? "Verbindung loesen" : "Verbinden"}
+                    {selectedPairConnection ? "Verbindung lösen" : "Verbinden"}
                   </button>
                 ) : null}
                 <div className="mx-1 h-5 w-px bg-border" />
@@ -1733,7 +1733,7 @@ export function BoardWorkspace({ initialBoard }: BoardWorkspaceProps) {
                             width: RESIZE_HANDLE_SIZE,
                             height: RESIZE_HANDLE_SIZE,
                           }}
-                          aria-label="Element groesser oder kleiner ziehen"
+                          aria-label="Element größer oder kleiner ziehen"
                         >
                           <Plus className="h-3 w-3 rotate-45" />
                         </button>
