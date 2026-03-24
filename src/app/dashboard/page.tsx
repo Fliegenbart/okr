@@ -3,10 +3,8 @@ import { redirect } from "next/navigation";
 
 import { CollapsibleGrid } from "@/components/dashboard/collapsible-grid";
 import { ObjectiveCard } from "@/components/dashboard/objective-card";
-import { ObjectiveProgressMiniChart } from "@/components/dashboard/objective-progress-mini-chart";
 import { OnboardingCard } from "@/components/dashboard/onboarding-card";
 import { PowerMoveCard } from "@/components/dashboard/power-move-card";
-import { ProgressDonut } from "@/components/dashboard/progress-donut";
 import { QuarterProgressChart } from "@/components/dashboard/quarter-progress-chart";
 import { QuarterFilter } from "@/components/dashboard/quarter-filter";
 import { VisionHeader } from "@/components/dashboard/vision-header";
@@ -196,6 +194,8 @@ export default async function DashboardPage({
     const insights = getObjectiveInsights(
       objective.keyResults.flatMap((keyResult) => keyResult.updates)
     );
+    const progressSeries =
+      quarterProgressSnapshot?.objectiveSeries.find((series) => series.id === objective.id) ?? null;
 
     return {
       id: objective.id,
@@ -219,72 +219,89 @@ export default async function DashboardPage({
         ...insights,
         lastUpdateAt: insights.lastUpdateAt ? insights.lastUpdateAt.toISOString() : null,
       },
+      progressSeries,
     };
   });
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto w-full max-w-5xl px-6 py-10">
+      <div className="dashboard-shell mx-auto w-full max-w-[1400px] px-6 py-10">
         <VisionHeader
           vision={couple.vision}
           coupleName={couple.name}
           avatarImage={couple.avatarImage}
         />
 
-        <div className="mt-8 grid gap-6 md:grid-cols-3">
-          <Card>
-            <CardContent className="space-y-3 p-6">
-              <p className="text-sm font-medium text-primary">Aktuelles Quartal</p>
-              {activeQuarter ? (
-                <>
-                  <p className="text-lg font-semibold text-foreground">{activeQuarter.title}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {dateFormatter.format(activeQuarter.startsAt)} –{" "}
-                    {dateFormatter.format(activeQuarter.endsAt)}
+        <div className="mt-10 grid gap-6 lg:grid-cols-[1.7fr,1fr]">
+          <Card className="rounded-[2rem] border-white/70">
+            <CardContent className="space-y-6 p-7">
+              <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <p className="dashboard-kicker text-[10px] font-extrabold text-primary">
+                      Aktuelles Quartal
+                    </p>
+                    <p className="text-sm leading-6 text-muted-foreground">
+                      Der gemeinsame Fokusrahmen für eure nächsten Wochen.
+                    </p>
+                  </div>
+                  {activeQuarter ? (
+                    <>
+                      <p className="font-display text-3xl font-extrabold tracking-[-0.05em] text-foreground">
+                        {activeQuarter.title}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {dateFormatter.format(activeQuarter.startsAt)} –{" "}
+                        {dateFormatter.format(activeQuarter.endsAt)}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Noch kein Quartal angelegt.</p>
+                  )}
+                </div>
+
+                <div className="min-w-[180px] rounded-[1.6rem] bg-secondary/55 px-5 py-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] sm:text-right">
+                  <p className="dashboard-kicker text-[10px] font-extrabold text-primary/75">
+                    Global Completion
                   </p>
-                </>
-              ) : (
-                <p className="text-sm text-muted-foreground">Noch kein Quartal angelegt.</p>
-              )}
+                  <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                    So weit seid ihr in diesem Quartal im Schnitt.
+                  </p>
+                  <p className="mt-3 font-display text-4xl font-extrabold tracking-[-0.05em] text-foreground">
+                    {averageProgress}%
+                  </p>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="flex flex-col items-start gap-4 p-6">
-              <p className="text-sm font-medium text-primary">Euer Gesamtstand</p>
-              <p className="text-xs text-muted-foreground">
-                So weit seid ihr in diesem Quartal im Schnitt.
-              </p>
-              <ProgressDonut
-                value={averageProgress}
-                size={100}
-                strokeWidth={8}
-                showValue={true}
-                showLabel={false}
-                progressClassName="text-primary"
-                valueClassName="text-xl"
-              />
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="space-y-4 p-6">
-              <p className="text-sm font-medium text-primary">Schnell starten</p>
+          <Card className="dashboard-highlight rounded-[2rem] border-none text-white shadow-[0_28px_70px_rgba(193,0,103,0.24)]">
+            <CardContent className="space-y-5 p-7">
+              <div className="space-y-2">
+                <p className="dashboard-kicker text-[10px] font-extrabold text-white/65">Quick Actions</p>
+                <h3 className="font-display text-3xl font-extrabold tracking-[-0.05em] text-white">
+                  Schnell starten
+                </h3>
+                <p className="text-sm leading-6 text-white/80">
+                  Die drei wichtigsten Einstiege für euren gemeinsamen Fortschritt in dieser Woche.
+                </p>
+              </div>
               <div className="flex flex-col gap-3">
                 <Link
                   href="/dashboard/objectives/new"
-                  className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary/90"
+                  className="inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-semibold text-primary shadow-[0_14px_34px_rgba(38,17,33,0.12)] transition-all hover:-translate-y-0.5 hover:bg-white/90"
                 >
                   Objective anlegen
                 </Link>
                 <Link
                   href="/dashboard/check-in"
-                  className="inline-flex items-center justify-center rounded-xl border border-border px-4 py-3 text-sm font-semibold text-foreground transition hover:bg-muted"
+                  className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-white/16"
                 >
                   Wochen-Check öffnen
                 </Link>
                 <Link
                   href="/dashboard/vision-mission"
-                  className="inline-flex items-center justify-center rounded-xl border border-border px-4 py-3 text-sm font-semibold text-foreground transition hover:bg-muted"
+                  className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-white/16"
                 >
                   Vision + Mission öffnen
                 </Link>
@@ -293,13 +310,70 @@ export default async function DashboardPage({
           </Card>
         </div>
 
-        <section className="mt-10 space-y-4" data-testid="quarter-progress-section">
-          <div className="space-y-2">
-            <h2 className="text-xl font-semibold text-foreground">Euer Score im Quartal</h2>
-            <p className="text-sm text-muted-foreground">
+        {quarterProgressSnapshot ? (
+          <section className="mt-6 space-y-4">
+            <div className="space-y-1">
+              <p className="dashboard-kicker text-[10px] font-extrabold text-primary">Überblick</p>
+              <p className="text-sm leading-6 text-muted-foreground">
+                Die wichtigsten Zahlen für dieses Quartal auf einen Blick.
+              </p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              <Card className="metric-glass rounded-[1.75rem] border-white/70">
+                <CardContent className="p-5">
+                  <p className="dashboard-kicker text-[10px] font-extrabold text-primary">
+                    Durchschnitt
+                  </p>
+                  <p className="mt-3 font-display text-3xl font-extrabold tracking-[-0.05em] text-foreground">
+                    {quarterProgressSnapshot.averageProgress}%
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="metric-glass rounded-[1.75rem] border-white/70">
+                <CardContent className="p-5">
+                  <p className="dashboard-kicker text-[10px] font-extrabold text-primary">Objectives</p>
+                  <p className="mt-3 font-display text-3xl font-extrabold tracking-[-0.05em] text-foreground">
+                    {quarterProgressSnapshot.totalObjectives}
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="metric-glass rounded-[1.75rem] border-white/70">
+                <CardContent className="p-5">
+                  <p className="dashboard-kicker text-[10px] font-extrabold text-primary">
+                    Ohne neuen Stand
+                  </p>
+                  <p className="mt-3 font-display text-3xl font-extrabold tracking-[-0.05em] text-foreground">
+                    {quarterProgressSnapshot.objectivesWithoutUpdates}
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="metric-glass rounded-[1.75rem] border-white/70">
+                <CardContent className="p-5">
+                  <p className="dashboard-kicker text-[10px] font-extrabold text-primary">
+                    Tage bis Ende
+                  </p>
+                  <p className="mt-3 font-display text-3xl font-extrabold tracking-[-0.05em] text-foreground">
+                    {quarterProgressSnapshot.daysRemaining}
+                  </p>
+                  <p className="mt-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                    Tag {quarterProgressSnapshot.daysElapsed}
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </section>
+        ) : null}
+
+        <section className="mt-14 space-y-5" data-testid="quarter-progress-section">
+          <div className="space-y-3">
+            <p className="dashboard-kicker text-[10px] font-extrabold text-primary">Performance Analytics</p>
+            <h2 className="font-display text-4xl font-extrabold tracking-[-0.05em] text-foreground">
+              Euer Score im Quartal
+            </h2>
+            <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
               Hier seht ihr, wie sich eure Objectives im laufenden Quartal entwickeln.
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
               Pink zeigt euren echten Stand. Blau gestrichelt zeigt, wo ihr heute idealerweise
               stehen würdet.
             </p>
@@ -307,108 +381,38 @@ export default async function DashboardPage({
 
           {quarterProgressSnapshot ? (
             <>
-              <div className="grid gap-6 lg:grid-cols-[1.35fr,0.65fr]">
-                <Card className="rounded-2xl border-border shadow-sm">
-                  <CardContent className="space-y-5 p-6">
-                    <div className="space-y-1">
-                      <p className="text-sm uppercase tracking-[0.2em] text-primary">
-                        Bisheriger Verlauf
-                      </p>
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-                        <span className="font-semibold text-foreground">
-                          {quarterProgressSnapshot.quarterTitle}
-                        </span>
-                        <span className="text-muted-foreground">
-                          {dateFormatter.format(new Date(quarterProgressSnapshot.quarterStartsAt))}{" "}
-                          – {dateFormatter.format(new Date(quarterProgressSnapshot.quarterEndsAt))}
-                        </span>
-                      </div>
-                    </div>
-
-                    <QuarterProgressChart
-                      data={quarterProgressSnapshot.aggregateSeries}
-                      todayKey={quarterProgressSnapshot.todayKey}
-                    />
-
-                    <PowerMoveCard
-                      quarterId={selectedQuarter?.id ?? null}
-                      quarterTitle={quarterProgressSnapshot.quarterTitle}
-                      hasObjectives={quarterProgressSnapshot.totalObjectives > 0}
-                    />
-                  </CardContent>
-                </Card>
-
-                <Card className="rounded-2xl border-border shadow-sm">
-                  <CardContent className="space-y-4 p-6">
-                    <p className="text-sm uppercase tracking-[0.2em] text-primary">Überblick</p>
-                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-                      <div className="rounded-2xl border border-border bg-card p-4">
-                        <p className="text-xs uppercase tracking-[0.2em] text-primary">
-                          Durchschnitt
-                        </p>
-                        <p className="mt-2 text-2xl font-semibold text-foreground">
-                          {quarterProgressSnapshot.averageProgress}%
-                        </p>
-                      </div>
-                      <div className="rounded-2xl border border-border bg-card p-4">
-                        <p className="text-xs uppercase tracking-[0.2em] text-primary">Objectives</p>
-                        <p className="mt-2 text-2xl font-semibold text-foreground">
-                          {quarterProgressSnapshot.totalObjectives}
-                        </p>
-                      </div>
-                      <div className="rounded-2xl border border-border bg-card p-4">
-                        <p className="text-xs uppercase tracking-[0.2em] text-primary">
-                          Ohne neuen Stand
-                        </p>
-                        <p className="mt-2 text-2xl font-semibold text-foreground">
-                          {quarterProgressSnapshot.objectivesWithoutUpdates}
-                        </p>
-                      </div>
-                      <div className="rounded-2xl border border-border bg-card p-4">
-                        <p className="text-xs uppercase tracking-[0.2em] text-primary">
-                          Tage bis zum Ende
-                        </p>
-                        <p className="mt-2 text-2xl font-semibold text-foreground">
-                          {quarterProgressSnapshot.daysRemaining}
-                        </p>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          Ihr seid an Tag {quarterProgressSnapshot.daysElapsed}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {quarterProgressSnapshot.objectiveSeries.length ? (
-                <CollapsibleGrid
-                  className="grid gap-4 md:grid-cols-2 xl:grid-cols-3"
-                  itemLabel="Objectives"
-                >
-                  {quarterProgressSnapshot.objectiveSeries.map((objective) => (
-                    <ObjectiveProgressMiniChart
-                      key={objective.id}
-                      objective={objective}
-                      href={`/dashboard/objectives/${objective.id}`}
-                    />
-                  ))}
-                </CollapsibleGrid>
-              ) : (
-                <Card className="rounded-2xl border-border shadow-sm">
-                  <CardContent className="space-y-3 p-6">
-                    <p className="text-lg font-semibold text-foreground">
-                      Noch keine Objectives in diesem Quartal
+              <Card className="rounded-[2.25rem] border-white/70">
+                <CardContent className="space-y-6 p-8">
+                  <div className="space-y-1">
+                    <p className="dashboard-kicker text-[10px] font-extrabold text-primary">
+                      Bisheriger Verlauf
                     </p>
-                    <p className="text-sm text-muted-foreground">
-                      Sobald ihr in {quarterProgressSnapshot.quarterTitle} das erste Objective anlegt,
-                      erscheint hier der Verlauf.
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                      <span className="font-display text-2xl font-bold tracking-[-0.04em] text-foreground">
+                        {quarterProgressSnapshot.quarterTitle}
+                      </span>
+                      <span className="text-muted-foreground">
+                        {dateFormatter.format(new Date(quarterProgressSnapshot.quarterStartsAt))} –{" "}
+                        {dateFormatter.format(new Date(quarterProgressSnapshot.quarterEndsAt))}
+                      </span>
+                    </div>
+                  </div>
+
+                  <QuarterProgressChart
+                    data={quarterProgressSnapshot.aggregateSeries}
+                    todayKey={quarterProgressSnapshot.todayKey}
+                  />
+
+                  <PowerMoveCard
+                    quarterId={selectedQuarter?.id ?? null}
+                    quarterTitle={quarterProgressSnapshot.quarterTitle}
+                    hasObjectives={quarterProgressSnapshot.totalObjectives > 0}
+                  />
+                </CardContent>
+              </Card>
             </>
           ) : (
-            <Card className="rounded-2xl border-border shadow-sm">
+            <Card className="rounded-[2rem] border-white/70">
               <CardContent className="space-y-3 p-6">
                 <p className="text-lg font-semibold text-foreground">Noch kein Quartal vorhanden</p>
                 <p className="text-sm text-muted-foreground">
@@ -420,9 +424,14 @@ export default async function DashboardPage({
           )}
         </section>
 
-        <section className="mt-10 space-y-4">
+        <section className="mt-14 space-y-5">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-foreground">Eure Objectives</h2>
+            <div className="space-y-1">
+              <p className="dashboard-kicker text-[10px] font-extrabold text-primary">Objectives</p>
+              <h2 className="font-display text-3xl font-extrabold tracking-[-0.05em] text-foreground">
+                Eure Objectives
+              </h2>
+            </div>
             <QuarterFilter
               selectedId={selectedQuarterId}
               options={couple.quarters.map((quarter) => ({
@@ -445,13 +454,15 @@ export default async function DashboardPage({
                       nextAction={objective.nextAction}
                       keyResults={objective.keyResults}
                       insights={objective.insights}
+                      progressSeries={objective.progressSeries}
+                      progressTodayKey={quarterProgressSnapshot?.todayKey ?? null}
                     />
                   ))}
                 </CollapsibleGrid>
               </div>
             </div>
           ) : (
-            <Card>
+            <Card className="rounded-[2rem] border-white/70">
               <CardContent className="space-y-3 p-6">
                 <p className="text-lg font-semibold text-foreground">Noch keine Objectives</p>
                 <p className="text-sm text-muted-foreground">
@@ -459,7 +470,7 @@ export default async function DashboardPage({
                 </p>
                 <Link
                   href="/dashboard/objectives/new"
-                  className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
+                  className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-medium text-white shadow-[0_18px_40px_rgba(193,0,103,0.18)] transition-all hover:-translate-y-0.5 hover:bg-primary/95"
                 >
                   Objective anlegen
                 </Link>

@@ -69,7 +69,7 @@ export function ProgressDonut({
         <div className="absolute flex flex-col items-center">
           {showValue ? (
             <span
-              className={cn("text-lg font-semibold text-foreground", valueClassName)}
+              className={cn("font-display text-lg font-extrabold tracking-[-0.05em] text-foreground", valueClassName)}
             >
               {clamped}%
             </span>

@@ -82,7 +82,7 @@ export default async function CheckInPage({
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto w-full max-w-6xl px-6 py-10">
+      <div className="dashboard-shell mx-auto w-full max-w-[1400px] px-6 py-10">
         <Link
           href="/dashboard"
           className="text-xs font-semibold uppercase tracking-[0.2em] text-primary"
@@ -90,15 +90,18 @@ export default async function CheckInPage({
           Zurück zum Dashboard
         </Link>
 
-        <div className="mt-6 space-y-2">
-          <h1 className="text-3xl font-semibold text-foreground">Wochen-Check</h1>
+        <div className="mt-6 space-y-3">
+          <p className="dashboard-kicker text-[10px] font-extrabold text-primary">Weekly Reset</p>
+          <h1 className="font-display text-4xl font-extrabold tracking-[-0.05em] text-foreground">
+            Wochen-Check
+          </h1>
           <p className="text-sm text-muted-foreground">
             Hier haltet ihr fest, wie eure Woche war, was offen ist und was ihr als Nächstes tun wollt.
           </p>
         </div>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-[1.2fr,0.8fr]">
-          <Card className="rounded-2xl border-border shadow-sm">
+          <Card className="rounded-[2rem] border-white/70">
             <CardContent className="p-6">
               <CheckInComposer
                 templates={conversationTemplates}
@@ -109,9 +112,9 @@ export default async function CheckInPage({
           </Card>
 
           <div className="space-y-6">
-            <Card className="rounded-2xl border-border shadow-sm">
+            <Card className="metric-glass rounded-[2rem] border-white/70">
               <CardContent className="space-y-3 p-6">
-                <p className="text-sm uppercase tracking-[0.2em] text-primary">Wochen-Check-Status</p>
+                <p className="dashboard-kicker text-[10px] font-extrabold text-primary">Wochen-Check-Status</p>
                 <p className="text-sm text-muted-foreground">
                   {scheduleEnabled
                     ? `Euer regelmäßiger Wochen-Check steht fest (${couple.checkInWeekday} / ${couple.checkInTime}).`
@@ -123,9 +126,11 @@ export default async function CheckInPage({
               </CardContent>
             </Card>
 
-            <Card className="rounded-2xl border-border shadow-sm">
+            <Card className="rounded-[2rem] border-white/70">
               <CardHeader>
-              <CardTitle>Neue Zusage</CardTitle>
+                <CardTitle className="font-display text-2xl font-bold tracking-[-0.04em]">
+                  Nächster Schritt
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <CommitmentForm
@@ -144,16 +149,18 @@ export default async function CheckInPage({
         </div>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-[1fr,1fr]">
-          <Card className="rounded-2xl border-border shadow-sm">
+          <Card className="rounded-[2rem] border-white/70">
             <CardHeader>
-              <CardTitle>Offene Zusagen</CardTitle>
+              <CardTitle className="font-display text-2xl font-bold tracking-[-0.04em]">
+                Offene Zusagen
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {openCommitments.length ? (
                 openCommitments.map((commitment) => (
                   <div
                     key={commitment.id}
-                    className="space-y-3 rounded-2xl border border-border bg-card p-4"
+                    className="space-y-3 rounded-[1.5rem] border border-white/80 bg-white/90 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]"
                   >
                     <div className="space-y-1">
                       <p className="text-sm font-semibold text-foreground">{commitment.title}</p>
@@ -182,16 +189,18 @@ export default async function CheckInPage({
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl border-border shadow-sm">
+          <Card className="rounded-[2rem] border-white/70">
             <CardHeader>
-              <CardTitle>Letzte Wochen-Checks</CardTitle>
+              <CardTitle className="font-display text-2xl font-bold tracking-[-0.04em]">
+                Letzte Wochen-Checks
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {recentCheckIns.length ? (
                 recentCheckIns.map((checkIn) => (
                   <div
                     key={checkIn.id}
-                    className="space-y-2 rounded-2xl border border-border bg-card p-4"
+                    className="space-y-2 rounded-[1.5rem] border border-white/80 bg-white/90 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]"
                   >
                     <div className="flex items-center justify-between gap-4">
                       <div>

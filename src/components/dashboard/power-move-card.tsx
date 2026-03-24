@@ -101,19 +101,24 @@ export function PowerMoveCard({ quarterId, quarterTitle, hasObjectives }: PowerM
   });
 
   return (
-    <Card>
+    <Card className="dashboard-highlight overflow-hidden border-none text-white shadow-[0_28px_70px_rgba(193,0,103,0.24)]">
       <CardContent className="space-y-5 p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-1">
-            <p className="text-sm font-semibold text-primary">
+            <p className="dashboard-kicker text-[10px] font-extrabold text-white/65">
               Wichtigster Schritt für dieses Quartal
             </p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-white/72">
               {quarterTitle ? quarterTitle : "Aktuelles Quartal"}
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button size="sm" onClick={loadPowerMove} disabled={!hasObjectives || isLoading}>
+            <Button
+              size="sm"
+              className="rounded-full bg-white/14 text-white hover:bg-white/22"
+              onClick={loadPowerMove}
+              disabled={!hasObjectives || isLoading}
+            >
               <Sparkles className="h-4 w-4" />
               {structured ? "Neu laden" : "Vorschlag holen"}
             </Button>
@@ -121,11 +126,11 @@ export function PowerMoveCard({ quarterId, quarterTitle, hasObjectives }: PowerM
         </div>
 
         {!hasObjectives ? (
-          <div className="rounded-lg border border-border bg-muted/50 p-4 text-sm text-muted-foreground">
+          <div className="rounded-[1.5rem] border border-white/10 bg-white/10 p-4 text-sm text-white/78">
             Legt zuerst mindestens ein Objective an. Danach zeige ich euch den nächsten Schritt, der im
             Quartal am meisten bewegen kann.
             <div className="mt-3">
-              <Button asChild size="sm" variant="outline">
+              <Button asChild size="sm" variant="outline" className="rounded-full border-white/20 bg-white text-primary hover:bg-white/90">
                 <Link href="/dashboard/objectives/new">Objective anlegen</Link>
               </Button>
             </div>
@@ -134,15 +139,17 @@ export function PowerMoveCard({ quarterId, quarterTitle, hasObjectives }: PowerM
 
         {hasObjectives && structured ? (
           <div className="space-y-4">
-            <div className="rounded-lg bg-primary/5 p-5">
-              <p className="text-xs font-medium text-muted-foreground">Euer nächster Schritt</p>
-              <p className="mt-2 text-lg font-semibold text-foreground">{structured.nextStep}</p>
-              <p className="mt-3 text-sm text-muted-foreground">{structured.summary}</p>
+            <div className="rounded-[1.6rem] border border-white/10 bg-white/12 p-5 backdrop-blur-md">
+              <p className="dashboard-kicker text-[10px] font-extrabold text-white/65">Euer nächster Schritt</p>
+              <p className="mt-2 font-display text-2xl font-bold tracking-[-0.04em] text-white">
+                {structured.nextStep}
+              </p>
+              <p className="mt-3 text-sm leading-6 text-white/80">{structured.summary}</p>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <div className="rounded-lg border border-border bg-white p-4">
-                <p className="text-xs font-medium text-muted-foreground">Warum das gerade hilft</p>
+              <div className="rounded-[1.5rem] border border-white/10 bg-white/94 p-4 text-foreground">
+                <p className="dashboard-kicker text-[10px] font-extrabold text-muted-foreground">Warum das gerade hilft</p>
                 <ul className="mt-3 space-y-2 text-sm text-foreground">
                   {structured.impulses.map((impulse) => (
                     <li key={impulse} className="flex gap-2">
@@ -153,8 +160,8 @@ export function PowerMoveCard({ quarterId, quarterTitle, hasObjectives }: PowerM
                 </ul>
               </div>
 
-              <div className="rounded-lg border border-border bg-white p-4">
-                <p className="text-xs font-medium text-muted-foreground">
+              <div className="rounded-[1.5rem] border border-white/10 bg-white/94 p-4 text-foreground">
+                <p className="dashboard-kicker text-[10px] font-extrabold text-muted-foreground">
                   Fragen für euer Gespräch
                 </p>
                 <ul className="mt-3 space-y-2 text-sm text-foreground">
@@ -169,8 +176,8 @@ export function PowerMoveCard({ quarterId, quarterTitle, hasObjectives }: PowerM
             </div>
 
             {structured.miniRitual ? (
-              <details className="rounded-lg border border-border bg-white p-4">
-                <summary className="cursor-pointer list-none text-xs font-medium text-muted-foreground">
+              <details className="rounded-[1.5rem] border border-white/10 bg-white/94 p-4 text-foreground">
+                <summary className="dashboard-kicker cursor-pointer list-none text-[10px] font-extrabold text-muted-foreground">
                   Mini-Ritual
                 </summary>
                 <div className="mt-3 space-y-2">
@@ -187,8 +194,8 @@ export function PowerMoveCard({ quarterId, quarterTitle, hasObjectives }: PowerM
             ) : null}
 
             {sources.length ? (
-              <details className="rounded-lg border border-border bg-white p-4">
-                <summary className="cursor-pointer list-none text-xs font-medium text-muted-foreground">
+              <details className="rounded-[1.5rem] border border-white/10 bg-white/94 p-4 text-foreground">
+                <summary className="dashboard-kicker cursor-pointer list-none text-[10px] font-extrabold text-muted-foreground">
                   Grundlage aus euren Sessions
                 </summary>
                 <div className="mt-3 space-y-3">
@@ -209,19 +216,19 @@ export function PowerMoveCard({ quarterId, quarterTitle, hasObjectives }: PowerM
         ) : null}
 
         {hasObjectives && !structured && reply ? (
-          <div className="rounded-lg border border-border bg-muted/50 p-4 text-sm text-muted-foreground">
+          <div className="rounded-[1.5rem] border border-white/10 bg-white/10 p-4 text-sm text-white/78">
             {reply}
           </div>
         ) : null}
 
         {hasObjectives && !structured && !reply ? (
-          <div className="rounded-lg border border-border bg-muted/50 p-4 text-sm text-muted-foreground">
+          <div className="rounded-[1.5rem] border border-white/10 bg-white/10 p-4 text-sm text-white/78">
             Hier bekommt ihr einen Vorschlag, welcher nächste Schritt euch im Quartal gerade am
             meisten hilft. Klickt auf <span className="font-medium">Vorschlag holen</span>.
           </div>
         ) : null}
 
-        {isLoading ? <p className="text-sm text-muted-foreground">Analysiere…</p> : null}
+        {isLoading ? <p className="text-sm text-white/75">Analysiere…</p> : null}
       </CardContent>
     </Card>
   );

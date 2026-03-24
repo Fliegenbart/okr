@@ -30,7 +30,7 @@ export default async function ObjectiveNewPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto w-full max-w-4xl px-6 py-10">
+      <div className="dashboard-shell mx-auto w-full max-w-[1200px] px-6 py-10">
         <Link
           href="/dashboard"
           className="text-xs font-semibold uppercase tracking-[0.2em] text-primary"
@@ -38,14 +38,17 @@ export default async function ObjectiveNewPage() {
           Zurück zum Dashboard
         </Link>
 
-        <div className="mt-6 space-y-2">
-          <h1 className="text-3xl font-semibold text-foreground">Neues Objective</h1>
+        <div className="mt-6 space-y-3">
+          <p className="dashboard-kicker text-[10px] font-extrabold text-primary">Build Momentum</p>
+          <h1 className="font-display text-4xl font-extrabold tracking-[-0.05em] text-foreground">
+            Neues Objective
+          </h1>
           <p className="text-sm text-muted-foreground">
             Beschreibt euer Objective und ergänzt die Key Results, an denen ihr Fortschritt erkennt.
           </p>
         </div>
 
-        <Card className="mt-8 rounded-2xl border-border shadow-sm">
+        <Card className="mt-8 rounded-[2rem] border-white/70">
           <CardContent className="p-6">
             <ObjectiveForm
               quarters={quarters.map((quarter) => ({

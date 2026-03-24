@@ -94,7 +94,7 @@ export function VisionMissionForm({
 
   return (
     <form className="space-y-6" onSubmit={handleSubmit}>
-      <div className="space-y-3">
+      <div className="space-y-3 rounded-[1.6rem] bg-white/70 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]">
         <Label>Paarfoto</Label>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           <button
@@ -151,7 +151,7 @@ export function VisionMissionForm({
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 rounded-[1.6rem] bg-white/70 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]">
         <Label htmlFor="vision-text">Was ist euch wichtig?</Label>
         <Textarea
           id="vision-text"
@@ -165,7 +165,7 @@ export function VisionMissionForm({
         ) : null}
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 rounded-[1.6rem] bg-white/70 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]">
         <Label htmlFor="mission-text">Wie wollt ihr das leben?</Label>
         <Textarea
           id="mission-text"

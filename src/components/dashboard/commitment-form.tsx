@@ -54,7 +54,7 @@ export function CommitmentForm({ ownerOptions, objectiveOptions = [] }: Commitme
 
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
-      <div className="space-y-2">
+      <div className="space-y-2 rounded-[1.4rem] bg-white/70 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]">
         <Label htmlFor="commitment-title">Zusage</Label>
         <Input
           id="commitment-title"
@@ -63,7 +63,7 @@ export function CommitmentForm({ ownerOptions, objectiveOptions = [] }: Commitme
           placeholder="Was wollt ihr konkret tun?"
         />
       </div>
-      <div className="space-y-2">
+      <div className="space-y-2 rounded-[1.4rem] bg-white/70 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]">
         <Label htmlFor="commitment-details">Details</Label>
         <Textarea
           id="commitment-details"
@@ -74,13 +74,13 @@ export function CommitmentForm({ ownerOptions, objectiveOptions = [] }: Commitme
         />
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
-        <div className="space-y-2">
+        <div className="space-y-2 rounded-[1.4rem] bg-white/70 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]">
           <Label htmlFor="commitment-owner">Wer übernimmt es?</Label>
           <select
             id="commitment-owner"
             value={ownerId}
             onChange={(event) => setOwnerId(event.target.value)}
-            className="h-10 w-full rounded-lg border border-border bg-white px-3 text-sm text-foreground outline-none"
+            className="h-11 w-full rounded-2xl border border-white/80 bg-white/90 px-4 text-sm text-foreground outline-none"
           >
             <option value="">Noch offen</option>
             {ownerOptions.map((owner) => (
@@ -90,7 +90,7 @@ export function CommitmentForm({ ownerOptions, objectiveOptions = [] }: Commitme
             ))}
           </select>
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2 rounded-[1.4rem] bg-white/70 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]">
           <Label htmlFor="commitment-dueAt">Fällig am</Label>
           <Input
             id="commitment-dueAt"
@@ -101,13 +101,13 @@ export function CommitmentForm({ ownerOptions, objectiveOptions = [] }: Commitme
         </div>
       </div>
       {objectiveOptions.length ? (
-        <div className="space-y-2">
+        <div className="space-y-2 rounded-[1.4rem] bg-white/70 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]">
           <Label htmlFor="commitment-objective">Objective</Label>
           <select
             id="commitment-objective"
             value={objectiveId}
             onChange={(event) => setObjectiveId(event.target.value)}
-            className="h-10 w-full rounded-lg border border-border bg-white px-3 text-sm text-foreground outline-none"
+            className="h-11 w-full rounded-2xl border border-white/80 bg-white/90 px-4 text-sm text-foreground outline-none"
           >
             <option value="">Keinem Objective zuordnen</option>
             {objectiveOptions.map((objective) => (
@@ -119,7 +119,7 @@ export function CommitmentForm({ ownerOptions, objectiveOptions = [] }: Commitme
         </div>
       ) : null}
       <Button type="submit" className="rounded-2xl" disabled={action.isPending}>
-        Zusage anlegen
+        Schritt speichern
       </Button>
     </form>
   );

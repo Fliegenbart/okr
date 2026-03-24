@@ -48,7 +48,7 @@ export default async function ObjectiveDetailPage({
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto w-full max-w-5xl px-6 py-10">
+      <div className="dashboard-shell mx-auto w-full max-w-[1300px] px-6 py-10">
         <Link
           href="/dashboard"
           className="text-xs font-semibold uppercase tracking-[0.2em] text-primary"

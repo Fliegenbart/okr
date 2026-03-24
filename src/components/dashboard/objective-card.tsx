@@ -19,9 +19,11 @@ import { motion } from "framer-motion";
 
 import { CelebrationOverlay } from "@/components/dashboard/celebration-overlay";
 import { KeyResultQuickUpdateDialog } from "@/components/dashboard/key-result-quick-update-dialog";
+import { QuarterProgressChart } from "@/components/dashboard/quarter-progress-chart";
 import { Card, CardContent } from "@/components/ui/card";
 import { useObjectiveProgress } from "@/hooks/use-objective-progress";
 import { calculateKeyResultProgress, type KeyResultDirection, type KeyResultType } from "@/lib/key-results";
+import type { ObjectiveQuarterProgressSeries } from "@/lib/quarter-progress";
 import { calculateProgress, formatProgressPercent } from "@/lib/progress";
 
 const dateFormatter = new Intl.DateTimeFormat("de-DE", { dateStyle: "medium" });
@@ -53,6 +55,8 @@ type ObjectiveCardProps = {
     streakDays: number;
     trend: "up" | "down" | "flat";
   };
+  progressSeries?: ObjectiveQuarterProgressSeries | null;
+  progressTodayKey?: string | null;
 };
 
 type OptimisticUpdate = { id: string; value: number };
@@ -114,6 +118,8 @@ export function ObjectiveCard({
   nextAction,
   keyResults,
   insights,
+  progressSeries,
+  progressTodayKey,
 }: ObjectiveCardProps) {
   const [showCelebration, setShowCelebration] = useState(false);
   const [showAllKeyResults, setShowAllKeyResults] = useState(false);
@@ -169,57 +175,60 @@ export function ObjectiveCard({
   const objectiveIcon = getObjectiveIconNode(title, "h-5 w-5");
 
   return (
-    <Card className="relative">
+    <Card className="relative overflow-hidden rounded-[2rem] border-white/70">
       <CelebrationOverlay show={showCelebration} />
-      <CardContent className="relative space-y-6 p-6">
+      <CardContent className="relative space-y-6 p-7">
+        <div className="pointer-events-none absolute inset-x-6 top-0 h-24 rounded-b-[2rem] bg-gradient-to-b from-primary/6 to-transparent" />
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
               {objectiveIcon}
             </div>
             <div className="space-y-2">
               <Link
                 href={`/dashboard/objectives/${objectiveId}`}
-                className="text-xl font-semibold text-foreground hover:underline"
+                className="font-display text-2xl font-bold tracking-[-0.04em] text-foreground hover:underline"
               >
                 {title}
               </Link>
-              {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
+              {description ? (
+                <p className="max-w-xl text-sm leading-6 text-muted-foreground">{description}</p>
+              ) : null}
               {nextAction ? (
-                <div className="rounded-lg bg-primary/5 px-3 py-2">
-                  <p className="text-xs font-medium text-primary/70">Als Nächstes sinnvoll</p>
-                  <p className="mt-0.5 text-sm font-medium text-primary">{nextAction}</p>
+                <div className="rounded-[1.5rem] bg-primary/7 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+                  <p className="dashboard-kicker text-[10px] font-bold text-primary/70">Als Nächstes sinnvoll</p>
+                  <p className="mt-1 text-sm font-semibold leading-6 text-primary">{nextAction}</p>
                 </div>
               ) : null}
             </div>
           </div>
           <div className="flex flex-col items-start gap-3 lg:items-end">
             <details className="group relative">
-              <summary className="list-none cursor-pointer rounded-lg bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-muted/80">
+              <summary className="list-none cursor-pointer rounded-full bg-secondary px-4 py-2 text-xs font-semibold text-muted-foreground transition hover:bg-secondary/80">
                 Aktionen
               </summary>
-              <div className="absolute right-0 z-10 mt-2 min-w-[180px] rounded-lg border border-border bg-white p-1.5 shadow-lg">
+              <div className="absolute right-0 z-10 mt-2 min-w-[220px] rounded-2xl border border-white/80 bg-white/96 p-2 shadow-[0_20px_55px_rgba(33,18,33,0.12)] backdrop-blur-sm">
                 <Link
                   href={`/dashboard/objectives/${objectiveId}`}
-                  className="flex items-center rounded-md px-3 py-2 text-sm text-foreground transition hover:bg-muted"
+                  className="flex items-center rounded-xl px-3 py-2 text-sm text-foreground transition hover:bg-muted"
                 >
                   Objective öffnen
                 </Link>
                 <Link
                   href={`/dashboard/objectives/${objectiveId}/edit`}
-                  className="flex items-center rounded-md px-3 py-2 text-sm text-foreground transition hover:bg-muted"
+                  className="flex items-center rounded-xl px-3 py-2 text-sm text-foreground transition hover:bg-muted"
                 >
                   Key Result ergänzen
                 </Link>
                 <Link
                   href={`/dashboard/objectives/${objectiveId}/edit`}
-                  className="flex items-center rounded-md px-3 py-2 text-sm text-foreground transition hover:bg-muted"
+                  className="flex items-center rounded-xl px-3 py-2 text-sm text-foreground transition hover:bg-muted"
                 >
                   Objective bearbeiten
                 </Link>
                 <Link
                   href={`/dashboard/thinking-partner?objectiveId=${objectiveId}`}
-                  className="flex items-center rounded-md px-3 py-2 text-sm text-foreground transition hover:bg-muted"
+                  className="flex items-center rounded-xl px-3 py-2 text-sm text-foreground transition hover:bg-muted"
                 >
                   Thinking Partner fragen
                 </Link>
@@ -229,19 +238,19 @@ export function ObjectiveCard({
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="relative h-1 flex-1 rounded-full bg-muted">
+          <div className="progress-track relative h-2.5 flex-1 rounded-full">
             <motion.div
-              className="h-full rounded-full bg-primary"
+              className="progress-fill h-full rounded-full"
               animate={{ width: `${progress}%` }}
               transition={{ type: "spring", stiffness: 120, damping: 18 }}
             />
           </div>
-          <span className="text-sm font-medium text-foreground tabular-nums">
+          <span className="rounded-full bg-primary/8 px-3 py-1 text-sm font-semibold text-primary tabular-nums">
             {formatProgressPercent(progress)}%
           </span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
           <span>
             Letztes Update:{" "}
             {insights.lastUpdateAt ? dateFormatter.format(new Date(insights.lastUpdateAt)) : "—"}
@@ -257,24 +266,53 @@ export function ObjectiveCard({
           <span>Seit {insights.streakDays} Tagen in Folge dran</span>
         </div>
 
+        {progressSeries ? (
+          <Link
+            href={`/dashboard/objectives/${objectiveId}`}
+            className="block overflow-hidden rounded-[1.5rem] border border-white/80 bg-white/90 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(33,18,33,0.08)]"
+          >
+            <div className="mb-3 flex items-start justify-between gap-3">
+              <div className="space-y-1">
+                <p className="dashboard-kicker text-[10px] font-extrabold text-primary">
+                  Objective-Verlauf
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {progressSeries.lastUpdateAt
+                    ? `Letztes Update: ${dateFormatter.format(new Date(progressSeries.lastUpdateAt))}`
+                    : "Noch keine Updates"}
+                </p>
+              </div>
+              <span className="rounded-full bg-primary/8 px-3 py-1 text-xs font-semibold text-primary">
+                {formatProgressPercent(progressSeries.currentProgress)}%
+              </span>
+            </div>
+            <QuarterProgressChart
+              data={progressSeries.points}
+              todayKey={progressTodayKey}
+              compact={true}
+              showAxes={false}
+            />
+          </Link>
+        ) : null}
+
         <div className="space-y-3">
           <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
             <span>Key Results</span>
             <span>{optimisticKeyResults.length} insgesamt</span>
           </div>
-          <div className="divide-y divide-border rounded-lg border border-border bg-white">
+          <div className="overflow-hidden rounded-[1.5rem] border border-white/80 bg-white/92 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
             {visibleKeyResults.map((keyResult) => {
               const progressValue = calculateKeyResultProgress(keyResult);
 
               return (
                 <div
                   key={keyResult.id}
-                  className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-3 border-t border-border/70 p-4 first:border-t-0 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="flex-1 space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="font-medium text-foreground">{keyResult.title}</p>
-                      <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
+                      <span className="rounded-full bg-secondary px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">
                         {formatProgressPercent(progressValue)}%
                       </span>
                     </div>
@@ -282,9 +320,9 @@ export function ObjectiveCard({
                       {keyResult.currentValue} / {keyResult.targetValue}
                       {keyResult.unit ? ` ${keyResult.unit}` : ""}
                     </p>
-                    <div className="h-1.5 w-full rounded-full bg-border">
+                    <div className="progress-track h-2 w-full rounded-full">
                       <motion.div
-                        className="h-full rounded-full bg-primary"
+                        className="progress-fill h-full rounded-full"
                         animate={{ width: `${progressValue}%` }}
                         transition={{ type: "spring", stiffness: 140, damping: 18 }}
                       />

@@ -126,7 +126,7 @@ export function ObjectiveForm({ quarters, defaultQuarterId }: ObjectiveFormProps
 
   return (
     <form className="space-y-8" onSubmit={handleSubmit}>
-      <div className="space-y-2">
+      <div className="space-y-2 rounded-[1.6rem] bg-white/70 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]">
         <Label htmlFor="objective-title">Objective</Label>
         <Input
           id="objective-title"
@@ -139,7 +139,7 @@ export function ObjectiveForm({ quarters, defaultQuarterId }: ObjectiveFormProps
         ) : null}
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 rounded-[1.6rem] bg-white/70 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]">
         <Label htmlFor="objective-description">Beschreibung (optional)</Label>
         <Textarea
           id="objective-description"
@@ -150,13 +150,13 @@ export function ObjectiveForm({ quarters, defaultQuarterId }: ObjectiveFormProps
       </div>
 
       {quarters.length ? (
-        <div className="space-y-2">
+        <div className="space-y-2 rounded-[1.6rem] bg-white/70 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]">
           <Label htmlFor="objective-quarter">Quartal</Label>
           <select
             id="objective-quarter"
             value={quarterId}
             onChange={(event) => setQuarterId(event.target.value)}
-            className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
+            className="h-11 w-full rounded-2xl border border-white/80 bg-white/90 px-4 text-sm text-foreground"
           >
             <option value="">Aktuelles Quartal</option>
             {quarters.map((quarter) => (
@@ -185,7 +185,7 @@ export function ObjectiveForm({ quarters, defaultQuarterId }: ObjectiveFormProps
           {keyResults.map((keyResult, index) => (
             <div
               key={keyResult.id}
-              className="rounded-2xl border border-border bg-card p-4 shadow-sm"
+              className="rounded-[1.6rem] border border-white/80 bg-white/85 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]"
             >
               <div className="flex items-start justify-between gap-3">
                 <p className="text-sm font-semibold text-foreground">Key Result {index + 1}</p>
