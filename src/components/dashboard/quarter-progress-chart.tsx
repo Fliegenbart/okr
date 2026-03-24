@@ -7,7 +7,6 @@ import {
   LineChart,
   ReferenceLine,
   ResponsiveContainer,
-  Scatter,
   Tooltip,
   XAxis,
   YAxis,
@@ -79,9 +78,6 @@ export function QuarterProgressChart({
   showAxes = true,
 }: QuarterProgressChartProps) {
   const gradientId = useId();
-  const updatePoints = data.filter(
-    (point) => point.hasUpdate && point.actualProgress !== null
-  );
 
   return (
     <div
@@ -135,12 +131,30 @@ export function QuarterProgressChart({
             dataKey="actualProgress"
             stroke="#ff0086"
             strokeWidth={compact ? 2 : 3}
-            dot={false}
+            dot={
+              compact
+                ? false
+                : ({ cx, cy, payload }) => {
+                    if (!payload?.hasUpdate || payload.actualProgress === null) {
+                      return null;
+                    }
+
+                    return (
+                      <circle
+                        cx={cx}
+                        cy={cy}
+                        r={7}
+                        fill="#ff0086"
+                        stroke="#ffffff"
+                        strokeWidth={2}
+                      />
+                    );
+                  }
+            }
             connectNulls={false}
             fill={compact ? undefined : `url(#${gradientId})`}
             isAnimationActive={false}
           />
-          <Scatter data={updatePoints} dataKey="actualProgress" fill="#ff0086" />
           {todayKey ? (
             <ReferenceLine
               x={todayKey}
