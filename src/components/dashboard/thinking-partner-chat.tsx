@@ -324,7 +324,7 @@ export function ThinkingPartnerChat({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="flex min-h-0 flex-col gap-4">
       {canUsePersona ? (
         <div className="rounded-2xl border border-border bg-card p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
@@ -353,7 +353,7 @@ export function ThinkingPartnerChat({
 
       <div
         ref={messagesRef}
-        className="h-[420px] overflow-y-auto rounded-2xl border border-border bg-card p-4"
+        className="h-[420px] min-h-[320px] overflow-y-auto rounded-2xl border border-border bg-card p-4"
       >
         <div className="space-y-4">
           {messages.map((message, index) => (

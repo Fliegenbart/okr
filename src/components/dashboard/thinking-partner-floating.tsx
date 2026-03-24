@@ -45,14 +45,14 @@ export function ThinkingPartnerFloating({ canUsePersona }: { canUsePersona: bool
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="flex max-h-[90vh] max-w-2xl flex-col overflow-hidden p-0">
           <DialogHeader>
-            <DialogTitle>Thinking Partner</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="px-6 pt-6">Thinking Partner</DialogTitle>
+            <DialogDescription className="px-6">
               Wenn ihr feststeckt, bekommt ihr hier eine kurze Antwort und einen nächsten Schritt.
             </DialogDescription>
           </DialogHeader>
-          <div className="mt-4">
+          <div className="mt-4 min-h-0 flex-1 overflow-y-auto px-6 pb-6">
             <ThinkingPartnerChat
               objectiveId={objectiveId}
               keyResultId={keyResultId}
