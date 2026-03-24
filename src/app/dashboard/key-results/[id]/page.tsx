@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { KeyResultChart } from "@/components/dashboard/key-result-chart";
 import { SimpleRichTextContent } from "@/components/dashboard/simple-rich-text";
+import { TrafficLightChip } from "@/components/dashboard/traffic-light-chip";
 import { KeyResultUpdateForm } from "@/components/dashboard/key-result-update-form";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -107,6 +108,9 @@ export default async function KeyResultDetailPage({
           <h1 className="text-3xl font-semibold text-foreground">
             {keyResult.title}
           </h1>
+          <div className="pt-1">
+            <TrafficLightChip keyResult={keyResult} />
+          </div>
           <p className="text-sm text-muted-foreground">
             {getKeyResultSummaryText(keyResult)}
           </p>

@@ -20,9 +20,14 @@ import { motion } from "framer-motion";
 import { CelebrationOverlay } from "@/components/dashboard/celebration-overlay";
 import { KeyResultQuickUpdateDialog } from "@/components/dashboard/key-result-quick-update-dialog";
 import { QuarterProgressChart } from "@/components/dashboard/quarter-progress-chart";
+import { TrafficLightChip } from "@/components/dashboard/traffic-light-chip";
 import { Card, CardContent } from "@/components/ui/card";
 import { useObjectiveProgress } from "@/hooks/use-objective-progress";
-import { calculateKeyResultProgress, type KeyResultDirection, type KeyResultType } from "@/lib/key-results";
+import {
+  calculateKeyResultProgress,
+  type KeyResultDirection,
+  type KeyResultType,
+} from "@/lib/key-results";
 import type { ObjectiveQuarterProgressSeries } from "@/lib/quarter-progress";
 import { calculateProgress, formatProgressPercent } from "@/lib/progress";
 
@@ -312,6 +317,7 @@ export function ObjectiveCard({
                   <div className="flex-1 space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="font-medium text-foreground">{keyResult.title}</p>
+                      <TrafficLightChip keyResult={keyResult} />
                       <span className="rounded-full bg-secondary px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">
                         {formatProgressPercent(progressValue)}%
                       </span>

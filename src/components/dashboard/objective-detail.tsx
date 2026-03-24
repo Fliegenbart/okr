@@ -7,9 +7,14 @@ import { motion } from "framer-motion";
 import { CelebrationOverlay } from "@/components/dashboard/celebration-overlay";
 import { CommitmentStatusActions } from "@/components/dashboard/commitment-status-actions";
 import { KeyResultQuickUpdateDialog } from "@/components/dashboard/key-result-quick-update-dialog";
+import { TrafficLightChip } from "@/components/dashboard/traffic-light-chip";
 import { Card, CardContent } from "@/components/ui/card";
 import { useObjectiveProgress } from "@/hooks/use-objective-progress";
-import { calculateKeyResultProgress, type KeyResultDirection, type KeyResultType } from "@/lib/key-results";
+import {
+  calculateKeyResultProgress,
+  type KeyResultDirection,
+  type KeyResultType,
+} from "@/lib/key-results";
 import { calculateProgress, formatProgressPercent } from "@/lib/progress";
 
 export type ObjectiveDetailProps = {
@@ -163,7 +168,10 @@ export function ObjectiveDetail({
                 <CardContent className="space-y-4 p-5">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div>
-                      <p className="text-lg font-semibold text-foreground">{keyResult.title}</p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-lg font-semibold text-foreground">{keyResult.title}</p>
+                        <TrafficLightChip keyResult={keyResult} />
+                      </div>
                       <p className="text-xs text-muted-foreground">
                         {keyResult.currentValue} / {keyResult.targetValue}
                         {keyResult.unit ? ` ${keyResult.unit}` : ""}
