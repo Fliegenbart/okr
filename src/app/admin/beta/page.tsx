@@ -34,8 +34,8 @@ export default async function AdminBetaPage() {
             Private Beta für Admins und 10 Paare
           </h1>
           <p className="max-w-3xl text-sm text-muted-foreground">
-            Hier pflegst du die erlaubten E-Mail-Adressen für den Support-Login. Die Leute loggen
-            sich mit E-Mail + Support-Code ein, ganz ohne SMTP.
+            Hier legst du Beta-Couples direkt an und erzeugst einfache Startlinks. Die manuelle
+            E-Mail-Allowlist bleibt nur noch als Reserve für Sonderfälle.
           </p>
         </div>
       </section>

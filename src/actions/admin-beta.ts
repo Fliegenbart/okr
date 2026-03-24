@@ -1,11 +1,14 @@
 "use server";
 
+import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
 import { prisma } from "@/lib/db";
 import { requireAdminUser, writeAuditLog } from "@/lib/admin";
+import { getBaseUrl } from "@/lib/email";
+import { generateInviteCode, generateInviteToken } from "@/lib/invite";
 import { action } from "@/lib/safe-action";
-import { bulkBetaAccessSchema } from "@/lib/validations/admin-beta";
+import { bulkBetaAccessSchema, createBetaCoupleSchema } from "@/lib/validations/admin-beta";
 
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
@@ -76,5 +79,128 @@ export const upsertBetaAccessEntries = action
 
     return {
       count: entries.length,
+    };
+  });
+
+export const createBetaCoupleWithLinks = action
+  .schema(createBetaCoupleSchema)
+  .action(async ({ parsedInput }) => {
+    const admin = await requireAdminUser();
+    const partnerOneEmail = normalizeEmail(parsedInput.partnerOneEmail);
+    const partnerTwoEmail = normalizeEmail(parsedInput.partnerTwoEmail ?? "");
+    const baseUrl = getBaseUrl();
+
+    if (partnerTwoEmail && partnerOneEmail === partnerTwoEmail) {
+      throw new Error("Bitte gib für Person 2 eine andere E-Mail-Adresse an.");
+    }
+
+    if (!baseUrl) {
+      throw new Error(
+        "Die App-URL ist nicht gesetzt. Bitte NEXT_PUBLIC_APP_URL oder NEXTAUTH_URL konfigurieren."
+      );
+    }
+
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const invites = [
+      {
+        email: partnerOneEmail,
+        label: "Person 1",
+        token: generateInviteToken(),
+      },
+      ...(partnerTwoEmail
+        ? [
+            {
+              email: partnerTwoEmail,
+              label: "Person 2",
+              token: generateInviteToken(),
+            },
+          ]
+        : []),
+    ];
+
+    let couple:
+      | {
+          id: string;
+          name: string;
+          inviteCode: string;
+        }
+      | null = null;
+
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      const inviteCode = generateInviteCode();
+
+      try {
+        couple = await prisma.$transaction(async (tx) => {
+          const createdCouple = await tx.couple.create({
+            data: {
+              name: parsedInput.coupleName.trim(),
+              inviteCode,
+            },
+            select: {
+              id: true,
+              name: true,
+              inviteCode: true,
+            },
+          });
+
+          await Promise.all(
+            invites.map((invite) =>
+              tx.invite.create({
+                data: {
+                  coupleId: createdCouple.id,
+                  email: invite.email,
+                  token: invite.token,
+                  expiresAt,
+                },
+              })
+            )
+          );
+
+          return createdCouple;
+        });
+        break;
+      } catch (error) {
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === "P2002"
+        ) {
+          continue;
+        }
+
+        throw error;
+      }
+    }
+
+    if (!couple) {
+      throw new Error("Das Couple konnte gerade nicht angelegt werden. Bitte versuche es erneut.");
+    }
+
+    const inviteLinks = invites.map((invite) => ({
+      label: invite.label,
+      email: invite.email,
+      url: `${baseUrl}/join?token=${invite.token}`,
+      expiresAt: expiresAt.toISOString(),
+    }));
+
+    await writeAuditLog({
+      actorId: admin.id,
+      action: "beta_couple_created",
+      targetType: "Couple",
+      targetId: couple.id,
+      metadata: {
+        coupleName: couple.name,
+        inviteCode: couple.inviteCode,
+        inviteEmails: inviteLinks.map((invite) => invite.email),
+      } as Prisma.InputJsonValue,
+    });
+
+    revalidatePath("/admin/beta");
+    revalidatePath("/admin/couples");
+
+    return {
+      coupleId: couple.id,
+      coupleName: couple.name,
+      inviteCode: couple.inviteCode,
+      inviteLinks,
     };
   });
