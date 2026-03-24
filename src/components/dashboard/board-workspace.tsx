@@ -646,7 +646,7 @@ export function BoardWorkspace({ initialBoard }: BoardWorkspaceProps) {
       void refreshBoardSnapshot();
     },
     onError: ({ error }) => {
-      toast.error("Aenderungen konnten nicht gespeichert werden", {
+      toast.error("Änderungen konnten nicht gespeichert werden", {
         description:
           error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
       });

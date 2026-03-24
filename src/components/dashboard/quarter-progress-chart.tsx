@@ -27,6 +27,17 @@ const dateFormatter = new Intl.DateTimeFormat("de-DE", {
   month: "short",
 });
 
+function formatPercent(value?: number | null) {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return "—";
+  }
+
+  return new Intl.NumberFormat("de-DE", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 1,
+  }).format(value);
+}
+
 function formatDateLabel(value: string) {
   return dateFormatter.format(new Date(value));
 }
@@ -60,10 +71,10 @@ function ProgressTooltip({
       </p>
       <div className="mt-2 space-y-1 text-sm">
         <p className="font-semibold text-foreground">
-          Ist: {actual?.value ?? "—"}%
+          Ist: {formatPercent(actual?.value)}%
         </p>
         <p className="text-muted-foreground">
-          Soll: {ideal?.value ?? "—"}%
+          Soll: {formatPercent(ideal?.value)}%
         </p>
       </div>
     </div>

@@ -23,7 +23,7 @@ const optionalContent = z.preprocess(
 const colorSchema = z
   .string()
   .trim()
-  .regex(/^#[0-9a-fA-F]{6}$/, "Bitte eine gueltige Farbe angeben.");
+  .regex(/^#[0-9a-fA-F]{6}$/, "Bitte eine gültige Farbe angeben.");
 
 const optionalColor = z.preprocess(
   (value) => {
@@ -66,7 +66,7 @@ export const ensureBoardSchema = z
     if (value.scope === "MASTER" && value.quarterId) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Master-Boards duerfen kein Quartal haben.",
+        message: "Master-Boards dürfen kein Quartal haben.",
         path: ["quarterId"],
       });
     }

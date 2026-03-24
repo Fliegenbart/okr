@@ -27,7 +27,7 @@ export const checkInScheduleSchema = z
       return Boolean(value.weekday && value.time && value.durationMinutes);
     },
     {
-      message: "Bitte Wochentag, Uhrzeit und Dauer ausfuellen.",
+      message: "Bitte Wochentag, Uhrzeit und Dauer ausfüllen.",
       path: ["enabled"],
     }
   );

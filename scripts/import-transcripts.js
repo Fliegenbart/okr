@@ -524,15 +524,15 @@ function buildToneDescriptors(chunks) {
   const descriptors = [];
 
   if (averageSentenceLength <= 10) {
-    descriptors.push("kurze, klare Saetze");
+    descriptors.push("kurze, klare Sätze");
   } else if (averageSentenceLength >= 18) {
-    descriptors.push("laengere, erklaerende Saetze");
+    descriptors.push("längere, erklärende Sätze");
   } else {
-    descriptors.push("ruhige, mittlere Satzlaenge");
+    descriptors.push("ruhige, mittlere Satzlänge");
   }
 
   if (questionRate >= 0.12) {
-    descriptors.push("arbeitet mit Rueckfragen");
+    descriptors.push("arbeitet mit Rückfragen");
   }
 
   if (/\b(wir|uns|gemeinsam|zusammen|euch|ihr)\b/i.test(text)) {
@@ -561,7 +561,7 @@ function buildPersonaProfile(chunks) {
   }
 
   if (vocabulary.length) {
-    styleSummaryParts.push(`Typische Woerter: ${vocabulary.slice(0, 6).join(", ")}.`);
+    styleSummaryParts.push(`Typische Wörter: ${vocabulary.slice(0, 6).join(", ")}.`);
   }
 
   if (recurringPhrases.length) {
@@ -573,7 +573,7 @@ function buildPersonaProfile(chunks) {
   return {
     styleSummary:
       styleSummaryParts.join(" ") ||
-      "Klar, warm und auf den naechsten machbaren Schritt ausgerichtet.",
+      "Klar, warm und auf den nächsten machbaren Schritt ausgerichtet.",
     toneDescriptors,
     recurringPhrases,
     vocabulary,
