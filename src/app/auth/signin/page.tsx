@@ -56,11 +56,21 @@ function isInviteCallback(callbackUrl: string) {
   }
 }
 
+function isAdminCallback(callbackUrl: string) {
+  try {
+    const parsed = new URL(callbackUrl, "http://localhost");
+    return parsed.pathname.startsWith("/admin");
+  } catch {
+    return false;
+  }
+}
+
 export default async function SignInPage({ searchParams }: SignInPageProps) {
   const session = await getAuthSession();
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const callbackUrl = getSafeCallbackUrl(resolvedSearchParams?.callbackUrl);
   const inviteMode = isInviteCallback(callbackUrl);
+  const adminMode = isAdminCallback(callbackUrl);
 
   if (session?.user) {
     redirect(callbackUrl);
@@ -73,19 +83,29 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
           <div className="space-y-4">
             <p className="text-sm uppercase tracking-[0.2em] text-primary">OKR für Paare</p>
             <h2 className="text-3xl font-semibold text-foreground">
-              {inviteMode
+              {adminMode
+                ? "Hier kommt ihr direkt in den Admin-Bereich."
+                : inviteMode
                 ? "Euer Einladungslink bringt euch direkt in euren gemeinsamen Bereich."
                 : "Hier startet ihr in euren gemeinsamen Bereich."}
             </h2>
             <p className="text-sm leading-7 text-muted-foreground">
-              {inviteMode
+              {adminMode
+                ? "Fuer den Admin-Zugang nutzt ihr einfach eure freigeschaltete Admin-E-Mail und den Support-Code. Danach landet ihr direkt in der Uebersicht."
+                : inviteMode
                 ? "Fuer diesen Einstieg braucht ihr nur noch die eingeladene E-Mail-Adresse. Nach der Anmeldung landet ihr direkt im gemeinsamen Bereich."
                 : "Meldet euch mit Einladung oder freigeschalteter E-Mail an. Danach koennt ihr direkt euren gemeinsamen Bereich anlegen und loslegen."}
             </p>
           </div>
 
           <div className="space-y-3 text-sm text-muted-foreground">
-            {inviteMode ? (
+            {adminMode ? (
+              <>
+                <p>1. Eure Admin-E-Mail eingeben.</p>
+                <p>2. Support-Code eingeben.</p>
+                <p>3. Direkt im Admin-Bereich landen.</p>
+              </>
+            ) : inviteMode ? (
               <>
                 <p>1. E-Mail-Adresse eingeben, auf die die Einladung geschickt wurde.</p>
                 <p>2. Anmelden und direkt beitreten.</p>
@@ -113,6 +133,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
             initialEmail={resolvedSearchParams?.email ?? ""}
             errorMessage={getErrorMessage(resolvedSearchParams?.error)}
             inviteMode={inviteMode}
+            adminMode={adminMode}
           />
         </div>
       </div>

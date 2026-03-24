@@ -15,6 +15,7 @@ type SignInCardProps = {
   initialEmail?: string;
   errorMessage?: string | null;
   inviteMode?: boolean;
+  adminMode?: boolean;
 };
 
 function extractInviteToken(callbackUrl: string) {
@@ -35,6 +36,7 @@ export function SignInCard({
   initialEmail = "",
   errorMessage,
   inviteMode = false,
+  adminMode = false,
 }: SignInCardProps) {
   const [email, setEmail] = useState(initialEmail);
   const [devEmail, setDevEmail] = useState(initialEmail || "dev@example.com");
@@ -133,15 +135,51 @@ export function SignInCard({
     <div className="w-full max-w-lg rounded-3xl border border-border bg-white p-8 shadow-sm">
       <p className="text-sm uppercase tracking-[0.2em] text-primary">Geschlossene Beta</p>
       <h1 className="mt-3 text-3xl font-semibold text-foreground">
-        {inviteMode ? "Fast geschafft" : "Meldet euch an"}
+        {adminMode ? "Admin anmelden" : inviteMode ? "Fast geschafft" : "Meldet euch an"}
       </h1>
       <p className="mt-4 text-sm leading-6 text-muted-foreground">
-        {inviteMode
+        {adminMode
+          ? "Hier gibt es nur den schnellen Admin-Zugang. Kein Umweg, keine extra Auswahl."
+          : inviteMode
           ? "Gebt nur noch die eingeladene E-Mail-Adresse ein. Den Rest uebernimmt euer Link."
           : "Je nachdem, was ihr bekommen habt, nutzt ihr euren Login-Link, den Einladungslink oder den Support-Code."}
       </p>
 
-      {inviteMode ? (
+      {adminMode ? (
+        enableSupportLogin ? (
+          <form className="mt-8 space-y-4" onSubmit={handleSupportSignIn}>
+            <div className="space-y-2">
+              <Label htmlFor="support-email">Admin E-Mail</Label>
+              <Input
+                id="support-email"
+                type="email"
+                value={supportEmail}
+                placeholder="mail@davidwegener.de"
+                onChange={(event) => setSupportEmail(event.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="support-code">Support Code</Label>
+              <Input
+                id="support-code"
+                type="password"
+                value={supportCode}
+                placeholder="Support-Code"
+                onChange={(event) => setSupportCode(event.target.value)}
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full rounded-2xl" disabled={submitting !== null}>
+              {submitting === "support" ? "Pruefe Admin-Zugang ..." : "In den Admin-Bereich"}
+            </Button>
+          </form>
+        ) : (
+          <p className="mt-8 rounded-2xl bg-muted px-4 py-3 text-sm text-muted-foreground">
+            Fuer den Admin-Zugang fehlt gerade der Support-Code in der Konfiguration.
+          </p>
+        )
+      ) : inviteMode ? (
         <div className="mt-8 space-y-2 rounded-2xl border border-border p-4">
           <div className="space-y-1">
             <p className="text-sm font-medium text-foreground">Mit Einladung beitreten</p>
@@ -211,7 +249,7 @@ export function SignInCard({
         </p>
       )}
 
-      {!inviteMode ? <div className="mt-8 space-y-2 rounded-2xl border border-border p-4">
+      {!inviteMode && !adminMode ? <div className="mt-8 space-y-2 rounded-2xl border border-border p-4">
         <div className="space-y-1">
           <p className="text-sm font-medium text-foreground">Mit Einladungslink beitreten</p>
           <p className="text-xs text-muted-foreground">
@@ -249,7 +287,7 @@ export function SignInCard({
         </form>
       </div> : null}
 
-      {enableSupportLogin && !inviteMode ? (
+      {enableSupportLogin && !inviteMode && !adminMode ? (
         <form
           className="mt-4 space-y-4 rounded-2xl border border-dashed border-border p-4"
           onSubmit={handleSupportSignIn}
@@ -297,7 +335,7 @@ export function SignInCard({
 
       {localError ? <p className="mt-4 text-sm text-primary">{localError}</p> : null}
 
-      {enableDevLogin && !inviteMode ? (
+      {enableDevLogin && !inviteMode && !adminMode ? (
         <form
           className="mt-8 space-y-4 rounded-2xl border border-dashed border-border p-4"
           onSubmit={handleDevSignIn}
