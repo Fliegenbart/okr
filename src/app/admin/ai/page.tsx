@@ -64,7 +64,7 @@ export default async function AdminAiPage() {
       <section className="space-y-3">
         <p className="text-sm font-semibold uppercase tracking-[0.24em] text-primary">KI-Bereich</p>
         <div className="space-y-2">
-          <h1 className="text-3xl font-semibold text-foreground">Thinking Partner im Blick</h1>
+          <h1 className="text-3xl font-semibold text-foreground">OKR-Coach im Blick</h1>
           <p className="max-w-3xl text-sm text-muted-foreground">
             Hier seht ihr, wie viele Inhalte importiert wurden und ob es zuletzt Sperren gab.
           </p>

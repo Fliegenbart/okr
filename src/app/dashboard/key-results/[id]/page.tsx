@@ -119,7 +119,7 @@ export default async function KeyResultDetailPage({
               href={`/dashboard/thinking-partner?keyResultId=${keyResult.id}`}
               className="inline-flex items-center justify-center rounded-2xl border border-border px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-foreground"
             >
-              Thinking Partner
+              OKR-Coach
             </Link>
             <Link
               href={`/dashboard/objectives/${keyResult.objective.id}/edit`}

@@ -2,20 +2,15 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getAuthenticatedViewer } from "@/lib/active-couple";
-import { canUseThinkingPartnerPersona } from "@/lib/beta-access";
 import { assertRateLimit } from "@/lib/rate-limit";
 import { prisma } from "@/lib/db";
 import { generateChatCompletion, generateToolCallCompletion, type LlmMessage } from "@/lib/llm";
 import {
   buildCoupleContext,
   buildKnowledgeContext,
-  buildPersonaContext,
-  getPersonaProfile,
   inferTopicsFromQuery,
-  searchPersonaStyleChunks,
   searchTranscriptChunks,
 } from "@/lib/thinking-partner";
-import { isPersonaSpeaker } from "@/lib/transcript-persona";
 import {
   thinkingPartnerResponseSchema,
   type ThinkingPartnerResponse,
@@ -38,7 +33,6 @@ const requestSchema = z
     history: z.array(historyMessageSchema).max(MAX_HISTORY_MESSAGES).default([]),
     objectiveId: z.string().trim().min(1).nullable().optional(),
     keyResultId: z.string().trim().min(1).nullable().optional(),
-    persona: z.enum(["DANIEL", "CHRISTIANE"]).nullable().optional(),
   })
   .strict();
 
@@ -117,6 +111,36 @@ function formatStructuredAsText(answer: ThinkingPartnerResponse) {
   return lines.join("\n");
 }
 
+function inferStylePreference(message: string, history: Array<{ role: "user" | "assistant"; content: string }>) {
+  const userText = [...history, { role: "user" as const, content: message }]
+    .filter((item) => item.role === "user")
+    .map((item) => item.content)
+    .join("\n")
+    .toLowerCase();
+
+  return {
+    preferDaniel: /mehr\s+daniel|eher\s+daniel|bitte\s+daniel|daniel-stil|motivierender|inspirierender/.test(
+      userText
+    ),
+    preferChristiane:
+      /mehr\s+christiane|eher\s+christiane|bitte\s+christiane|nur\s+strukturier|präziser|praeziser|klarer|methodischer/.test(
+        userText
+      ),
+    preferStructure:
+      /nur\s+strukturier|bitte\s+nur\s+strukturier|präziser|praeziser|klarer|konkreter/.test(
+        userText
+      ),
+    preferInspiration:
+      /mehr\s+daniel|motivierender|ermutigend|inspirierender|lockerer|mehr\s+schwung/.test(
+        userText
+      ),
+    openThenSharpen:
+      /erst\s+inspiration,\s*dann\s+präzisier|erst\s+inspiration,\s*dann\s+praezisier|erst\s+inspiration\s+dann\s+präzisier|erst\s+inspiration\s+dann\s+praezisier|erst\s+öffnen,\s*dann\s+schärfen|erst\s+oeffnen,\s*dann\s+schaerfen/.test(
+        userText
+      ),
+  };
+}
+
 export async function POST(req: Request) {
   const viewer = await getAuthenticatedViewer();
 
@@ -134,7 +158,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Ungültige Anfrage." }, { status: 400 });
   }
 
-  const { message, history, objectiveId, keyResultId, persona: requestedPersona } = parsedBody.data;
+  const { message, history, objectiveId, keyResultId } = parsedBody.data;
 
   const couple = await prisma.couple.findUnique({
     where: { id: viewer.activeCoupleId },
@@ -201,35 +225,49 @@ export async function POST(req: Request) {
   });
 
   const topics = inferTopicsFromQuery(message);
-  const canUsePersona = await canUseThinkingPartnerPersona(viewer.email);
-  const persona = canUsePersona && isPersonaSpeaker(requestedPersona) ? requestedPersona : null;
-
-  const [snippets, styleSnippets, personaProfile] = await Promise.all([
-    searchTranscriptChunks(message, 6, topics, viewer.activeCoupleId),
-    persona
-      ? searchPersonaStyleChunks(message, persona, 4, topics, viewer.activeCoupleId)
-      : Promise.resolve([]),
-    persona ? getPersonaProfile(persona, viewer.activeCoupleId) : Promise.resolve(null),
-  ]);
+  const stylePreference = inferStylePreference(message, history);
+  const snippets = await searchTranscriptChunks(message, 6, topics, viewer.activeCoupleId);
   const knowledgeContext = buildKnowledgeContext(snippets);
-  const personaContext = persona
-    ? buildPersonaContext({
-        speaker: persona,
-        profile: personaProfile,
-        styleSnippets,
-      })
-    : "Keine Persona aktiv.";
   const ritualCandidates = extractMiniRitualCandidates(knowledgeContext);
 
+  const stylePreferencePrompt = [
+    stylePreference.preferDaniel
+      ? "Nutzerwunsch: Daniel-Anteil etwas stärker machen: inspirierend, bildhaft, humorvoll, entlastend."
+      : "",
+    stylePreference.preferChristiane
+      ? "Nutzerwunsch: Christiane-Anteil etwas stärker machen: präzise, strukturierend, methodisch klar, pragmatisch."
+      : "",
+    stylePreference.preferStructure
+      ? "Nutzerwunsch: Bitte stärker strukturieren, Begriffe sauber trennen und Unschärfen konkret übersetzen."
+      : "",
+    stylePreference.preferInspiration
+      ? "Nutzerwunsch: Bitte ermutigender, leichter und motivierender formulieren."
+      : "",
+    stylePreference.openThenSharpen
+      ? "Nutzerwunsch: Erst Inspiration und Öffnung, dann Präzisierung und Konkretion."
+      : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+
   const systemPrompt = [
-    "Du bist ein Thinking Partner für Paare. Du hilfst, gemeinsame Objectives und Key Results zu erreichen.",
-    "Antworte auf Deutsch, klar, warm, handlungsorientiert. Kein Therapie-Setting, keine Diagnosen.",
-    persona
-      ? "Formuliere spürbar im Stil der gewählten Persona, bleibe aber fachlich korrekt und belegt."
-      : "Formuliere in einer neutral-warmen Coach-Stimme.",
+    "Du bist ein deutschsprachiger OKR-Coach für Paare.",
+    "Du arbeitest im Stil eines eingespielten inneren Duos: Daniel bringt Richtung, Schwung, Bilder, Leichtigkeit und Ermutigung. Christiane bringt Präzision, Struktur, methodische Klarheit und pragmatische nächste Schritte.",
+    "Standard: Antworte in einer integrierten gemeinsamen Stimme. Mache Daniel und Christiane nur dann sichtbar getrennt, wenn das dem Paar wirklich hilft. Dann kurz, klar, sparsam und nicht theatralisch.",
+    "Grundhaltung: erst würdigen, dann schärfen. Erst Beziehung, dann Methode. Lieber Klarheit als Buzzwords. Lieber ein guter 80%-Schritt als Perfektion. Immer wieder vom Wozu und vom gewünschten Zustand her denken.",
+    "Du bist warm, klar, alltagsnah, intelligent, menschlich und leicht humorvoll. Nicht kalt, nicht kitschig, nicht corporate-steif, nicht moralisch drückend.",
+    "Du hilfst Paaren, Vision, Mission, Strategiefelder, Objectives und Key Results zu entwickeln, zu schärfen und im Alltag wirksam zu machen.",
+    "Du unterscheidest sauber zwischen Vision, Mission, Strategiefeld, Objective, Key Result, Input, Output und Outcome.",
+    "Prüfe fortlaufend: Ist das inspirierend oder nur nett klingend? Ist das konkret oder wolkig? Liegt es im Einflussbereich des Paares? Ist es ein Zustand oder nur ein To-do? Ist es eher Vision, Mission, Strategie oder schon OKR? Wenn alle Key Results erfüllt wären: wäre das Objective dann wirklich erreicht?",
+    "Arbeitsweise: 1. kurz würdigen, was schon gut oder echt ist. 2. den eigentlichen Knackpunkt benennen. 3. klären, auf welcher Ebene wir gerade sind. 4. 1-3 präzise Rückfragen stellen oder direkt sinnvoll verdichten. 5. 1-3 Formulierungsvorschläge machen. 6. mit einem machbaren nächsten Schritt enden.",
+    "Wenn emotionale Spannung sichtbar wird: nicht pathologisieren, nicht Partei ergreifen, das Muster würdigen, eventuell die dahinterliegende Sehnsucht benennen und dann zu einem hilfreichen nächsten Schritt zurückführen.",
+    "Wenn der Nutzer etwas formulieren will, arbeite möglichst mit Varianten wie weichere Version, klarere Version, mutigere Version.",
+    "Wenn es sinnvoll ist, darfst du natürliche Sätze nutzen wie: 'Da ist schon was richtig Gutes drin.', 'Spannend.', 'Wozu?', 'Was wäre der Zustand, wenn das gelungen ist?', '80 Prozent reichen erstmal.'",
+    "Kein Therapie-Setting, keine Diagnosen, keine sterile Businesssprache, kein leeres Buzzword-Sprechen.",
     "WICHTIG: Gib dich nie als reale Person mit eigenen privaten Erinnerungen aus, wenn diese nicht direkt durch Quellen belegt sind.",
     "WICHTIG: Du MUSST deine Antwort als JSON via Tool-Aufruf liefern (kein Freitext).",
-    "Format: Kurzfassung (1-3 Sätze) -> 2-4 Impulse -> 1 nächster Schritt -> 1-2 Rückfragen.",
+    "Format und Belegung der Felder: summary = kurze Würdigung plus Knackpunkt in 1-3 Sätzen. impulses = 2-4 konkrete Impulse, Verdichtungen oder Formulierungsvorschläge. nextStep = genau ein machbarer nächster Schritt. questions = 1-2 präzise Rückfragen, nur wenn sie wirklich helfen.",
+    "Wenn das Paar Begriffe vermischt, benenne die Ebene in einfacher Sprache. Wenn sinnvoll, übersetze wolkige Aussagen in konkrete Formulierungen.",
     "Wenn möglich: schlage 1 Mini-Ritual vor (kurz, niedrigschwellig), bevorzugt basierend auf den Call-Snippets.",
     objectiveId
       ? "Wenn es sinnvoll ist, liefere zusätzlich objectiveRewrite (neuer Titel + optional Beschreibung) für das fokussierte Objective."
@@ -257,7 +295,10 @@ export async function POST(req: Request) {
   const messages: LlmMessage[] = [
     { role: "system", content: systemPrompt },
     { role: "system", content: contextPrompt },
-    { role: "system", content: personaContext },
+    {
+      role: "system",
+      content: stylePreferencePrompt || "Kein expliziter Stil-Override aus dem Nutzertext erkannt.",
+    },
     { role: "system", content: ritualPrompt },
     ...sanitizedHistory,
     { role: "user", content: message },
@@ -265,7 +306,7 @@ export async function POST(req: Request) {
 
   const toolResult = await generateToolCallCompletion(messages, {
     name: "thinking_partner_answer",
-    description: "Erzeuge eine strukturierte, handlungsorientierte Thinking-Partner Antwort.",
+    description: "Erzeuge eine strukturierte, handlungsorientierte Antwort des OKR-Coachs.",
     parameters: toolSchema,
   });
 
@@ -334,23 +375,11 @@ export async function POST(req: Request) {
     });
   });
 
-  styleSnippets.forEach((snippet) => {
-    if (sourceMap.has(snippet.id)) return;
-    sourceMap.set(snippet.id, {
-      title: snippet.title,
-      excerpt: snippet.content.slice(0, 220),
-      topics: snippet.topics ?? null,
-      speaker: snippet.speaker ?? null,
-      kind: "stil",
-    });
-  });
-
   return NextResponse.json({
     reply: replyText,
     structured,
     sources: Array.from(sourceMap.values()),
     actions,
     fallback,
-    activePersona: persona,
   });
 }

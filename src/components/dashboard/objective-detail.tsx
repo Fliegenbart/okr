@@ -131,7 +131,7 @@ export function ObjectiveDetail({
               </div>
               <div className="flex flex-col items-end gap-2 text-xs uppercase tracking-[0.2em] text-primary">
                 <Link href={`/dashboard/thinking-partner?objectiveId=${objectiveId}`}>
-                  Thinking Partner fragen
+                  OKR-Coach fragen
                 </Link>
                 <Link href={`/dashboard/objectives/${objectiveId}/edit`}>Bearbeiten</Link>
               </div>

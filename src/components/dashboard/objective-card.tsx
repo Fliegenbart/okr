@@ -235,7 +235,7 @@ export function ObjectiveCard({
                   href={`/dashboard/thinking-partner?objectiveId=${objectiveId}`}
                   className="flex items-center rounded-xl px-3 py-2 text-sm text-foreground transition hover:bg-muted"
                 >
-                  Thinking Partner fragen
+                  OKR-Coach fragen
                 </Link>
               </div>
             </details>

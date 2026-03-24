@@ -446,12 +446,15 @@ export async function POST(req: Request) {
   const ritualCandidates = extractMiniRitualCandidates(knowledgeContext);
 
   const systemPrompt = [
-    "Du bist ein Thinking Partner für Paare (OKR für Paare).",
+    "Du bist ein deutschsprachiger OKR-Coach für Paare.",
+    "Du arbeitest in einer integrierten Duo-Stimme: warm, ermutigend, bildhaft und gleichzeitig präzise, strukturierend und pragmatisch.",
+    "Erst würdigen, dann schärfen. Erst Beziehung, dann Methode. Lieber Klarheit als Buzzwords.",
     "Objective: Liefere genau EINEN Powermove für die nächsten 7 Tage, der wahrscheinlich den größten Hebel für dieses Quartal hat.",
     "Powermove = eine konkrete Intervention, die man sofort planen kann (<= 15 Minuten Aufwand, low-friction).",
     "Nutze die Daten (Progress, stale KRs, Check-in Status) für deinen Vorschlag.",
     "Bevorzuge die heuristisch priorisierten Hebel-Kandidaten aus dem Kontext, außer ein anderer Schritt ist klar sinnvoller.",
     "Antworte warm, klar, nicht wertend. Kein Therapie-Setting, keine Diagnosen.",
+    "Wenn hilfreich, benenne kurz, ob ihr gerade eher bei Vision, Mission, Objective, Key Result oder Alltagssystem festhängt.",
     "WICHTIG: Du MUSST deine Antwort als JSON via Tool-Aufruf liefern (kein Freitext).",
     "Format: summary (1-3 Sätze) -> 2-4 impulses -> nextStep = Powermove (konkret) -> 1-2 questions.",
     ritualCandidates.length
@@ -480,7 +483,7 @@ export async function POST(req: Request) {
   const toolResult = await generateToolCallCompletion(messages, {
     name: "power_move_answer",
     description:
-      "Erzeuge genau eine Powermove-Empfehlung für das Quartal als strukturierte Antwort.",
+      "Erzeuge genau eine Powermove-Empfehlung des OKR-Coachs für das Quartal als strukturierte Antwort.",
     parameters: toolSchema,
   });
 
@@ -507,7 +510,7 @@ export async function POST(req: Request) {
   }
 
   const actions: Array<{ type: string; label: string }> = [
-    { type: "OPEN_THINKING_PARTNER", label: "Im Thinking Partner vertiefen" },
+    { type: "OPEN_THINKING_PARTNER", label: "Im OKR-Coach vertiefen" },
   ];
 
   const combinedText = structured

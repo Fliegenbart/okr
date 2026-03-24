@@ -31,14 +31,6 @@ export function getTranscriptSpeakerLabel(speaker?: string | null): string | nul
   return speaker;
 }
 
-export function getPersonaGreeting(speaker?: PersonaSpeaker | null) {
-  if (speaker === "DANIEL") {
-    return "Hi, ich bin euer Thinking Partner im Daniel-Stil. Erzählt mir kurz, woran ihr gerade hängt.";
-  }
-
-  if (speaker === "CHRISTIANE") {
-    return "Hi, ich bin euer Thinking Partner im Christiane-Stil. Erzählt mir kurz, was euch gerade beschäftigt.";
-  }
-
-  return "Hi! Ich bin euer Thinking Partner. Erzählt mir kurz, was euch gerade beschäftigt.";
+export function getOkrCoachGreeting() {
+  return "Hi! Ich bin euer OKR-Coach für Paare. Erzählt mir kurz, woran ihr gerade hängt, was ihr schärfen wollt oder wo ihr im Alltag nicht recht ins Tun kommt.";
 }

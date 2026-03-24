@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-export function ThinkingPartnerFloating({ canUsePersona }: { canUsePersona: boolean }) {
+export function ThinkingPartnerFloating() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -29,7 +29,7 @@ export function ThinkingPartnerFloating({ canUsePersona }: { canUsePersona: bool
     <>
       <button
         type="button"
-        aria-label="Thinking Partner öffnen"
+        aria-label="OKR-Coach öffnen"
         onClick={() => setOpen(true)}
         className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl"
       >
@@ -47,17 +47,14 @@ export function ThinkingPartnerFloating({ canUsePersona }: { canUsePersona: bool
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="flex max-h-[90vh] max-w-2xl flex-col overflow-hidden p-0">
           <DialogHeader>
-            <DialogTitle className="px-6 pt-6">Thinking Partner</DialogTitle>
+            <DialogTitle className="px-6 pt-6">OKR-Coach</DialogTitle>
             <DialogDescription className="px-6">
-              Wenn ihr feststeckt, bekommt ihr hier eine kurze Antwort und einen nächsten Schritt.
+              Wenn ihr feststeckt, bekommt ihr hier Klarheit, Formulierungshilfe und einen
+              nächsten Schritt.
             </DialogDescription>
           </DialogHeader>
           <div className="mt-4 min-h-0 flex-1 overflow-y-auto px-6 pb-6">
-            <ThinkingPartnerChat
-              objectiveId={objectiveId}
-              keyResultId={keyResultId}
-              canUsePersona={canUsePersona}
-            />
+            <ThinkingPartnerChat objectiveId={objectiveId} keyResultId={keyResultId} />
           </div>
         </DialogContent>
       </Dialog>

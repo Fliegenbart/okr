@@ -19,17 +19,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  getPersonaGreeting,
-  getPersonaLabel,
-  getTranscriptSpeakerLabel,
-  type PersonaSpeaker,
-} from "@/lib/transcript-persona";
+import { getOkrCoachGreeting, getTranscriptSpeakerLabel } from "@/lib/transcript-persona";
 
 export type ThinkingPartnerChatProps = {
   objectiveId?: string | null;
   keyResultId?: string | null;
-  canUsePersona?: boolean;
 };
 
 type StructuredAnswer = {
@@ -66,9 +60,9 @@ type Source = {
 };
 
 const starterPrompts = [
-  "Wir hängen gerade an einem Objective. Was wäre jetzt ein kleiner nächster Schritt?",
-  "Unser Fortschritt stockt. Wie kommen wir wieder ins Tun?",
-  "Wie können wir unsere gemeinsamen Routinen besser halten?",
+  "Unsere Vision klingt nett, aber noch nicht klar. Wie würdest du sie schärfen?",
+  "Wir hängen zwischen Objective und To-do fest. Was ist hier die richtige Ebene?",
+  "Welches Key Result wäre wirklich outcome-nah und in unserem Einflussbereich?",
 ];
 
 function formatTopics(topics: unknown) {
@@ -85,25 +79,19 @@ function formatTopics(topics: unknown) {
   return labels.length ? labels.join(", ") : null;
 }
 
-export function ThinkingPartnerChat({
-  objectiveId,
-  keyResultId,
-  canUsePersona = false,
-}: ThinkingPartnerChatProps) {
+export function ThinkingPartnerChat({ objectiveId, keyResultId }: ThinkingPartnerChatProps) {
   const router = useRouter();
-  const [persona, setPersona] = useState<PersonaSpeaker>("DANIEL");
 
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: getPersonaGreeting(canUsePersona ? persona : null),
+      content: getOkrCoachGreeting(),
     },
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sources, setSources] = useState<Source[]>([]);
   const messagesRef = useRef<HTMLDivElement | null>(null);
-  const hasMountedRef = useRef(false);
 
   const [dialog, setDialog] = useState<
     | null
@@ -172,22 +160,6 @@ export function ThinkingPartnerChat({
     }
   }, [messages, isLoading]);
 
-  useEffect(() => {
-    if (!hasMountedRef.current) {
-      hasMountedRef.current = true;
-      return;
-    }
-
-    setMessages([
-      {
-        role: "assistant",
-        content: getPersonaGreeting(canUsePersona ? persona : null),
-      },
-    ]);
-    setSources([]);
-    setInput("");
-  }, [canUsePersona, persona]);
-
   const handleSend = async (message: string) => {
     const trimmed = message.trim();
     if (!trimmed || isLoading) return;
@@ -210,7 +182,6 @@ export function ThinkingPartnerChat({
           history,
           objectiveId: objectiveId ?? null,
           keyResultId: keyResultId ?? null,
-          persona: canUsePersona ? persona : null,
         }),
       });
 
@@ -325,31 +296,16 @@ export function ThinkingPartnerChat({
 
   return (
     <div className="flex min-h-0 flex-col gap-4">
-      {canUsePersona ? (
-        <div className="rounded-2xl border border-border bg-card p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-            Persona Beta
-          </p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Wählt, ob die Antwort mehr nach Daniel oder Christiane klingen soll. Beim Wechsel
-            startet der Chat bewusst frisch, damit die Stimme sauber bleibt.
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {(["DANIEL", "CHRISTIANE"] as const).map((option) => (
-              <Button
-                key={option}
-                type="button"
-                variant={persona === option ? "default" : "outline"}
-                className="rounded-2xl"
-                onClick={() => setPersona(option)}
-                disabled={isLoading}
-              >
-                {getPersonaLabel(option)}
-              </Button>
-            ))}
-          </div>
-        </div>
-      ) : null}
+      <div className="rounded-2xl border border-border bg-card p-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+          OKR-Coach für Paare
+        </p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Hier bekommt ihr Wärme und Struktur zusammen: erst sortieren wir, worum es wirklich
+          geht, dann übersetzen wir das in eine klare Formulierung oder einen machbaren nächsten
+          Schritt.
+        </p>
+      </div>
 
       <div
         ref={messagesRef}

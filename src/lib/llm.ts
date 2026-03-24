@@ -29,7 +29,7 @@ export async function generateChatCompletion(
   if (!apiKey) {
     return {
       content:
-        "Der Thinking Partner ist noch nicht konfiguriert. Bitte OPENAI_API_KEY setzen.",
+        "Der OKR-Coach ist noch nicht konfiguriert. Bitte OPENAI_API_KEY setzen.",
       isFallback: true,
     };
   }
@@ -70,7 +70,7 @@ export async function generateChatCompletion(
     });
     return {
       content:
-        "Der Thinking Partner ist gerade nicht erreichbar. Bitte versuche es später noch einmal.",
+        "Der OKR-Coach ist gerade nicht erreichbar. Bitte versuche es später noch einmal.",
       isFallback: true,
     };
   }
@@ -98,7 +98,7 @@ export async function generateToolCallCompletion(
       toolArgumentsJson: null,
       isFallback: true,
       error:
-        "Der Thinking Partner ist noch nicht konfiguriert. Bitte OPENAI_API_KEY setzen.",
+        "Der OKR-Coach ist noch nicht konfiguriert. Bitte OPENAI_API_KEY setzen.",
     };
   }
 
@@ -154,7 +154,7 @@ export async function generateToolCallCompletion(
       toolArgumentsJson: null,
       isFallback: true,
       error:
-        "Der Thinking Partner ist gerade nicht erreichbar. Bitte versuche es später noch einmal.",
+        "Der OKR-Coach ist gerade nicht erreichbar. Bitte versuche es später noch einmal.",
     };
   }
 
@@ -170,7 +170,7 @@ export async function generateToolCallCompletion(
       toolArgumentsJson: null,
       isFallback,
       error:
-        "Der Thinking Partner konnte gerade keine strukturierte Antwort liefern.",
+        "Der OKR-Coach konnte gerade keine strukturierte Antwort liefern.",
     };
   }
 
@@ -187,7 +187,7 @@ export async function generateToolCallCompletion(
       toolArgumentsJson: null,
       isFallback,
       error:
-        "Der Thinking Partner konnte gerade keine strukturierte Antwort liefern.",
+        "Der OKR-Coach konnte gerade keine strukturierte Antwort liefern.",
     };
   }
 }
