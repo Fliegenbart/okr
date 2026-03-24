@@ -97,7 +97,13 @@ export function VisionMissionForm({
       <div className="space-y-3">
         <Label>Paarfoto</Label>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-          <div className="relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-border bg-muted">
+          <button
+            type="button"
+            className="group relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-border bg-muted transition hover:border-primary hover:shadow-sm"
+            onClick={() => fileInputRef.current?.click()}
+            aria-label="Paarfoto auswählen"
+            title="Klickt hier, um euer Foto hochzuladen"
+          >
             {avatarImage ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={avatarImage} alt="Paarfoto" className="h-full w-full object-cover" />
@@ -106,7 +112,10 @@ export function VisionMissionForm({
                 {getInitials(coupleName)}
               </div>
             )}
-          </div>
+            <div className="absolute inset-0 flex items-end justify-center bg-black/0 pb-2 text-[10px] font-medium text-white opacity-0 transition group-hover:bg-black/30 group-hover:opacity-100">
+              Foto ändern
+            </div>
+          </button>
           <div className="space-y-2">
             <input
               ref={fileInputRef}
@@ -136,7 +145,7 @@ export function VisionMissionForm({
               ) : null}
             </div>
             <p className="text-xs text-muted-foreground">
-              Ladet hier euer Paarfoto hoch. Ein kleines, quadratisches Bild funktioniert am besten.
+              Klickt auf den Avatar oder nutzt den Button. Ein kleines, quadratisches Bild funktioniert am besten.
             </p>
           </div>
         </div>
