@@ -106,7 +106,7 @@ export function PowerMoveCard({ quarterId, quarterTitle, hasObjectives }: PowerM
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-1">
             <p className="dashboard-kicker text-[10px] font-extrabold text-white/65">
-              Wichtigster Schritt für dieses Quartal
+              Nächster Schritt mit großem Hebel
             </p>
             <p className="text-sm text-white/72">
               {quarterTitle ? quarterTitle : "Aktuelles Quartal"}
@@ -127,8 +127,8 @@ export function PowerMoveCard({ quarterId, quarterTitle, hasObjectives }: PowerM
 
         {!hasObjectives ? (
           <div className="rounded-[1.5rem] border border-white/10 bg-white/10 p-4 text-sm text-white/78">
-            Legt zuerst mindestens ein Objective an. Danach zeige ich euch den nächsten Schritt, der im
-            Quartal am meisten bewegen kann.
+            Legt zuerst mindestens ein Objective an. Danach zeige ich euch einen Vorschlag, der im
+            Quartal gerade besonders viel bewegen kann.
             <div className="mt-3">
               <Button asChild size="sm" variant="outline" className="rounded-full border-white/20 bg-white text-primary hover:bg-white/90">
                 <Link href="/dashboard/objectives/new">Objective anlegen</Link>
@@ -223,8 +223,9 @@ export function PowerMoveCard({ quarterId, quarterTitle, hasObjectives }: PowerM
 
         {hasObjectives && !structured && !reply ? (
           <div className="rounded-[1.5rem] border border-white/10 bg-white/10 p-4 text-sm text-white/78">
-            Hier bekommt ihr einen Vorschlag, welcher nächste Schritt euch im Quartal gerade am
-            meisten hilft. Klickt auf <span className="font-medium">Vorschlag holen</span>.
+            Hier bekommt ihr einen Vorschlag für einen sinnvollen nächsten Schritt mit großem Hebel.
+            Die Empfehlung nutzt euren Fortschritt, fehlende Updates und die restliche Zeit im
+            Quartal. Klickt auf <span className="font-medium">Vorschlag holen</span>.
           </div>
         ) : null}
 

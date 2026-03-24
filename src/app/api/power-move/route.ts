@@ -107,6 +107,10 @@ function safeAverage(values: number[]) {
   return Math.round(values.reduce((sum, v) => sum + v, 0) / values.length);
 }
 
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
+
 export async function POST(req: Request) {
   const viewer = await getAuthenticatedViewer();
 
@@ -322,6 +326,43 @@ export async function POST(req: Request) {
     Math.min(quarterTotalDays, diffDays(selectedQuarter.startsAt, now) + 1)
   );
   const remainingDays = Math.max(0, quarterTotalDays - elapsedDays);
+  const urgencyFactor = clamp(elapsedDays / quarterTotalDays, 0, 1);
+
+  const prioritizedCandidates = objectiveSignals
+    .flatMap((objective) =>
+      objective.keyResults.map((kr) => {
+        const progressGapScore = (100 - kr.progress) * 0.55;
+        const staleScore =
+          kr.daysSinceUpdate === null ? 18 : clamp(kr.daysSinceUpdate * 1.8, 0, 24);
+        const lateQuarterScore = urgencyFactor * 14;
+        const missingNextActionScore = objective.nextAction ? 0 : 6;
+        const objectiveLagScore = (100 - objective.progress) * 0.12;
+        const totalScore = Math.round(
+          progressGapScore +
+            staleScore +
+            lateQuarterScore +
+            missingNextActionScore +
+            objectiveLagScore
+        );
+
+        return {
+          objectiveTitle: objective.title,
+          keyResultTitle: kr.title,
+          progress: kr.progress,
+          daysSinceUpdate: kr.daysSinceUpdate,
+          totalScore,
+          rationale: [
+            `${formatProgressPercent(kr.progress)}% Fortschritt`,
+            kr.daysSinceUpdate === null
+              ? "noch kein Update"
+              : `letztes Update vor ${kr.daysSinceUpdate} Tagen`,
+            objective.nextAction ? "Objective hat nächste Aktion" : "Objective hat noch keine nächste Aktion",
+          ],
+        };
+      })
+    )
+    .sort((a, b) => b.totalScore - a.totalScore)
+    .slice(0, 5);
 
   const checkInLine = checkInEnabled
     ? `Check-in: aktiv (${couple.checkInWeekday} / ${couple.checkInTime}, ${couple.checkInDurationMinutes} Min)`
@@ -349,6 +390,12 @@ export async function POST(req: Request) {
           (kr) => `- ${kr.objectiveTitle}: ${kr.title} (noch kein Update)`
         )
       : []),
+    "",
+    "Heuristisch priorisierte Hebel-Kandidaten:",
+    ...prioritizedCandidates.map(
+      (candidate, index) =>
+        `${index + 1}. ${candidate.objectiveTitle}: ${candidate.keyResultTitle} -> Score ${candidate.totalScore} (${candidate.rationale.join(", ")})`
+    ),
   ].join("\n");
 
   const objectiveLines = objectiveSignals
@@ -400,9 +447,10 @@ export async function POST(req: Request) {
 
   const systemPrompt = [
     "Du bist ein Thinking Partner für Paare (OKR für Paare).",
-    "Objective: Liefere genau EINEN Powermove, der in den nächsten 7 Tagen den größten Hebel für dieses Quartal hat.",
+    "Objective: Liefere genau EINEN Powermove für die nächsten 7 Tage, der wahrscheinlich den größten Hebel für dieses Quartal hat.",
     "Powermove = eine konkrete Intervention, die man sofort planen kann (<= 15 Minuten Aufwand, low-friction).",
     "Nutze die Daten (Progress, stale KRs, Check-in Status) für deinen Vorschlag.",
+    "Bevorzuge die heuristisch priorisierten Hebel-Kandidaten aus dem Kontext, außer ein anderer Schritt ist klar sinnvoller.",
     "Antworte warm, klar, nicht wertend. Kein Therapie-Setting, keine Diagnosen.",
     "WICHTIG: Du MUSST deine Antwort als JSON via Tool-Aufruf liefern (kein Freitext).",
     "Format: summary (1-3 Sätze) -> 2-4 impulses -> nextStep = Powermove (konkret) -> 1-2 questions.",
@@ -425,7 +473,7 @@ export async function POST(req: Request) {
     {
       role: "user",
       content:
-        "Was ist unser EIN Powermove (größter Hebel) für dieses Quartal?",
+        "Was ist unser sinnvollster nächster Schritt mit großem Hebel für dieses Quartal?",
     },
   ];
 
