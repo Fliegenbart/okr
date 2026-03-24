@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/db";
-import { calculateProgress } from "@/lib/progress";
+import { calculateProgress, formatProgressPercent } from "@/lib/progress";
 import {
   getPersonaLabel,
   getTranscriptSpeakerLabel,
@@ -332,7 +332,7 @@ export function buildCoupleContext(couple: {
 
     const nextAction = objective.nextAction ? `\nNächste Aktion: ${objective.nextAction}` : "";
 
-    return `Objective: ${objective.title} (${objective.quarter.title}) - ${progress}%${nextAction}\n${keyResults}`;
+    return `Objective: ${objective.title} (${objective.quarter.title}) - ${formatProgressPercent(progress)}%${nextAction}\n${keyResults}`;
   });
 
   const commitments = couple.commitments?.map((commitment) => {

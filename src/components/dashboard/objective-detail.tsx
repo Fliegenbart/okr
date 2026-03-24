@@ -10,7 +10,7 @@ import { KeyResultQuickUpdateDialog } from "@/components/dashboard/key-result-qu
 import { Card, CardContent } from "@/components/ui/card";
 import { useObjectiveProgress } from "@/hooks/use-objective-progress";
 import { calculateKeyResultProgress, type KeyResultDirection, type KeyResultType } from "@/lib/key-results";
-import { calculateProgress } from "@/lib/progress";
+import { calculateProgress, formatProgressPercent } from "@/lib/progress";
 
 export type ObjectiveDetailProps = {
   objectiveId: string;
@@ -120,7 +120,9 @@ export function ObjectiveDetail({
             <div className="flex items-center gap-4">
               <div className="text-right">
                 <p className="text-sm uppercase tracking-[0.2em] text-primary">Fortschritt</p>
-                <p className="text-3xl font-semibold text-foreground">{progress}%</p>
+                <p className="text-3xl font-semibold text-foreground">
+                  {formatProgressPercent(progress)}%
+                </p>
               </div>
               <div className="flex flex-col items-end gap-2 text-xs uppercase tracking-[0.2em] text-primary">
                 <Link href={`/dashboard/thinking-partner?objectiveId=${objectiveId}`}>

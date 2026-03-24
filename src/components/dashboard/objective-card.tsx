@@ -22,7 +22,7 @@ import { KeyResultQuickUpdateDialog } from "@/components/dashboard/key-result-qu
 import { Card, CardContent } from "@/components/ui/card";
 import { useObjectiveProgress } from "@/hooks/use-objective-progress";
 import { calculateKeyResultProgress, type KeyResultDirection, type KeyResultType } from "@/lib/key-results";
-import { calculateProgress } from "@/lib/progress";
+import { calculateProgress, formatProgressPercent } from "@/lib/progress";
 
 const dateFormatter = new Intl.DateTimeFormat("de-DE", { dateStyle: "medium" });
 
@@ -236,7 +236,9 @@ export function ObjectiveCard({
               transition={{ type: "spring", stiffness: 120, damping: 18 }}
             />
           </div>
-          <span className="text-sm font-medium text-foreground tabular-nums">{progress}%</span>
+          <span className="text-sm font-medium text-foreground tabular-nums">
+            {formatProgressPercent(progress)}%
+          </span>
         </div>
 
         <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
@@ -273,7 +275,7 @@ export function ObjectiveCard({
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="font-medium text-foreground">{keyResult.title}</p>
                       <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
-                        {progressValue}%
+                        {formatProgressPercent(progressValue)}%
                       </span>
                     </div>
                     <p className="text-xs text-muted-foreground">

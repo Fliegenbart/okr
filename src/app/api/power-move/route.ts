@@ -7,6 +7,7 @@ import { prisma } from "@/lib/db";
 import { generateChatCompletion, generateToolCallCompletion, type LlmMessage } from "@/lib/llm";
 import { calculateKeyResultProgress } from "@/lib/key-results";
 import { calculateProgress } from "@/lib/progress";
+import { formatProgressPercent } from "@/lib/progress";
 import {
   buildKnowledgeContext,
   buildCoupleContext,
@@ -330,12 +331,12 @@ export async function POST(req: Request) {
     `Quartal: ${selectedQuarter.title} (${selectedQuarter.startsAt.toISOString().slice(0, 10)} bis ${selectedQuarter.endsAt.toISOString().slice(0, 10)})`,
     `Zeit: Tag ${elapsedDays}/${quarterTotalDays} (noch ${remainingDays} Tage)`,
     `Objectives: ${objectiveSignals.length}`,
-    `Durchschnittlicher Fortschritt: ${averageProgress}%`,
+    `Durchschnittlicher Fortschritt: ${formatProgressPercent(averageProgress)}%`,
     checkInLine,
     "",
     "Low-Progress KRs (Hebel):",
     ...lowProgress.map(
-      (kr) => `- ${kr.objectiveTitle}: ${kr.title} (${kr.progress}%)`
+      (kr) => `- ${kr.objectiveTitle}: ${kr.title} (${formatProgressPercent(kr.progress)}%)`
     ),
     "",
     "Stale KRs (Momentum):",
@@ -361,7 +362,7 @@ export async function POST(req: Request) {
               : kr.daysSinceUpdate >= 7
                 ? ` (stale: ${kr.daysSinceUpdate} Tage)`
                 : "";
-          return `- ${kr.title}: ${kr.currentValue}/${kr.targetValue}${unit} (${kr.progress}%)${stale}`;
+          return `- ${kr.title}: ${kr.currentValue}/${kr.targetValue}${unit} (${formatProgressPercent(kr.progress)}%)${stale}`;
         })
         .join("\n");
 
@@ -369,7 +370,7 @@ export async function POST(req: Request) {
         ? `\nNächste Aktion: ${objective.nextAction}`
         : "";
 
-      return `Objective: ${objective.title} - ${objective.progress}%${nextAction}\n${krLines}`;
+      return `Objective: ${objective.title} - ${formatProgressPercent(objective.progress)}%${nextAction}\n${krLines}`;
     })
     .join("\n\n");
 

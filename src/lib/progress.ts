@@ -2,6 +2,17 @@ import { calculateKeyResultProgress, type KeyResultLike } from "@/lib/key-result
 
 type ProgressItem = KeyResultLike;
 
+export function formatProgressPercent(value: number | null | undefined) {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return "—";
+  }
+
+  return new Intl.NumberFormat("de-DE", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 1,
+  }).format(value);
+}
+
 export function calculateProgress(items: ProgressItem[]) {
   if (!items.length) return 0;
 
