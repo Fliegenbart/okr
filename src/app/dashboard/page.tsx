@@ -224,83 +224,121 @@ export default async function DashboardPage({
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto w-full max-w-5xl px-6 py-10">
+      <div className="mx-auto w-full max-w-6xl px-6 py-10">
         <VisionHeader
           vision={couple.vision}
           coupleName={couple.name}
           avatarImage={couple.avatarImage}
         />
 
-        <div className="mt-8 grid gap-6 md:grid-cols-3">
-          <Card>
-            <CardContent className="space-y-3 p-6">
-              <p className="text-sm font-medium text-primary">Aktuelles Quartal</p>
-              {activeQuarter ? (
-                <>
-                  <p className="text-lg font-semibold text-foreground">{activeQuarter.title}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {dateFormatter.format(activeQuarter.startsAt)} –{" "}
-                    {dateFormatter.format(activeQuarter.endsAt)}
+        <div className="mt-8 grid gap-6 lg:grid-cols-[1.2fr,0.8fr]">
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card className="dashboard-panel rounded-[1.75rem] border-border/70">
+              <CardContent className="space-y-4 p-6">
+                <div className="space-y-1">
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary">
+                    Aktuelles Quartal
                   </p>
-                </>
-              ) : (
-                <p className="text-sm text-muted-foreground">Noch kein Quartal angelegt.</p>
-              )}
-            </CardContent>
-          </Card>
+                  <p className="text-xs text-muted-foreground">
+                    Euer gemeinsamer Fokus fuer die aktuelle Etappe.
+                  </p>
+                </div>
+                {activeQuarter ? (
+                  <>
+                    <p className="text-2xl font-semibold text-foreground">{activeQuarter.title}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {dateFormatter.format(activeQuarter.startsAt)} –{" "}
+                      {dateFormatter.format(activeQuarter.endsAt)}
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Noch kein Quartal angelegt.</p>
+                )}
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardContent className="flex flex-col items-start gap-4 p-6">
-              <p className="text-sm font-medium text-primary">Euer Gesamtstand</p>
-              <p className="text-xs text-muted-foreground">
-                So weit seid ihr in diesem Quartal im Schnitt.
-              </p>
-              <ProgressDonut
-                value={averageProgress}
-                size={100}
-                strokeWidth={8}
-                showValue={true}
-                showLabel={false}
-                progressClassName="text-primary"
-                valueClassName="text-xl"
-              />
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="space-y-4 p-6">
-              <p className="text-sm font-medium text-primary">Schnell starten</p>
-              <div className="flex flex-col gap-3">
-                <Link
-                  href="/dashboard/objectives/new"
-                  className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary/90"
-                >
-                  Objective anlegen
-                </Link>
-                <Link
-                  href="/dashboard/check-in"
-                  className="inline-flex items-center justify-center rounded-xl border border-border px-4 py-3 text-sm font-semibold text-foreground transition hover:bg-muted"
-                >
-                  Wochen-Check öffnen
-                </Link>
-                <Link
-                  href="/dashboard/vision-mission"
-                  className="inline-flex items-center justify-center rounded-xl border border-border px-4 py-3 text-sm font-semibold text-foreground transition hover:bg-muted"
-                >
-                  Vision + Mission öffnen
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
+            <Card className="dashboard-panel rounded-[1.75rem] border-border/70">
+              <CardContent className="flex h-full flex-col items-start gap-4 p-6">
+                <div className="space-y-1">
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary">
+                    Euer Gesamtstand
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    So weit seid ihr im Schnitt ueber alle Objectives.
+                  </p>
+                </div>
+                <div className="flex items-center gap-5">
+                  <ProgressDonut
+                    value={averageProgress}
+                    size={108}
+                    strokeWidth={8}
+                    showValue={true}
+                    showLabel={false}
+                    progressClassName="text-primary"
+                    valueClassName="text-xl"
+                  />
+                  <div className="space-y-2 text-sm text-muted-foreground">
+                    <p className="font-medium text-foreground">
+                      {filteredObjectives.length} aktive Objectives
+                    </p>
+                    <p>Der Durchschnitt aktualisiert sich aus euren aktuellen Key Results.</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="dashboard-panel rounded-[1.75rem] border-border/70 md:col-span-2">
+              <CardContent className="space-y-4 p-6">
+                <div className="space-y-1">
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary">
+                    Schnell starten
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Die wichtigsten Wege fuer euren naechsten Schritt.
+                  </p>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <Link
+                    href="/dashboard/objectives/new"
+                    className="inline-flex items-center justify-center rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary/90"
+                  >
+                    Objective anlegen
+                  </Link>
+                  <Link
+                    href="/dashboard/check-in"
+                    className="inline-flex items-center justify-center rounded-2xl border border-border px-4 py-3 text-sm font-semibold text-foreground transition hover:bg-muted"
+                  >
+                    Wochen-Check oeffnen
+                  </Link>
+                  <Link
+                    href="/dashboard/vision-mission"
+                    className="inline-flex items-center justify-center rounded-2xl border border-border px-4 py-3 text-sm font-semibold text-foreground transition hover:bg-muted"
+                  >
+                    Vision + Mission oeffnen
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <PowerMoveCard
+            quarterId={selectedQuarter?.id ?? null}
+            quarterTitle={selectedQuarter?.title ?? activeQuarter?.title ?? null}
+            hasObjectives={filteredObjectives.length > 0}
+          />
         </div>
 
         <section className="mt-10 space-y-4" data-testid="quarter-progress-section">
           <div className="space-y-2">
-            <h2 className="text-xl font-semibold text-foreground">Euer Score im Quartal</h2>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary">
+              Fortschritt im Quartal
+            </p>
+            <h2 className="text-2xl font-semibold text-foreground">Euer Score im Quartal</h2>
             <p className="text-sm text-muted-foreground">
               Hier seht ihr, wie sich eure Objectives im laufenden Quartal entwickeln.
             </p>
             <p className="text-xs text-muted-foreground">
-              Pink zeigt euren echten Stand. Blau gestrichelt zeigt, wo ihr heute idealerweise
+              Pink zeigt euren echten Stand. Die gestrichelte Linie zeigt, wo ihr heute idealerweise
               stehen würdet.
             </p>
           </div>
@@ -308,41 +346,47 @@ export default async function DashboardPage({
           {quarterProgressSnapshot ? (
             <>
               <div className="grid gap-6 lg:grid-cols-[1.35fr,0.65fr]">
-                <Card className="rounded-2xl border-border shadow-sm">
+                <Card className="dashboard-panel rounded-[1.75rem] border-border/70">
                   <CardContent className="space-y-5 p-6">
-                    <div className="space-y-1">
-                      <p className="text-sm uppercase tracking-[0.2em] text-primary">
-                        Bisheriger Verlauf
-                      </p>
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-                        <span className="font-semibold text-foreground">
-                          {quarterProgressSnapshot.quarterTitle}
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                      <div className="space-y-1">
+                        <p className="text-xs uppercase tracking-[0.22em] text-primary">
+                          Bisheriger Verlauf
+                        </p>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                          <span className="font-semibold text-foreground">
+                            {quarterProgressSnapshot.quarterTitle}
+                          </span>
+                          <span className="text-muted-foreground">
+                            {dateFormatter.format(new Date(quarterProgressSnapshot.quarterStartsAt))}{" "}
+                            – {dateFormatter.format(new Date(quarterProgressSnapshot.quarterEndsAt))}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-2 text-xs">
+                        <span className="rounded-full bg-primary/10 px-3 py-1 font-medium text-primary">
+                          Ist
                         </span>
-                        <span className="text-muted-foreground">
-                          {dateFormatter.format(new Date(quarterProgressSnapshot.quarterStartsAt))}{" "}
-                          – {dateFormatter.format(new Date(quarterProgressSnapshot.quarterEndsAt))}
+                        <span className="rounded-full border border-border bg-white px-3 py-1 font-medium text-muted-foreground">
+                          Soll
                         </span>
                       </div>
                     </div>
 
-                    <QuarterProgressChart
-                      data={quarterProgressSnapshot.aggregateSeries}
-                      todayKey={quarterProgressSnapshot.todayKey}
-                    />
-
-                    <PowerMoveCard
-                      quarterId={selectedQuarter?.id ?? null}
-                      quarterTitle={quarterProgressSnapshot.quarterTitle}
-                      hasObjectives={quarterProgressSnapshot.totalObjectives > 0}
-                    />
+                    <div className="rounded-[1.5rem] bg-muted/35 p-4">
+                      <QuarterProgressChart
+                        data={quarterProgressSnapshot.aggregateSeries}
+                        todayKey={quarterProgressSnapshot.todayKey}
+                      />
+                    </div>
                   </CardContent>
                 </Card>
 
-                <Card className="rounded-2xl border-border shadow-sm">
+                <Card className="dashboard-panel rounded-[1.75rem] border-border/70">
                   <CardContent className="space-y-4 p-6">
-                    <p className="text-sm uppercase tracking-[0.2em] text-primary">Überblick</p>
+                    <p className="text-xs uppercase tracking-[0.22em] text-primary">Ueberblick</p>
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-                      <div className="rounded-2xl border border-border bg-card p-4">
+                      <div className="rounded-[1.5rem] border border-border/70 bg-card p-4">
                         <p className="text-xs uppercase tracking-[0.2em] text-primary">
                           Durchschnitt
                         </p>
@@ -350,13 +394,13 @@ export default async function DashboardPage({
                           {quarterProgressSnapshot.averageProgress}%
                         </p>
                       </div>
-                      <div className="rounded-2xl border border-border bg-card p-4">
+                      <div className="rounded-[1.5rem] border border-border/70 bg-card p-4">
                         <p className="text-xs uppercase tracking-[0.2em] text-primary">Objectives</p>
                         <p className="mt-2 text-2xl font-semibold text-foreground">
                           {quarterProgressSnapshot.totalObjectives}
                         </p>
                       </div>
-                      <div className="rounded-2xl border border-border bg-card p-4">
+                      <div className="rounded-[1.5rem] border border-border/70 bg-card p-4">
                         <p className="text-xs uppercase tracking-[0.2em] text-primary">
                           Ohne neuen Stand
                         </p>
@@ -364,7 +408,7 @@ export default async function DashboardPage({
                           {quarterProgressSnapshot.objectivesWithoutUpdates}
                         </p>
                       </div>
-                      <div className="rounded-2xl border border-border bg-card p-4">
+                      <div className="rounded-[1.5rem] border border-border/70 bg-card p-4">
                         <p className="text-xs uppercase tracking-[0.2em] text-primary">
                           Tage bis zum Ende
                         </p>
@@ -394,7 +438,7 @@ export default async function DashboardPage({
                   ))}
                 </CollapsibleGrid>
               ) : (
-                <Card className="rounded-2xl border-border shadow-sm">
+                <Card className="dashboard-panel rounded-[1.75rem] border-border/70">
                   <CardContent className="space-y-3 p-6">
                     <p className="text-lg font-semibold text-foreground">
                       Noch keine Objectives in diesem Quartal
@@ -408,7 +452,7 @@ export default async function DashboardPage({
               )}
             </>
           ) : (
-            <Card className="rounded-2xl border-border shadow-sm">
+            <Card className="dashboard-panel rounded-[1.75rem] border-border/70">
               <CardContent className="space-y-3 p-6">
                 <p className="text-lg font-semibold text-foreground">Noch kein Quartal vorhanden</p>
                 <p className="text-sm text-muted-foreground">
@@ -422,7 +466,12 @@ export default async function DashboardPage({
 
         <section className="mt-10 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-foreground">Eure Objectives</h2>
+            <div className="space-y-1">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary">
+                Objectives
+              </p>
+              <h2 className="text-2xl font-semibold text-foreground">Eure Objectives</h2>
+            </div>
             <QuarterFilter
               selectedId={selectedQuarterId}
               options={couple.quarters.map((quarter) => ({
@@ -451,7 +500,7 @@ export default async function DashboardPage({
               </div>
             </div>
           ) : (
-            <Card>
+            <Card className="dashboard-panel rounded-[1.75rem] border-border/70">
               <CardContent className="space-y-3 p-6">
                 <p className="text-lg font-semibold text-foreground">Noch keine Objectives</p>
                 <p className="text-sm text-muted-foreground">
@@ -459,7 +508,7 @@ export default async function DashboardPage({
                 </p>
                 <Link
                   href="/dashboard/objectives/new"
-                  className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
+                  className="inline-flex items-center justify-center rounded-2xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
                 >
                   Objective anlegen
                 </Link>

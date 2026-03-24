@@ -169,25 +169,27 @@ export function ObjectiveCard({
   const objectiveIcon = getObjectiveIconNode(title, "h-5 w-5");
 
   return (
-    <Card className="relative">
+    <Card className="dashboard-panel relative overflow-hidden rounded-[1.75rem] border-border/70">
       <CelebrationOverlay show={showCelebration} />
-      <CardContent className="relative space-y-6 p-6">
+      <CardContent className="relative space-y-5 p-5 sm:space-y-6 sm:p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary sm:h-11 sm:w-11">
               {objectiveIcon}
             </div>
             <div className="space-y-2">
               <Link
                 href={`/dashboard/objectives/${objectiveId}`}
-                className="text-xl font-semibold text-foreground hover:underline"
+                className="text-lg font-semibold leading-7 text-foreground hover:underline sm:text-xl"
               >
                 {title}
               </Link>
-              {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
+              {description ? <p className="text-sm leading-6 text-muted-foreground">{description}</p> : null}
               {nextAction ? (
-                <div className="rounded-lg bg-primary/5 px-3 py-2">
-                  <p className="text-xs font-medium text-primary/70">Als Nächstes sinnvoll</p>
+                <div className="rounded-2xl border border-primary/10 bg-primary/5 px-4 py-3">
+                  <p className="text-xs font-medium uppercase tracking-[0.18em] text-primary/70">
+                    Als Naechstes sinnvoll
+                  </p>
                   <p className="mt-0.5 text-sm font-medium text-primary">{nextAction}</p>
                 </div>
               ) : null}
@@ -195,10 +197,10 @@ export function ObjectiveCard({
           </div>
           <div className="flex flex-col items-start gap-3 lg:items-end">
             <details className="group relative">
-              <summary className="list-none cursor-pointer rounded-lg bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-muted/80">
+              <summary className="list-none cursor-pointer rounded-xl bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-muted/80">
                 Aktionen
               </summary>
-              <div className="absolute right-0 z-10 mt-2 min-w-[180px] rounded-lg border border-border bg-white p-1.5 shadow-lg">
+              <div className="absolute right-0 z-10 mt-2 min-w-[180px] rounded-2xl border border-border bg-white p-1.5 shadow-lg">
                 <Link
                   href={`/dashboard/objectives/${objectiveId}`}
                   className="flex items-center rounded-md px-3 py-2 text-sm text-foreground transition hover:bg-muted"
@@ -229,9 +231,9 @@ export function ObjectiveCard({
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="relative h-1 flex-1 rounded-full bg-muted">
+          <div className="relative h-2 flex-1 rounded-full bg-muted">
             <motion.div
-              className="h-full rounded-full bg-primary"
+              className="h-full rounded-full bg-primary shadow-[0_8px_18px_rgba(242,0,128,0.25)]"
               animate={{ width: `${progress}%` }}
               transition={{ type: "spring", stiffness: 120, damping: 18 }}
             />
@@ -239,7 +241,7 @@ export function ObjectiveCard({
           <span className="text-sm font-medium text-foreground tabular-nums">{progress}%</span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground sm:text-xs">
           <span>
             Letztes Update:{" "}
             {insights.lastUpdateAt ? dateFormatter.format(new Date(insights.lastUpdateAt)) : "—"}
@@ -255,23 +257,23 @@ export function ObjectiveCard({
           <span>Seit {insights.streakDays} Tagen in Folge dran</span>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-3 rounded-[1.5rem] bg-muted/35 p-3.5 sm:p-4">
           <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
             <span>Key Results</span>
             <span>{optimisticKeyResults.length} insgesamt</span>
           </div>
-          <div className="divide-y divide-border rounded-lg border border-border bg-white">
+          <div className="divide-y divide-border rounded-2xl border border-border bg-white">
             {visibleKeyResults.map((keyResult) => {
               const progressValue = calculateKeyResultProgress(keyResult);
 
               return (
                 <div
                   key={keyResult.id}
-                  className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-3 p-3.5 sm:flex-row sm:items-center sm:justify-between sm:p-4"
                 >
                   <div className="flex-1 space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-medium text-foreground">{keyResult.title}</p>
+                      <p className="text-sm font-medium text-foreground sm:text-base">{keyResult.title}</p>
                       <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
                         {progressValue}%
                       </span>
@@ -280,7 +282,7 @@ export function ObjectiveCard({
                       {keyResult.currentValue} / {keyResult.targetValue}
                       {keyResult.unit ? ` ${keyResult.unit}` : ""}
                     </p>
-                    <div className="h-1.5 w-full rounded-full bg-border">
+                    <div className="h-2 w-full rounded-full bg-border">
                       <motion.div
                         className="h-full rounded-full bg-primary"
                         animate={{ width: `${progressValue}%` }}
@@ -315,7 +317,7 @@ export function ObjectiveCard({
               <button
                 type="button"
                 onClick={() => setShowAllKeyResults((prev) => !prev)}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-muted-foreground transition-colors hover:bg-muted/80"
               >
                 <span
                   className={`inline-flex transition-transform ${

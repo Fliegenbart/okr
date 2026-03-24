@@ -16,13 +16,13 @@ const dateFormatter = new Intl.DateTimeFormat("de-DE", {
 export function ObjectiveProgressMiniChart({ objective, href }: ObjectiveProgressMiniChartProps) {
   return (
     <Card
-      className="rounded-2xl border-border shadow-sm"
+      className="dashboard-panel rounded-[1.75rem] border-border/70"
       data-testid={`objective-progress-${objective.id}`}
     >
       <CardContent className="space-y-4 p-5">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1">
-            <p className="text-sm font-semibold text-foreground">{objective.title}</p>
+            <p className="text-sm font-semibold leading-6 text-foreground">{objective.title}</p>
             <p className="text-xs text-muted-foreground">
               {objective.lastUpdateAt
                 ? `Letztes Update: ${dateFormatter.format(new Date(objective.lastUpdateAt))}`
@@ -36,7 +36,7 @@ export function ObjectiveProgressMiniChart({ objective, href }: ObjectiveProgres
 
         <Link
           href={href}
-          className="block min-w-0 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="block min-w-0 rounded-2xl bg-muted/35 px-3 py-3 transition hover:bg-muted/55 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <QuarterProgressChart data={objective.points} compact={true} showAxes={false} />
           <p className="mt-2 text-xs font-medium text-primary">Objective öffnen</p>

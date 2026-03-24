@@ -20,8 +20,8 @@ export function VisionHeader({ vision, coupleName, avatarImage }: VisionHeaderPr
 
   return (
     <header className="space-y-4">
-      <div className="flex items-center gap-4">
-        <div className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border border-border bg-muted">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+        <div className="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-border bg-muted sm:h-20 sm:w-20">
           {avatarImage ? (
             <Image
               src={avatarImage}
@@ -31,17 +31,23 @@ export function VisionHeader({ vision, coupleName, avatarImage }: VisionHeaderPr
               className="object-cover"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-primary/10 text-xl font-semibold text-primary">
+            <div className="flex h-full w-full items-center justify-center bg-primary/10 text-lg font-semibold text-primary sm:text-xl">
               {getInitials(coupleName) || "OK"}
             </div>
           )}
         </div>
-        <div className="space-y-3">
-          <Image src="/logo.png" alt="OKR für Paare" width={160} height={40} className="h-auto w-32" />
-          <p className="text-sm font-medium text-primary">{coupleName}</p>
+        <div className="space-y-2">
+          <Image
+            src="/logo.png"
+            alt="OKR für Paare"
+            width={160}
+            height={40}
+            className="h-auto w-28 sm:w-32"
+          />
+          <p className="text-sm font-medium leading-6 text-primary">{coupleName}</p>
         </div>
       </div>
-      <blockquote className="text-2xl italic leading-snug text-foreground md:text-3xl">
+      <blockquote className="text-xl italic leading-snug text-foreground sm:text-2xl md:text-3xl">
         &ldquo;{displayVision}&rdquo;
       </blockquote>
     </header>

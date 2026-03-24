@@ -114,7 +114,7 @@ export function QuarterProgressChart({
             tickFormatter={formatDateLabel}
             axisLine={false}
             tickLine={false}
-            tick={showAxes ? { fill: "#555555", fontSize: 12 } : false}
+            tick={showAxes ? { fill: "#6e6e73", fontSize: 12 } : false}
             minTickGap={compact ? 24 : 32}
             hide={!showAxes}
           />
@@ -122,7 +122,7 @@ export function QuarterProgressChart({
             domain={[0, 100]}
             axisLine={false}
             tickLine={false}
-            tick={showAxes ? { fill: "#555555", fontSize: 12 } : false}
+            tick={showAxes ? { fill: "#6e6e73", fontSize: 12 } : false}
             width={showAxes ? 34 : 0}
             hide={!showAxes}
           />
@@ -130,10 +130,10 @@ export function QuarterProgressChart({
           <Line
             type="linear"
             dataKey="idealProgress"
-            stroke="#52c1f3"
+            stroke="rgba(29, 29, 31, 0.35)"
             strokeWidth={compact ? 1.5 : 2}
             dot={false}
-            strokeDasharray="5 5"
+            strokeDasharray="6 6"
             connectNulls={false}
             isAnimationActive={false}
           />
@@ -177,7 +177,7 @@ export function QuarterProgressChart({
                   : {
                       value: "Heute",
                       position: "insideTopRight",
-                      fill: "#555555",
+                      fill: "#6e6e73",
                       fontSize: 12,
                     }
               }
