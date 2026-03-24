@@ -112,7 +112,7 @@ async function main() {
     {
       quarterId: quarterCurrent.id,
       title: "Gesundheit: Wir fühlen uns fit",
-      description: "Staerke, Energie und gute Routinen im Alltag.",
+      description: "Stärke, Energie und gute Routinen im Alltag.",
       keyResults: [
         {
           title: "3x Sport/Woche",
@@ -152,7 +152,7 @@ async function main() {
           updates: makeDates("2026-01-05T07:30:00.000Z", 3, 5).map(
             (date, index) => ({
               value: [6, 6.5, 7][index],
-              note: ["Frueher ins Bett", "Bessere Abendroutine", "Stabil" ][
+              note: ["Früher ins Bett", "Bessere Abendroutine", "Stabil"][
                 index
               ],
               createdAt: date,
@@ -174,7 +174,7 @@ async function main() {
           updates: makeDates("2026-01-06T11:00:00.000Z", 3, 7).map(
             (date, index) => ({
               value: [1, 2, 3][index],
-              note: ["Neues Cafe", "Wochenendtrip", "Letzter Spot"][index],
+              note: ["Neues Café", "Wochenendtrip", "Letzter Spot"][index],
               createdAt: date,
             })
           ),
@@ -239,9 +239,9 @@ async function main() {
           ),
         },
         {
-          title: "Tagebuch: 10 Eintraege",
+          title: "Tagebuch: 10 Einträge",
           targetValue: 10,
-          unit: "Eintraege",
+          unit: "Einträge",
           startValue: 0,
           updates: makeDates("2026-01-11T08:00:00.000Z", 3, 7).map(
             (date, index) => ({
@@ -256,7 +256,7 @@ async function main() {
     {
       quarterId: quarterCurrent.id,
       title: "Finanzen: Klarheit statt Dauer-Alarm",
-      description: "Geld wird ein loesbares Thema zwischen uns.",
+      description: "Geld wird ein lösbares Thema zwischen uns.",
       nextAction: "Diesen Sonntag 30 Minuten Money-Date + 1 Entscheidung treffen.",
       keyResults: [
         {
@@ -270,7 +270,7 @@ async function main() {
               value: [1, 2, 3, 4][index],
               note: [
                 "Erstes Money-Date",
-                "Budget grob geklaert",
+                "Budget grob geklärt",
                 "Rücklagen besprochen",
                 "Nächster Fokus definiert",
               ][index],
@@ -301,7 +301,7 @@ async function main() {
           updates: makeDates("2026-01-11T20:10:00.000Z", 3, 7).map(
             (date, index) => ({
               value: [3.1, 3.4, 3.6][index],
-              note: ["Noch nervoes", "Wird leichter", "Fuehlt sich stabiler an"][
+              note: ["Noch nervös", "Wird leichter", "Fühlt sich stabiler an"][
                 index
               ],
               createdAt: date,
@@ -313,7 +313,7 @@ async function main() {
     {
       quarterId: quarterCurrent.id,
       title: "Haushalt: Fair & vorhersehbar",
-      description: "Unser Alltag fuehlt sich fair und planbar an.",
+      description: "Unser Alltag fühlt sich fair und planbar an.",
       nextAction: "Heute 15 Minuten Haushalts-Sync + 3 Aufgaben klar zuordnen.",
       keyResults: [
         {
@@ -325,7 +325,7 @@ async function main() {
           updates: makeDates("2026-01-03T17:00:00.000Z", 4, 7).map(
             (date, index) => ({
               value: [3, 5, 7, 8][index],
-              note: ["Start", "Routiniert", "Schneller", "Laeuft"][index],
+              note: ["Start", "Routiniert", "Schneller", "Läuft"][index],
               createdAt: date,
             })
           ),
@@ -368,12 +368,12 @@ async function main() {
     {
       quarterId: quarterPast.id,
       title: "Konflikte: Repair statt Eskalation",
-      description: "Wir fuehren schwierige Gespraeche mit mehr Sicherheit.",
+      description: "Wir führen schwierige Gespräche mit mehr Sicherheit.",
       keyResults: [
         {
-          title: "Repair innerhalb 24h: 12 Faelle",
+          title: "Repair innerhalb 24h: 12 Fälle",
           targetValue: 12,
-          unit: "Faelle",
+          unit: "Fälle",
           startValue: 0,
           updatedBy: "Mia",
           updates: makeDates("2025-10-06T19:00:00.000Z", 4, 21).map(
@@ -390,9 +390,9 @@ async function main() {
           ),
         },
         {
-          title: "Konfliktgespraeche ohne Abbruch: 8",
+          title: "Konfliktgespräche ohne Abbruch: 8",
           targetValue: 8,
-          unit: "Gespraeche",
+          unit: "Gespräche",
           startValue: 0,
           updatedBy: "Leon",
           updates: makeDates("2025-10-12T20:10:00.000Z", 4, 20).map(
