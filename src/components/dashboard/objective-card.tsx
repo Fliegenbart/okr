@@ -19,6 +19,7 @@ import { motion } from "framer-motion";
 
 import { CelebrationOverlay } from "@/components/dashboard/celebration-overlay";
 import { KeyResultQuickUpdateDialog } from "@/components/dashboard/key-result-quick-update-dialog";
+import { ObjectiveTrafficLightChip } from "@/components/dashboard/objective-traffic-light-chip";
 import { QuarterProgressChart } from "@/components/dashboard/quarter-progress-chart";
 import { TrafficLightChip } from "@/components/dashboard/traffic-light-chip";
 import { Card, CardContent } from "@/components/ui/card";
@@ -190,12 +191,15 @@ export function ObjectiveCard({
               {objectiveIcon}
             </div>
             <div className="space-y-2">
-              <Link
-                href={`/dashboard/objectives/${objectiveId}`}
-                className="font-display text-2xl font-bold tracking-[-0.04em] text-foreground hover:underline"
-              >
-                {title}
-              </Link>
+              <div className="flex flex-wrap items-center gap-2">
+                <Link
+                  href={`/dashboard/objectives/${objectiveId}`}
+                  className="font-display text-2xl font-bold tracking-[-0.04em] text-foreground hover:underline"
+                >
+                  {title}
+                </Link>
+                <ObjectiveTrafficLightChip keyResults={optimisticKeyResults} />
+              </div>
               {description ? (
                 <p className="max-w-xl text-sm leading-6 text-muted-foreground">{description}</p>
               ) : null}

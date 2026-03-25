@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { CelebrationOverlay } from "@/components/dashboard/celebration-overlay";
 import { CommitmentStatusActions } from "@/components/dashboard/commitment-status-actions";
 import { KeyResultQuickUpdateDialog } from "@/components/dashboard/key-result-quick-update-dialog";
+import { ObjectiveTrafficLightChip } from "@/components/dashboard/objective-traffic-light-chip";
 import { TrafficLightChip } from "@/components/dashboard/traffic-light-chip";
 import { Card, CardContent } from "@/components/ui/card";
 import { useObjectiveProgress } from "@/hooks/use-objective-progress";
@@ -111,7 +112,10 @@ export function ObjectiveDetail({
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-primary">{quarterTitle}</p>
-              <h1 className="mt-2 text-3xl font-semibold text-foreground">{title}</h1>
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                <h1 className="text-3xl font-semibold text-foreground">{title}</h1>
+                <ObjectiveTrafficLightChip keyResults={optimisticKeyResults} />
+              </div>
               {description ? (
                 <p className="mt-2 text-sm text-muted-foreground">{description}</p>
               ) : null}

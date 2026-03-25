@@ -25,6 +25,30 @@ export type KeyResultLike = {
   greenThreshold?: number | null;
 };
 
+export type ObjectiveTrafficLightStatus = "green" | "yellow" | "red";
+
+function getFallbackObjectiveTrafficLightStatus(
+  keyResults: KeyResultLike[]
+): ObjectiveTrafficLightStatus | null {
+  if (!keyResults.length) return null;
+
+  const progressValues = keyResults.map((keyResult) => calculateKeyResultProgress(keyResult));
+  const averageProgress =
+    progressValues.reduce((sum, value) => sum + value, 0) / progressValues.length;
+  const lowProgressCount = progressValues.filter((value) => value < 35).length;
+  const strongProgressCount = progressValues.filter((value) => value >= 70).length;
+
+  if (lowProgressCount >= Math.ceil(progressValues.length / 2) || averageProgress < 35) {
+    return "red";
+  }
+
+  if (strongProgressCount === progressValues.length || averageProgress >= 75) {
+    return "green";
+  }
+
+  return "yellow";
+}
+
 export function getKeyResultTypeLabel(type?: KeyResultType | null) {
   switch (type) {
     case "STAY_ABOVE":
@@ -152,4 +176,29 @@ export function getTrafficLightStatus(keyResult: KeyResultLike) {
   if (value >= green) return "green";
   if (value >= yellow) return "yellow";
   return "red";
+}
+
+export function getObjectiveTrafficLightStatus(
+  keyResults: KeyResultLike[]
+): ObjectiveTrafficLightStatus | null {
+  if (!keyResults.length) return null;
+
+  const trafficKeyResults = keyResults.filter(
+    (keyResult) => (keyResult.type ?? "INCREASE_TO") === "TRAFFIC_LIGHT"
+  );
+  const nonTrafficKeyResults = keyResults.filter(
+    (keyResult) => (keyResult.type ?? "INCREASE_TO") !== "TRAFFIC_LIGHT"
+  );
+  const trafficStatuses = trafficKeyResults
+    .map((keyResult) => getTrafficLightStatus(keyResult))
+    .filter((status): status is ObjectiveTrafficLightStatus => status !== null);
+
+  if (trafficStatuses.includes("red")) return "red";
+  if (trafficStatuses.includes("yellow")) return "yellow";
+  if (trafficStatuses.length && trafficStatuses.every((status) => status === "green")) {
+    const nonTrafficStatus = getFallbackObjectiveTrafficLightStatus(nonTrafficKeyResults);
+    return nonTrafficStatus === "red" ? "yellow" : nonTrafficStatus ?? "green";
+  }
+
+  return getFallbackObjectiveTrafficLightStatus(keyResults);
 }
