@@ -62,7 +62,7 @@ export async function canEmailSignIn(email: string) {
   const [existingUser, pendingInvite, betaAccess] = await Promise.all([
     prisma.user.findUnique({
       where: { email: normalizedEmail },
-      select: { id: true },
+      select: { id: true, coupleId: true },
     }),
     prisma.invite.findFirst({
       where: {
@@ -81,7 +81,7 @@ export async function canEmailSignIn(email: string) {
     }),
   ]);
 
-  if (existingUser || pendingInvite || betaAccess) {
+  if (existingUser?.coupleId || pendingInvite || betaAccess) {
     return true;
   }
 

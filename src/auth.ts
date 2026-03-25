@@ -16,6 +16,7 @@ import { isDevLoginEnabled } from "@/lib/runtime-flags";
 
 const enableDevLogin = isDevLoginEnabled();
 const enableEmailProvider = isEmailConfigured();
+const demoLoginEmails = new Set(["demo1@example.com", "demo2@example.com"]);
 
 function normalizeEmail(email?: string | null) {
   return email?.trim().toLowerCase() ?? "";
@@ -99,6 +100,41 @@ export const authOptions: NextAuthOptions = {
         ]
       : []),
     CredentialsProvider({
+      id: "demo-login",
+      name: "Demo Login",
+      credentials: {
+        email: {
+          label: "Email",
+          type: "email",
+          placeholder: "demo1@example.com",
+        },
+      },
+      async authorize(credentials) {
+        const email = credentials?.email?.toLowerCase().trim();
+
+        if (!email || !demoLoginEmails.has(email)) {
+          return null;
+        }
+
+        const user = await prisma.user.findUnique({
+          where: { email },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            role: true,
+            coupleId: true,
+          },
+        });
+
+        if (!user?.coupleId) {
+          return null;
+        }
+
+        return user;
+      },
+    }),
+    CredentialsProvider({
       id: "invite-login",
       name: "Invite Login",
       credentials: {
@@ -166,6 +202,10 @@ export const authOptions: NextAuthOptions = {
 
       if (provider === "dev-login") {
         return enableDevLogin;
+      }
+
+      if (provider === "demo-login") {
+        return true;
       }
 
       if (provider === "invite-login" || provider === "support-login") {

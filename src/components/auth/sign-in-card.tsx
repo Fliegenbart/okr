@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label";
 
 type SignInCardProps = {
   callbackUrl: string;
-  enableDevLogin: boolean;
   enableEmailLogin: boolean;
   enableSupportLogin: boolean;
   initialEmail?: string;
@@ -30,7 +29,6 @@ function extractInviteToken(callbackUrl: string) {
 
 export function SignInCard({
   callbackUrl,
-  enableDevLogin,
   enableEmailLogin,
   enableSupportLogin,
   initialEmail = "",
@@ -39,13 +37,12 @@ export function SignInCard({
   adminMode = false,
 }: SignInCardProps) {
   const [email, setEmail] = useState(initialEmail);
-  const [devEmail, setDevEmail] = useState(initialEmail || "dev@example.com");
   const [inviteEmail, setInviteEmail] = useState(initialEmail);
   const [inviteToken, setInviteToken] = useState(extractInviteToken(callbackUrl));
   const [supportEmail, setSupportEmail] = useState(initialEmail);
   const [supportCode, setSupportCode] = useState("");
   const [emailSent, setEmailSent] = useState(false);
-  const [submitting, setSubmitting] = useState<"email" | "invite" | "support" | "dev" | null>(null);
+  const [submitting, setSubmitting] = useState<"email" | "invite" | "support" | null>(null);
   const [localError, setLocalError] = useState<string | null>(errorMessage ?? null);
 
   const inviteHint = useMemo(() => {
@@ -73,18 +70,6 @@ export function SignInCard({
     }
 
     setEmailSent(true);
-  };
-
-  const handleDevSignIn = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setSubmitting("dev");
-
-    await signIn("dev-login", {
-      email: devEmail,
-      callbackUrl,
-    });
-
-    setSubmitting(null);
   };
 
   const handleInviteSignIn = async (event: FormEvent<HTMLFormElement>) => {
@@ -135,14 +120,18 @@ export function SignInCard({
     <div className="w-full max-w-lg rounded-3xl border border-border bg-white p-8 shadow-sm">
       <p className="text-sm uppercase tracking-[0.2em] text-primary">Geschlossene Beta</p>
       <h1 className="mt-3 text-3xl font-semibold text-foreground">
-        {adminMode ? "Admin anmelden" : inviteMode ? "Fast geschafft" : "Meldet euch an"}
+        {adminMode ? "Admin anmelden" : inviteMode ? "Nutzer anmelden" : "Nutzer anmelden"}
       </h1>
       <p className="mt-4 text-sm leading-6 text-muted-foreground">
         {adminMode
           ? "Hier gibt es nur den schnellen Admin-Zugang. Kein Umweg, keine extra Auswahl."
           : inviteMode
-          ? "Gebt nur noch die eingeladene E-Mail-Adresse ein. Den Rest übernimmt euer Link."
-          : "Je nachdem, was ihr bekommen habt, nutzt ihr euren Login-Link, den Einladungslink oder den Support-Code."}
+          ? "Gebt nur noch die eingeladene E-Mail-Adresse ein. Den Rest übernimmt euer Startlink."
+          : enableEmailLogin
+            ? "Gebt eure E-Mail-Adresse ein und fordert euren Login-Link an."
+            : enableSupportLogin
+              ? "Gebt eure freigeschaltete E-Mail-Adresse und euren Zugangscode ein."
+              : "Aktuell ist kein Nutzer-Login aktiv."}
       </p>
 
       {adminMode ? (
@@ -182,7 +171,7 @@ export function SignInCard({
       ) : inviteMode ? (
         <div className="mt-8 space-y-2 rounded-2xl border border-border p-4">
           <div className="space-y-1">
-            <p className="text-sm font-medium text-foreground">Mit Einladung beitreten</p>
+            <p className="text-sm font-medium text-foreground">Mit Startlink anmelden</p>
             <p className="text-xs text-muted-foreground">
               Nutzt die E-Mail-Adresse, auf die die Einladung geschickt wurde.
             </p>
@@ -242,125 +231,41 @@ export function SignInCard({
             </p>
           ) : null}
         </form>
-      ) : (
-        <p className="mt-8 rounded-2xl bg-muted px-4 py-3 text-sm text-muted-foreground">
-          Der Login per E-Mail ist gerade nicht aktiv. Nutzt stattdessen euren Einladungslink oder
-          den Support-Code.
-        </p>
-      )}
-
-      {!inviteMode && !adminMode ? <div className="mt-8 space-y-2 rounded-2xl border border-border p-4">
-        <div className="space-y-1">
-          <p className="text-sm font-medium text-foreground">Mit Einladungslink beitreten</p>
-          <p className="text-xs text-muted-foreground">
-            Wenn ihr einen Partner-Link bekommen habt, braucht ihr nur die E-Mail und den Token aus
-            diesem Link.
-          </p>
-        </div>
-        <form className="space-y-4 pt-2" onSubmit={handleInviteSignIn}>
+      ) : enableSupportLogin ? (
+        <form className="mt-8 space-y-4" onSubmit={handleSupportSignIn}>
           <div className="space-y-2">
-            <Label htmlFor="invite-email">Einladung E-Mail</Label>
-            <Input
-              id="invite-email"
-              type="email"
-              value={inviteEmail}
-              placeholder="partner@email.de"
-              onChange={(event) => setInviteEmail(event.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="invite-token">Einladungstoken</Label>
-            <Input
-              id="invite-token"
-              type="text"
-              value={inviteToken}
-              placeholder="Token aus /join?token=..."
-              onChange={(event) => setInviteToken(event.target.value)}
-              required
-            />
-          </div>
-          {inviteHint ? <p className="text-xs text-muted-foreground">{inviteHint}</p> : null}
-          <Button type="submit" className="w-full rounded-2xl" disabled={submitting !== null}>
-            {submitting === "invite" ? "Prüfe Einladung ..." : "Mit Einladung anmelden"}
-          </Button>
-        </form>
-      </div> : null}
-
-      {enableSupportLogin && !inviteMode && !adminMode ? (
-        <form
-          className="mt-4 space-y-4 rounded-2xl border border-dashed border-border p-4"
-          onSubmit={handleSupportSignIn}
-        >
-          <div className="space-y-1">
-            <p className="text-sm font-medium text-foreground">
-              Mit freigeschalteter E-Mail anmelden
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Nutze die E-Mail, die für die Beta hinterlegt wurde, zusammen mit dem Support-Code.
-            </p>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="support-email">Support E-Mail</Label>
+            <Label htmlFor="support-email">E-Mail</Label>
             <Input
               id="support-email"
               type="email"
               value={supportEmail}
-              placeholder="mail@davidwegener.de"
+              placeholder="name@email.de"
               onChange={(event) => setSupportEmail(event.target.value)}
               required
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="support-code">Support Code</Label>
+            <Label htmlFor="support-code">Zugangscode</Label>
             <Input
               id="support-code"
               type="password"
               value={supportCode}
-              placeholder="Support-Code"
+              placeholder="Zugangscode"
               onChange={(event) => setSupportCode(event.target.value)}
               required
             />
           </div>
-          <Button
-            type="submit"
-            variant="outline"
-            className="w-full rounded-2xl"
-            disabled={submitting !== null}
-          >
-            {submitting === "support" ? "Prüfe Zugang ..." : "Mit Support-Code anmelden"}
+          <Button type="submit" className="w-full rounded-2xl" disabled={submitting !== null}>
+            {submitting === "support" ? "Prüfe Zugang ..." : "Jetzt anmelden"}
           </Button>
         </form>
-      ) : null}
+      ) : (
+        <p className="mt-8 rounded-2xl bg-muted px-4 py-3 text-sm text-muted-foreground">
+          Aktuell ist kein Nutzer-Login aktiv.
+        </p>
+      )}
 
       {localError ? <p className="mt-4 text-sm text-primary">{localError}</p> : null}
-
-      {enableDevLogin && !inviteMode && !adminMode ? (
-        <form
-          className="mt-8 space-y-4 rounded-2xl border border-dashed border-border p-4"
-          onSubmit={handleDevSignIn}
-        >
-          <div className="space-y-2">
-            <Label htmlFor="dev-login-email">Developer Login</Label>
-            <Input
-              id="dev-login-email"
-              type="email"
-              value={devEmail}
-              placeholder="dev@example.com"
-              onChange={(event) => setDevEmail(event.target.value)}
-              required
-            />
-          </div>
-          <Button
-            type="submit"
-            variant="outline"
-            className="w-full rounded-2xl"
-            disabled={submitting !== null}
-          >
-            {submitting === "dev" ? "Melde an ..." : "Developer Login"}
-          </Button>
-        </form>
-      ) : null}
     </div>
   );
 }

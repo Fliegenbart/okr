@@ -204,3 +204,41 @@ export const createBetaCoupleWithLinks = action
       inviteLinks,
     };
   });
+
+export async function deleteBetaAccessEntry(entryId: string, _formData: FormData) {
+  void _formData;
+
+  const admin = await requireAdminUser();
+  const entry = await prisma.betaAccessInvite.findUnique({
+    where: { id: entryId },
+    select: {
+      id: true,
+      email: true,
+      note: true,
+      activatedAt: true,
+    },
+  });
+
+  if (!entry) {
+    throw new Error("Beta-Eintrag nicht gefunden.");
+  }
+
+  await prisma.betaAccessInvite.delete({
+    where: { id: entry.id },
+  });
+
+  await writeAuditLog({
+    actorId: admin.id,
+    action: "beta_access_entry_deleted",
+    targetType: "BetaAccessInvite",
+    targetId: entry.id,
+    metadata: {
+      email: entry.email,
+      note: entry.note,
+      activatedAt: entry.activatedAt?.toISOString() ?? null,
+    },
+  });
+
+  revalidatePath("/admin/beta");
+  revalidatePath("/auth/signin");
+}

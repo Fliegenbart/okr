@@ -1,3 +1,5 @@
+import { deleteBetaAccessEntry } from "@/actions/admin-beta";
+import { ConfirmActionDialog } from "@/components/admin/confirm-action-dialog";
 import { prisma } from "@/lib/db";
 import { getAdminUser } from "@/lib/admin";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -56,6 +58,7 @@ export default async function AdminBetaPage() {
                 <th className="pb-3 pr-4 font-medium">Status</th>
                 <th className="pb-3 pr-4 font-medium">Aktiviert</th>
                 <th className="pb-3 font-medium">Erstellt</th>
+                <th className="pb-3 text-right font-medium">Aktion</th>
               </tr>
             </thead>
             <tbody>
@@ -72,6 +75,15 @@ export default async function AdminBetaPage() {
                     {formatDate(entry.activatedAt)}
                   </td>
                   <td className="py-4 text-muted-foreground">{formatDate(entry.createdAt)}</td>
+                  <td className="py-4 text-right">
+                    <ConfirmActionDialog
+                      triggerLabel="Löschen"
+                      title="Beta-Zugang löschen"
+                      description={`Die Freischaltung für ${entry.email} wird entfernt. Wenn die Person noch keinem Couple beigetreten ist, verliert sie damit den Beta-Zugang.`}
+                      confirmLabel="Beta-Zugang löschen"
+                      action={deleteBetaAccessEntry.bind(null, entry.id)}
+                    />
+                  </td>
                 </tr>
               ))}
             </tbody>
