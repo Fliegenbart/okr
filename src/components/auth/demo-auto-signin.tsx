@@ -19,7 +19,7 @@ export function DemoAutoSignIn() {
 
     void signIn("demo-login", {
       email: "demo1@example.com",
-      callbackUrl: "/dashboard",
+      callbackUrl: "/dashboard?quarter=all",
       redirect: false,
     }).then((result) => {
       if (result?.error) {

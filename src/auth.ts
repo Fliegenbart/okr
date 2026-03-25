@@ -131,6 +131,11 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { preferredQuarterId: null },
+        });
+
         return user;
       },
     }),
