@@ -53,17 +53,6 @@ export const createObjective = action
     }
 
     if (!quarterId) {
-      const fallbackQuarter = await prisma.quarter.findFirst({
-        where: { coupleId: user.coupleId },
-        orderBy: { endsAt: "desc" },
-      });
-
-      if (fallbackQuarter) {
-        quarterId = fallbackQuarter.id;
-      }
-    }
-
-    if (!quarterId) {
       const { title, startsAt, endsAt } = getQuarterInfo(now);
       const createdQuarter = await prisma.quarter.create({
         data: {

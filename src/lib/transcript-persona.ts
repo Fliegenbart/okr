@@ -11,10 +11,6 @@ export type PersonaProfileSnapshot = {
   sampleCount: number;
 };
 
-export function isPersonaSpeaker(value: unknown): value is PersonaSpeaker {
-  return typeof value === "string" && personaSpeakerValues.includes(value as PersonaSpeaker);
-}
-
 export function getPersonaLabel(speaker: PersonaSpeaker) {
   return speaker === "DANIEL" ? "Daniel" : "Christiane";
 }

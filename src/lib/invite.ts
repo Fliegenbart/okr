@@ -16,3 +16,20 @@ export function generateInviteCode(length = 8) {
 export function generateInviteToken(length = 32) {
   return randomBytes(length).toString("hex");
 }
+
+export function buildJoinUrl(
+  baseUrl: string | null | undefined,
+  queryKey: "token" | "code",
+  queryValue: string
+) {
+  const origin = baseUrl?.replace(/\/$/, "");
+
+  if (!origin || !queryValue) {
+    return "";
+  }
+
+  const searchParams = new URLSearchParams();
+  searchParams.set(queryKey, queryValue);
+
+  return `${origin}/join?${searchParams.toString()}`;
+}

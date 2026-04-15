@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requireAdminUser, writeAuditLog } from "@/lib/admin";
 import { getBaseUrl } from "@/lib/email";
-import { generateInviteCode, generateInviteToken } from "@/lib/invite";
+import { buildJoinUrl, generateInviteCode, generateInviteToken } from "@/lib/invite";
 import { action } from "@/lib/safe-action";
 import { bulkBetaAccessSchema, createBetaCoupleSchema } from "@/lib/validations/admin-beta";
 
@@ -178,7 +178,7 @@ export const createBetaCoupleWithLinks = action
     const inviteLinks = invites.map((invite) => ({
       label: invite.label,
       email: invite.email,
-      url: `${baseUrl}/join?token=${invite.token}`,
+      url: buildJoinUrl(baseUrl, "token", invite.token),
       expiresAt: expiresAt.toISOString(),
     }));
 

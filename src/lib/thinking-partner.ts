@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/db";
 import { calculateProgress, formatProgressPercent } from "@/lib/progress";
+import type { ThinkingPartnerResponse } from "@/lib/validations/thinking-partner";
 import {
   getPersonaLabel,
   getTranscriptSpeakerLabel,
@@ -9,22 +10,33 @@ import {
   type PersonaSpeaker,
 } from "@/lib/transcript-persona";
 
-export type TranscriptSnippet = {
-  id: string;
-  content: string;
-  title: string;
-  sourcePath: string | null;
-  sessionDate?: Date | null;
-  speaker?: string | null;
-  qualityStatus?: string | null;
-  topics?: unknown;
-};
-
 const STYLE_QUALITY_STATUSES = ["VERIFIED", "INFERRED"] as const;
 
 export const transcriptTopics = ["KONFLIKT", "PRIORISIERUNG", "INTIMITAET", "FINANZEN"] as const;
 
 export type TranscriptTopic = (typeof transcriptTopics)[number];
+
+export type TranscriptSnippet = {
+  id: string;
+  content: string;
+  title: string;
+  sourcePath: string | null;
+  sessionDate: Date | null;
+  speaker: string | null;
+  qualityStatus: string | null;
+  topics: TranscriptTopic[] | null;
+};
+
+type TranscriptSnippetRow = {
+  id: string;
+  content: string;
+  title: string;
+  sourcePath: string | null;
+  sessionDate: Date | null;
+  speaker: string | null;
+  qualityStatus: string | null;
+  topics: Prisma.JsonValue | null;
+};
 
 export function inferTopicsFromQuery(query: string): TranscriptTopic[] {
   const lower = query.toLowerCase();
@@ -51,7 +63,7 @@ export async function searchTranscriptChunks(
   limit = 6,
   topics?: TranscriptTopic[],
   coupleId?: string | null
-) {
+): Promise<TranscriptSnippet[]> {
   if (!query.trim()) return [];
 
   const topicsList = (topics ?? []).filter((topic): topic is TranscriptTopic =>
@@ -70,18 +82,7 @@ export async function searchTranscriptChunks(
       ? Prisma.sql`AND (t."coupleId" IS NULL OR t."coupleId" = ${coupleId})`
       : Prisma.sql`AND t."coupleId" IS NULL`;
 
-    return prisma.$queryRaw<
-      Array<{
-        id: string;
-        content: string;
-        title: string;
-        sourcePath: string | null;
-        sessionDate: Date | null;
-        speaker: string | null;
-        qualityStatus: string | null;
-        topics: unknown;
-      }>
-    >(Prisma.sql`
+    return prisma.$queryRaw<TranscriptSnippetRow[]>(Prisma.sql`
       SELECT tc.id,
              tc.content,
              t.title,
@@ -103,10 +104,18 @@ export async function searchTranscriptChunks(
   const results = await runQuery(topicsList);
 
   if (topicsList.length && results.length === 0) {
-    return runQuery([]);
+    return runQuery([]).then((rows) =>
+      rows.map((row) => ({
+        ...row,
+        topics: parseTranscriptTopics(row.topics),
+      }))
+    );
   }
 
-  return results;
+  return results.map((row) => ({
+    ...row,
+    topics: parseTranscriptTopics(row.topics),
+  }));
 }
 
 export async function searchPersonaStyleChunks(
@@ -115,7 +124,7 @@ export async function searchPersonaStyleChunks(
   limit = 4,
   topics?: TranscriptTopic[],
   coupleId?: string | null
-) {
+): Promise<TranscriptSnippet[]> {
   if (!query.trim()) return [];
 
   const topicsList = (topics ?? []).filter((topic): topic is TranscriptTopic =>
@@ -140,7 +149,7 @@ export async function searchPersonaStyleChunks(
         )})`
       : Prisma.empty;
 
-    return prisma.$queryRaw<TranscriptSnippet[]>(Prisma.sql`
+    return prisma.$queryRaw<TranscriptSnippetRow[]>(Prisma.sql`
       SELECT tc.id,
              tc.content,
              t.title,
@@ -164,13 +173,19 @@ export async function searchPersonaStyleChunks(
   const topicalResults = await runQuery(topicsList);
 
   if (topicalResults.length) {
-    return topicalResults;
+    return topicalResults.map((row) => ({
+      ...row,
+      topics: parseTranscriptTopics(row.topics),
+    }));
   }
 
   const genericResults = topicsList.length ? await runQuery([]) : [];
 
   if (genericResults.length) {
-    return genericResults;
+    return genericResults.map((row) => ({
+      ...row,
+      topics: parseTranscriptTopics(row.topics),
+    }));
   }
 
   return prisma.transcriptChunk
@@ -205,12 +220,25 @@ export async function searchPersonaStyleChunks(
         sessionDate: row.transcript.sessionDate,
         speaker,
         qualityStatus: row.qualityStatus,
-        topics: row.transcript.topics,
+        topics: parseTranscriptTopics(row.transcript.topics),
       }))
     );
 }
 
-function parseStringList(value: unknown) {
+function parseTranscriptTopics(
+  value: Prisma.JsonValue | null
+): TranscriptTopic[] | null {
+  if (!Array.isArray(value)) return null;
+
+  const topics = value.filter(
+    (item): item is TranscriptTopic =>
+      typeof item === "string" && transcriptTopics.includes(item as TranscriptTopic)
+  );
+
+  return topics.length ? topics : null;
+}
+
+function parseStringList(value: Prisma.JsonValue) {
   if (!Array.isArray(value)) return [];
 
   return value
@@ -375,6 +403,44 @@ export function buildKnowledgeContext(snippets: TranscriptSnippet[]) {
       return `Quelle ${index + 1} (${snippet.title}${metaSuffix}): ${snippet.content}`;
     })
     .join("\n\n");
+}
+
+export function extractMiniRitualCandidates(text: string) {
+  const candidates: string[] = [];
+  const regex = /Mikro-Ritual:\s*([^.\n]+(?:\.[^.\n]+){0,2})/gi;
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    const raw = match[1]?.trim();
+    if (raw && raw.length >= 10) candidates.push(raw);
+    if (candidates.length >= 6) break;
+  }
+  return Array.from(new Set(candidates));
+}
+
+export function formatThinkingPartnerResponse(
+  answer: ThinkingPartnerResponse,
+  nextStepLabel = "Nächster Schritt"
+) {
+  const lines = [
+    answer.summary,
+    "",
+    "Impulse:",
+    ...answer.impulses.map((item) => `- ${item}`),
+    "",
+    `${nextStepLabel}: ${answer.nextStep}`,
+    "",
+    "Rückfragen:",
+    ...answer.questions.map((item) => `- ${item}`),
+  ];
+
+  if (answer.miniRitual) {
+    lines.push("", `Mini-Ritual: ${answer.miniRitual.title}`);
+    answer.miniRitual.steps.forEach((step) => {
+      lines.push(`- ${step}`);
+    });
+  }
+
+  return lines.join("\n");
 }
 
 export function buildPersonaContext({

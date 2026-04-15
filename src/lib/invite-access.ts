@@ -92,29 +92,6 @@ async function assignInviteToUser(invite: {
   };
 }
 
-export async function claimInviteForEmail({
-  email,
-  token,
-}: {
-  email: string;
-  token: string;
-}) {
-  const normalizedEmail = normalizeEmail(email);
-  const invite = await loadInviteByToken(token);
-
-  if (invite.email.trim().toLowerCase() !== normalizedEmail) {
-    logEvent("warn", "invite_login_email_mismatch", {
-      inviteEmail: invite.email.trim().toLowerCase(),
-      signedInEmail: normalizedEmail,
-    });
-    throw new Error(
-      "Diese Einladung gehört zu einer anderen E-Mail-Adresse."
-    );
-  }
-
-  return assignInviteToUser(invite);
-}
-
 export async function claimInviteByToken(token: string) {
   const invite = await loadInviteByToken(token);
 

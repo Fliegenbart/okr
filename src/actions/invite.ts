@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getAuthSession } from "@/auth";
 import { prisma } from "@/lib/db";
 import { getBaseUrl, isEmailConfigured, sendPartnerInviteEmail } from "@/lib/email";
-import { generateInviteToken } from "@/lib/invite";
+import { buildJoinUrl, generateInviteToken } from "@/lib/invite";
 import { logEvent } from "@/lib/monitoring";
 import { assertRateLimit } from "@/lib/rate-limit";
 import { action } from "@/lib/safe-action";
@@ -81,8 +81,7 @@ export const createInvite = action
         },
       }));
 
-    const baseUrl = getBaseUrl();
-    const inviteUrl = baseUrl ? `${baseUrl}/join?token=${invite.token}` : "";
+    const inviteUrl = buildJoinUrl(getBaseUrl(), "token", invite.token);
 
     if (inviteUrl) {
       try {

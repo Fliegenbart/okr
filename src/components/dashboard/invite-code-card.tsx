@@ -9,6 +9,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { regenerateInviteCode } from "@/actions/couple";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { buildJoinUrl } from "@/lib/invite";
 
 export type InviteCodeCardProps = {
   inviteCode: string;
@@ -21,8 +22,7 @@ export function InviteCodeCard({ inviteCode, appUrl }: InviteCodeCardProps) {
   const origin = (appUrl ?? "").replace(/\/$/, "");
 
   const inviteUrl = useMemo(() => {
-    if (!origin) return "";
-    return `${origin}/join?code=${code}`;
+    return buildJoinUrl(origin, "code", code);
   }, [origin, code]);
 
   const regenerateAction = useAction(regenerateInviteCode, {

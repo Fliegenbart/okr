@@ -41,8 +41,8 @@ function computeNextOccurrence(weekday: number, time: string) {
   const [hh, mm] = time.split(":").map((part) => Number(part));
   const now = new Date();
 
-  // JS: Sunday=0..Saturday=6, our weekday: Monday=1..Sunday=7
-  const target = weekday % 7; // Sunday=0
+  // JavaScript uses Sunday=0..Saturday=6; our form uses Monday=1..Sunday=7.
+  const target = weekday % 7;
   const today = now.getDay();
 
   let delta = target - today;
@@ -52,7 +52,7 @@ function computeNextOccurrence(weekday: number, time: string) {
   next.setDate(now.getDate() + delta);
   next.setHours(hh, mm, 0, 0);
 
-  // If it's today but already passed, move to next week.
+  // If today's slot already passed, schedule the next week instead.
   if (delta === 0 && next.getTime() <= now.getTime()) {
     next.setDate(next.getDate() + 7);
   }

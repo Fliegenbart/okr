@@ -2,15 +2,19 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getAuthenticatedViewer } from "@/lib/active-couple";
-import { assertRateLimit } from "@/lib/rate-limit";
+import { RateLimitError, assertRateLimit } from "@/lib/rate-limit";
 import { prisma } from "@/lib/db";
 import { generateChatCompletion, generateToolCallCompletion, type LlmMessage } from "@/lib/llm";
 import {
   buildCoupleContext,
   buildKnowledgeContext,
+  extractMiniRitualCandidates,
+  formatThinkingPartnerResponse,
   inferTopicsFromQuery,
   searchTranscriptChunks,
+  type TranscriptTopic,
 } from "@/lib/thinking-partner";
+import type { ThinkingPartnerAction } from "@/lib/thinking-partner-types";
 import {
   thinkingPartnerResponseSchema,
   type ThinkingPartnerResponse,
@@ -76,41 +80,6 @@ const toolSchema = {
   required: ["summary", "impulses", "nextStep", "questions"],
 } as const;
 
-function extractMiniRitualCandidates(text: string) {
-  const candidates: string[] = [];
-  const regex = /Mikro-Ritual:\s*([^.\n]+(?:\.[^.\n]+){0,2})/gi;
-  let match;
-  while ((match = regex.exec(text)) !== null) {
-    const raw = match[1]?.trim();
-    if (raw && raw.length >= 10) candidates.push(raw);
-    if (candidates.length >= 6) break;
-  }
-  return Array.from(new Set(candidates));
-}
-
-function formatStructuredAsText(answer: ThinkingPartnerResponse) {
-  const lines = [
-    answer.summary,
-    "",
-    "Impulse:",
-    ...answer.impulses.map((item) => `- ${item}`),
-    "",
-    `Nächster Schritt: ${answer.nextStep}`,
-    "",
-    "Rückfragen:",
-    ...answer.questions.map((item) => `- ${item}`),
-  ];
-
-  if (answer.miniRitual) {
-    lines.push("", `Mini-Ritual: ${answer.miniRitual.title}`);
-    answer.miniRitual.steps.forEach((step) => {
-      lines.push(`- ${step}`);
-    });
-  }
-
-  return lines.join("\n");
-}
-
 function inferStylePreference(message: string, history: Array<{ role: "user" | "assistant"; content: string }>) {
   const userText = [...history, { role: "user" as const, content: message }]
     .filter((item) => item.role === "user")
@@ -152,7 +121,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "No couple" }, { status: 404 });
   }
 
-  const parsedBody = requestSchema.safeParse(await req.json().catch(() => null));
+  let requestBody: unknown;
+
+  try {
+    requestBody = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Ungültiges JSON." }, { status: 400 });
+  }
+
+  const parsedBody = requestSchema.safeParse(requestBody);
 
   if (!parsedBody.success) {
     return NextResponse.json({ error: "Ungültige Anfrage." }, { status: 400 });
@@ -208,11 +185,15 @@ export async function POST(req: Request) {
       limit: 20,
       windowMs: 15 * 60 * 1000,
     });
-  } catch {
-    return NextResponse.json(
-      { error: "Zu viele Anfragen. Bitte warte kurz und versuche es erneut." },
-      { status: 429 }
-    );
+  } catch (error) {
+    if (error instanceof RateLimitError) {
+      return NextResponse.json(
+        { error: "Zu viele Anfragen. Bitte warte kurz und versuche es erneut." },
+        { status: 429 }
+      );
+    }
+
+    throw error;
   }
 
   const coupleContext = buildCoupleContext({
@@ -310,27 +291,34 @@ export async function POST(req: Request) {
     parameters: toolSchema,
   });
 
+  if (toolResult.error) {
+    return NextResponse.json({ error: toolResult.error }, { status: 503 });
+  }
+
   let structured: ThinkingPartnerResponse | null = null;
   let replyText = "";
-  let fallback = Boolean(toolResult.isFallback);
 
   if (toolResult.toolArgumentsJson) {
     const parsed = thinkingPartnerResponseSchema.safeParse(toolResult.toolArgumentsJson);
     if (parsed.success) {
       structured = parsed.data;
-      replyText = formatStructuredAsText(parsed.data);
+      replyText = formatThinkingPartnerResponse(parsed.data);
     } else {
       const response = await generateChatCompletion(messages);
-      fallback = true;
+      if (response.error) {
+        return NextResponse.json({ error: response.error }, { status: 503 });
+      }
       replyText = response.content;
     }
   } else {
     const response = await generateChatCompletion(messages);
-    fallback = Boolean(response.isFallback);
+    if (response.error) {
+      return NextResponse.json({ error: response.error }, { status: 503 });
+    }
     replyText = response.content;
   }
 
-  const actions: Array<{ type: string; label: string }> = [];
+  const actions: ThinkingPartnerAction[] = [];
   const combinedText = structured
     ? `${structured.summary}\n${structured.nextStep}\n${structured.impulses.join(" ")}`
     : replyText;
@@ -359,7 +347,7 @@ export async function POST(req: Request) {
     {
       title: string;
       excerpt: string;
-      topics: unknown;
+      topics: TranscriptTopic[] | null;
       speaker: string | null;
       kind: "wissen" | "stil";
     }
@@ -380,6 +368,5 @@ export async function POST(req: Request) {
     structured,
     sources: Array.from(sourceMap.values()),
     actions,
-    fallback,
   });
 }

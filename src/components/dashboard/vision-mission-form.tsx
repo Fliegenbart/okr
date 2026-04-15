@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
@@ -72,12 +73,23 @@ export function VisionMissionForm({
       return;
     }
 
-    const nextImage = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : "");
-      reader.onerror = () => reject(new Error("Bild konnte nicht gelesen werden."));
-      reader.readAsDataURL(file);
-    }).catch(() => "");
+    let nextImage = "";
+
+    try {
+      nextImage = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : "");
+        reader.onerror = () => reject(new Error("Bild konnte nicht gelesen werden."));
+        reader.readAsDataURL(file);
+      });
+    } catch (error) {
+      toast.error(
+        error instanceof Error && error.message
+          ? error.message
+          : "Das Bild konnte nicht geladen werden."
+      );
+      return;
+    }
 
     if (!nextImage) {
       toast.error("Das Bild konnte nicht geladen werden.");
@@ -105,8 +117,14 @@ export function VisionMissionForm({
             title="Klickt hier, um euer Foto hochzuladen"
           >
             {avatarImage ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={avatarImage} alt="Paarfoto" className="h-full w-full object-cover" />
+              <Image
+                src={avatarImage}
+                alt="Paarfoto"
+                width={96}
+                height={96}
+                unoptimized
+                className="h-full w-full object-cover"
+              />
             ) : (
               <div className="flex h-full w-full items-center justify-center bg-primary/10 text-2xl font-semibold text-primary">
                 {getInitials(coupleName)}
@@ -145,7 +163,8 @@ export function VisionMissionForm({
               ) : null}
             </div>
             <p className="text-xs text-muted-foreground">
-              Klickt auf den Avatar oder nutzt den Button. Ein kleines, quadratisches Bild funktioniert am besten.
+              Klickt auf den Avatar oder nutzt den Button. Ein kleines, quadratisches Bild
+              funktioniert am besten.
             </p>
           </div>
         </div>

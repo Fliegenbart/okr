@@ -1,3 +1,5 @@
+import type { Prisma } from "@prisma/client";
+
 import { logEvent } from "@/lib/monitoring";
 
 export type LlmMessage = {
@@ -7,12 +9,11 @@ export type LlmMessage = {
 
 export type LlmResponse = {
   content: string;
-  isFallback?: boolean;
+  error?: string;
 };
 
 export type LlmToolCallResponse = {
-  toolArgumentsJson: unknown | null;
-  isFallback?: boolean;
+  toolArgumentsJson: Prisma.JsonObject | null;
   error?: string;
 };
 
@@ -21,20 +22,20 @@ function getApiBaseUrl() {
   return base.replace(/\/$/, "");
 }
 
-export async function generateChatCompletion(
-  messages: LlmMessage[]
-): Promise<LlmResponse> {
+function isJsonObject(value: unknown): value is Prisma.JsonObject {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+export async function generateChatCompletion(messages: LlmMessage[]): Promise<LlmResponse> {
   const apiKey = process.env.OPENAI_API_KEY;
 
   if (!apiKey) {
     return {
-      content:
-        "Der OKR-Coach ist noch nicht konfiguriert. Bitte OPENAI_API_KEY setzen.",
-      isFallback: true,
+      content: "",
+      error: "Der OKR-Coach ist noch nicht konfiguriert. Bitte OPENAI_API_KEY setzen.",
     };
   }
 
-  // Default to a higher-quality model; can be overridden via OPENAI_MODEL.
   const model = process.env.OPENAI_MODEL || "gpt-4.1";
   const fallbackModel = process.env.OPENAI_FALLBACK_MODEL || "gpt-4.1-mini";
 
@@ -58,7 +59,6 @@ export async function generateChatCompletion(
   let response = await doRequest(selectedModel);
 
   if (!response.ok && fallbackModel && fallbackModel !== model) {
-    // If the model is unavailable or blocked, retry once with a cheaper fallback.
     selectedModel = fallbackModel;
     response = await doRequest(selectedModel);
   }
@@ -69,9 +69,8 @@ export async function generateChatCompletion(
       model: selectedModel,
     });
     return {
-      content:
-        "Der OKR-Coach ist gerade nicht erreichbar. Bitte versuche es später noch einmal.",
-      isFallback: true,
+      content: "",
+      error: "Der OKR-Coach ist gerade nicht erreichbar. Bitte versuche es später noch einmal.",
     };
   }
 
@@ -88,7 +87,7 @@ export async function generateToolCallCompletion(
   tool: {
     name: string;
     description: string;
-    parameters: unknown;
+    parameters: Record<string, unknown>;
   }
 ): Promise<LlmToolCallResponse> {
   const apiKey = process.env.OPENAI_API_KEY;
@@ -96,9 +95,7 @@ export async function generateToolCallCompletion(
   if (!apiKey) {
     return {
       toolArgumentsJson: null,
-      isFallback: true,
-      error:
-        "Der OKR-Coach ist noch nicht konfiguriert. Bitte OPENAI_API_KEY setzen.",
+      error: "Der OKR-Coach ist noch nicht konfiguriert. Bitte OPENAI_API_KEY setzen.",
     };
   }
 
@@ -137,12 +134,10 @@ export async function generateToolCallCompletion(
 
   let selectedModel = model;
   let response = await doRequest(selectedModel);
-  let isFallback = false;
 
   if (!response.ok && fallbackModel && fallbackModel !== model) {
     selectedModel = fallbackModel;
     response = await doRequest(selectedModel);
-    isFallback = true;
   }
 
   if (!response.ok) {
@@ -152,9 +147,7 @@ export async function generateToolCallCompletion(
     });
     return {
       toolArgumentsJson: null,
-      isFallback: true,
-      error:
-        "Der OKR-Coach ist gerade nicht erreichbar. Bitte versuche es später noch einmal.",
+      error: "Der OKR-Coach ist gerade nicht erreichbar. Bitte versuche es später noch einmal.",
     };
   }
 
@@ -168,16 +161,25 @@ export async function generateToolCallCompletion(
     });
     return {
       toolArgumentsJson: null,
-      isFallback,
-      error:
-        "Der OKR-Coach konnte gerade keine strukturierte Antwort liefern.",
+      error: "Der OKR-Coach konnte gerade keine strukturierte Antwort liefern.",
     };
   }
 
   try {
+    const parsedArgs: unknown = JSON.parse(args);
+
+    if (!isJsonObject(parsedArgs)) {
+      logEvent("error", "llm_tool_call_invalid_json", {
+        model: selectedModel,
+      });
+      return {
+        toolArgumentsJson: null,
+        error: "Der OKR-Coach konnte gerade keine strukturierte Antwort liefern.",
+      };
+    }
+
     return {
-      toolArgumentsJson: JSON.parse(args),
-      isFallback,
+      toolArgumentsJson: parsedArgs,
     };
   } catch {
     logEvent("error", "llm_tool_call_invalid_json", {
@@ -185,9 +187,7 @@ export async function generateToolCallCompletion(
     });
     return {
       toolArgumentsJson: null,
-      isFallback,
-      error:
-        "Der OKR-Coach konnte gerade keine strukturierte Antwort liefern.",
+      error: "Der OKR-Coach konnte gerade keine strukturierte Antwort liefern.",
     };
   }
 }

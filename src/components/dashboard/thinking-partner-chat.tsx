@@ -19,6 +19,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  type ThinkingPartnerAction,
+  type ThinkingPartnerApiResponse,
+  type ThinkingPartnerSource,
+  type ThinkingPartnerStructuredAnswer,
+} from "@/lib/thinking-partner-types";
 import { getOkrCoachGreeting, getTranscriptSpeakerLabel } from "@/lib/transcript-persona";
 
 export type ThinkingPartnerChatProps = {
@@ -26,38 +32,16 @@ export type ThinkingPartnerChatProps = {
   keyResultId?: string | null;
 };
 
-type StructuredAnswer = {
-  summary: string;
-  impulses: string[];
-  nextStep: string;
-  questions: string[];
-  miniRitual?: { title: string; steps: string[] };
-  objectiveRewrite?: { title: string; description?: string | null };
-  keyResultRewrite?: {
-    title: string;
-    targetValue: number;
-    unit?: string | null;
-  };
-};
-
-type Action = { type: string; label: string };
-
 type Message =
   | { role: "user"; content: string }
   | {
       role: "assistant";
       content: string;
-      structured?: StructuredAnswer | null;
-      actions?: Action[];
+      structured?: ThinkingPartnerStructuredAnswer | null;
+      actions?: ThinkingPartnerAction[];
     };
 
-type Source = {
-  title: string;
-  excerpt: string;
-  topics?: unknown;
-  speaker?: string | null;
-  kind?: "wissen" | "stil";
-};
+type Source = ThinkingPartnerSource;
 
 const starterPrompts = [
   "Unsere Vision klingt nett, aber noch nicht klar. Wie würdest du sie schärfen?",
@@ -65,10 +49,9 @@ const starterPrompts = [
   "Welches Key Result wäre wirklich outcome-nah und in unserem Einflussbereich?",
 ];
 
-function formatTopics(topics: unknown) {
-  if (!Array.isArray(topics)) return null;
+function formatTopics(topics: ThinkingPartnerSource["topics"]) {
+  if (!topics?.length) return null;
   const labels = topics
-    .filter((topic): topic is string => typeof topic === "string")
     .map((topic) => {
       if (topic === "KONFLIKT") return "Konflikt";
       if (topic === "PRIORISIERUNG") return "Priorisierung";
@@ -185,7 +168,9 @@ export function ThinkingPartnerChat({ objectiveId, keyResultId }: ThinkingPartne
         }),
       });
 
-      const data = await response.json();
+      const data = (await response.json()) as Partial<ThinkingPartnerApiResponse> & {
+        error?: string;
+      };
 
       if (!response.ok) {
         const errorMessage =
@@ -195,12 +180,9 @@ export function ThinkingPartnerChat({ objectiveId, keyResultId }: ThinkingPartne
         throw new Error(errorMessage);
       }
 
-      const reply = typeof data?.reply === "string" ? data.reply : "";
-      const structured =
-        data?.structured && typeof data.structured === "object"
-          ? (data.structured as StructuredAnswer)
-          : null;
-      const actions = Array.isArray(data?.actions) ? (data.actions as Action[]) : [];
+      const reply = data.reply ?? "";
+      const structured = data.structured ?? null;
+      const actions = data.actions ?? [];
 
       setMessages((prev) => [
         ...prev,
@@ -211,7 +193,7 @@ export function ThinkingPartnerChat({ objectiveId, keyResultId }: ThinkingPartne
           actions,
         },
       ]);
-      setSources(Array.isArray(data?.sources) ? data.sources : []);
+      setSources(data.sources ?? []);
     } catch (error) {
       const messageText =
         error instanceof Error && error.message.trim()
@@ -229,7 +211,7 @@ export function ThinkingPartnerChat({ objectiveId, keyResultId }: ThinkingPartne
     }
   };
 
-  const handleAction = (action: Action, message: Message) => {
+  const handleAction = (action: ThinkingPartnerAction, message: Message) => {
     if (message.role !== "assistant") return;
     const structured = message.structured;
 

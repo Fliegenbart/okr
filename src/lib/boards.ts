@@ -7,6 +7,27 @@ export const BOARD_CANVAS_SIZE = {
   height: 2000,
 } as const;
 
+export type BoardElementSnapshot = {
+  id: string;
+  type: BoardElementType;
+  title: string | null;
+  content: string | null;
+  color: string | null;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  zIndex: number;
+};
+
+export type BoardConnectionSnapshot = {
+  id: string;
+  fromElementId: string;
+  toElementId: string;
+  color: string | null;
+  label: string | null;
+};
+
 export type BoardSnapshot = {
   id: string;
   scope: BoardScope;
@@ -16,26 +37,15 @@ export type BoardSnapshot = {
   quarterTitle: string | null;
   version: number;
   updatedAt: string;
-  elements: Array<{
-    id: string;
-    type: BoardElementType;
-    title: string | null;
-    content: string | null;
-    color: string | null;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    zIndex: number;
-  }>;
-  connections: Array<{
-    id: string;
-    fromElementId: string;
-    toElementId: string;
-    color: string | null;
-    label: string | null;
-  }>;
+  elements: BoardElementSnapshot[];
+  connections: BoardConnectionSnapshot[];
 };
+
+export type BoardSnapshotHeartbeat = {
+  version: number;
+};
+
+export type BoardStreamEventData = BoardSnapshot | BoardSnapshotHeartbeat;
 
 export const boardInclude = {
   quarter: {

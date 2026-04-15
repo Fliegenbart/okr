@@ -22,20 +22,6 @@ export async function hasBetaAccess(email: string) {
   return Boolean(invite);
 }
 
-export async function canUseThinkingPartnerPersona(email?: string | null) {
-  const normalizedEmail = normalizeEmail(email);
-
-  if (!normalizedEmail) {
-    return false;
-  }
-
-  if (isAdminEmail(normalizedEmail)) {
-    return true;
-  }
-
-  return hasBetaAccess(normalizedEmail);
-}
-
 export async function canEmailCreateCouple(email: string) {
   if (isAdminEmail(email)) {
     return true;

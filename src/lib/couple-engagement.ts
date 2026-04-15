@@ -120,20 +120,6 @@ export function computeNextOccurrence(
   return next;
 }
 
-export function getNextCheckInDueAt(
-  couple: {
-    checkInWeekday: number | null;
-    checkInTime: string | null;
-  },
-  now = new Date()
-) {
-  if (couple.checkInWeekday && couple.checkInTime) {
-    return computeNextOccurrence(couple.checkInWeekday, couple.checkInTime, now);
-  }
-
-  return new Date(now.getTime() + 7 * DAY_MS);
-}
-
 export function getQuarterReviewDueAt(endsAt: Date) {
   return new Date(endsAt.getTime() - 7 * DAY_MS);
 }

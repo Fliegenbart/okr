@@ -10,7 +10,7 @@ import { prisma } from "@/lib/db";
 import { claimInviteByToken } from "@/lib/invite-access";
 import { isEmailConfigured, sendLoginLinkEmail } from "@/lib/email";
 import { logEvent } from "@/lib/monitoring";
-import { assertRateLimit } from "@/lib/rate-limit";
+import { RateLimitError, assertRateLimit } from "@/lib/rate-limit";
 import { authorizeSupportLogin, isSupportAccessConfigured } from "@/lib/support-access";
 import { isDevLoginEnabled } from "@/lib/runtime-flags";
 
@@ -23,16 +23,12 @@ function normalizeEmail(email?: string | null) {
 }
 
 async function assertCredentialLoginRateLimit({ action, key }: { action: string; key: string }) {
-  try {
-    await assertRateLimit({
-      action,
-      key,
-      limit: 8,
-      windowMs: 15 * 60 * 1000,
-    });
-  } catch {
-    throw new Error("Zu viele Versuche. Bitte warte kurz und versuche es erneut.");
-  }
+  await assertRateLimit({
+    action,
+    key,
+    limit: 8,
+    windowMs: 15 * 60 * 1000,
+  });
 }
 
 export const authOptions: NextAuthOptions = {
@@ -235,8 +231,16 @@ export const authOptions: NextAuthOptions = {
             limit: 5,
             windowMs: 15 * 60 * 1000,
           });
-        } catch {
-          return "/auth/signin?error=RateLimit";
+        } catch (error) {
+          if (error instanceof RateLimitError) {
+            return "/auth/signin?error=RateLimit";
+          }
+
+          logEvent("error", "auth_magic_link_rate_limit_check_failed", {
+            email: normalizedEmail,
+            message: error instanceof Error ? error.message : "unknown",
+          });
+          throw error;
         }
 
         const allowed = await canEmailSignIn(normalizedEmail);

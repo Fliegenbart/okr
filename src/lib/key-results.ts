@@ -14,7 +14,7 @@ export const KEY_RESULT_DIRECTIONS = [
 export type KeyResultType = (typeof KEY_RESULT_TYPES)[number];
 export type KeyResultDirection = (typeof KEY_RESULT_DIRECTIONS)[number];
 
-export type KeyResultLike = {
+export type KeyResultProgressInput = {
   currentValue: number;
   targetValue: number;
   startValue?: number | null;
@@ -25,10 +25,22 @@ export type KeyResultLike = {
   greenThreshold?: number | null;
 };
 
+export type KeyResultLike = KeyResultProgressInput & {
+  unit?: string | null;
+};
+
+export type KeyResultSummary = KeyResultLike & {
+  id: string;
+  title: string;
+  startValue: number;
+  type: KeyResultType;
+  direction: KeyResultDirection;
+};
+
 export type ObjectiveTrafficLightStatus = "green" | "yellow" | "red";
 
 function getFallbackObjectiveTrafficLightStatus(
-  keyResults: KeyResultLike[]
+  keyResults: KeyResultProgressInput[]
 ): ObjectiveTrafficLightStatus | null {
   if (!keyResults.length) return null;
 
@@ -83,15 +95,7 @@ export function getBinaryValue(value: number) {
   return value >= 1 ? 1 : 0;
 }
 
-export function getNormalizedKeyResultValue(keyResult: KeyResultLike) {
-  if (keyResult.type === "BINARY") {
-    return getBinaryValue(keyResult.currentValue);
-  }
-
-  return keyResult.currentValue;
-}
-
-export function calculateKeyResultProgress(keyResult: KeyResultLike) {
+export function calculateKeyResultProgress(keyResult: KeyResultProgressInput) {
   const type = keyResult.type ?? "INCREASE_TO";
   const startValue = keyResult.startValue ?? 0;
 
@@ -158,7 +162,7 @@ export function getKeyResultSummaryText(keyResult: KeyResultLike & { unit?: stri
   }
 }
 
-export function getTrafficLightStatus(keyResult: KeyResultLike) {
+export function getTrafficLightStatus(keyResult: KeyResultProgressInput) {
   if ((keyResult.type ?? "INCREASE_TO") !== "TRAFFIC_LIGHT") return null;
 
   const red = keyResult.redThreshold ?? 0;
@@ -179,7 +183,7 @@ export function getTrafficLightStatus(keyResult: KeyResultLike) {
 }
 
 export function getObjectiveTrafficLightStatus(
-  keyResults: KeyResultLike[]
+  keyResults: KeyResultProgressInput[]
 ): ObjectiveTrafficLightStatus | null {
   if (!keyResults.length) return null;
 

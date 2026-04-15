@@ -105,13 +105,9 @@ export function BoardElementDialog({
               <Input
                 id="board-element-title"
                 value={draft.title}
-                onChange={(event) =>
-                  onDraftChange({ ...draft, title: event.target.value })
-                }
+                onChange={(event) => onDraftChange({ ...draft, title: event.target.value })}
                 placeholder={
-                  draft.type === "FRAME"
-                    ? "z. B. Roadmap"
-                    : "Kurzer Titel für die Karte"
+                  draft.type === "FRAME" ? "z. B. Roadmap" : "Kurzer Titel für die Karte"
                 }
               />
             </div>
@@ -121,11 +117,9 @@ export function BoardElementDialog({
               <Textarea
                 id="board-element-content"
                 value={draft.content}
-                onChange={(event) =>
-                  onDraftChange({ ...draft, content: event.target.value })
-                }
+                onChange={(event) => onDraftChange({ ...draft, content: event.target.value })}
                 rows={5}
-                placeholder="Gedanken, Zielsatz, nächster Schritt oder kleine Skizze in Textform ..."
+                placeholder="Gedanken, Zielsatz oder nächster Schritt"
               />
             </div>
 

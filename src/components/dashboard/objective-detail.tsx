@@ -13,8 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useObjectiveProgress } from "@/hooks/use-objective-progress";
 import {
   calculateKeyResultProgress,
-  type KeyResultDirection,
-  type KeyResultType,
+  type KeyResultSummary,
 } from "@/lib/key-results";
 import { calculateProgress, formatProgressPercent } from "@/lib/progress";
 
@@ -24,19 +23,7 @@ export type ObjectiveDetailProps = {
   description?: string | null;
   quarterTitle: string;
   nextAction?: string | null;
-  keyResults: {
-    id: string;
-    title: string;
-    currentValue: number;
-    targetValue: number;
-    startValue: number;
-    type: KeyResultType;
-    direction: KeyResultDirection;
-    redThreshold?: number | null;
-    yellowThreshold?: number | null;
-    greenThreshold?: number | null;
-    unit?: string | null;
-  }[];
+  keyResults: KeyResultSummary[];
   commitments?: {
     id: string;
     title: string;
@@ -62,7 +49,7 @@ export function ObjectiveDetail({
 
   const [optimisticKeyResults, applyOptimistic] = useOptimistic(
     keyResults,
-    (state: ObjectiveDetailProps["keyResults"], update: OptimisticUpdate) => {
+    (state: ReadonlyArray<KeyResultSummary>, update: OptimisticUpdate) => {
       return state.map((item) =>
         item.id === update.id
           ? {

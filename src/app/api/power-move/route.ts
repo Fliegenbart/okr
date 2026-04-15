@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getAuthenticatedViewer } from "@/lib/active-couple";
-import { assertRateLimit } from "@/lib/rate-limit";
+import { RateLimitError, assertRateLimit } from "@/lib/rate-limit";
 import { prisma } from "@/lib/db";
 import { generateChatCompletion, generateToolCallCompletion, type LlmMessage } from "@/lib/llm";
 import { calculateKeyResultProgress } from "@/lib/key-results";
@@ -11,9 +11,12 @@ import { formatProgressPercent } from "@/lib/progress";
 import {
   buildKnowledgeContext,
   buildCoupleContext,
+  extractMiniRitualCandidates,
+  formatThinkingPartnerResponse,
   inferTopicsFromQuery,
   searchTranscriptChunks,
 } from "@/lib/thinking-partner";
+import type { ThinkingPartnerAction } from "@/lib/thinking-partner-types";
 import {
   thinkingPartnerResponseSchema,
   type ThinkingPartnerResponse,
@@ -63,41 +66,6 @@ const toolSchema = {
   required: ["summary", "impulses", "nextStep", "questions"],
 } as const;
 
-function extractMiniRitualCandidates(text: string) {
-  const candidates: string[] = [];
-  const regex = /Mikro-Ritual:\s*([^.\n]+(?:\.[^.\n]+){0,2})/gi;
-  let match;
-  while ((match = regex.exec(text)) !== null) {
-    const raw = match[1]?.trim();
-    if (raw && raw.length >= 10) candidates.push(raw);
-    if (candidates.length >= 6) break;
-  }
-  return Array.from(new Set(candidates));
-}
-
-function formatStructuredAsText(answer: ThinkingPartnerResponse) {
-  const lines = [
-    answer.summary,
-    "",
-    "Impulse:",
-    ...answer.impulses.map((item) => `- ${item}`),
-    "",
-    `Powermove: ${answer.nextStep}`,
-    "",
-    "Rückfragen:",
-    ...answer.questions.map((item) => `- ${item}`),
-  ];
-
-  if (answer.miniRitual) {
-    lines.push("", `Mini-Ritual: ${answer.miniRitual.title}`);
-    answer.miniRitual.steps.forEach((step) => {
-      lines.push(`- ${step}`);
-    });
-  }
-
-  return lines.join("\n");
-}
-
 function diffDays(from: Date, to: Date) {
   return Math.floor((to.getTime() - from.getTime()) / DAY_MS);
 }
@@ -122,7 +90,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "No couple" }, { status: 404 });
   }
 
-  const parsedBody = bodySchema.safeParse(await req.json().catch(() => ({})));
+  let requestBody: unknown;
+
+  try {
+    requestBody = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Ungültiges JSON." }, { status: 400 });
+  }
+
+  const parsedBody = bodySchema.safeParse(requestBody);
   const quarterId = parsedBody.success ? parsedBody.data.quarterId ?? null : null;
 
   const couple = await prisma.couple.findUnique({
@@ -163,11 +139,15 @@ export async function POST(req: Request) {
       limit: 8,
       windowMs: 15 * 60 * 1000,
     });
-  } catch {
-    return NextResponse.json(
-      { error: "Zu viele Anfragen. Bitte warte kurz und versuche es erneut." },
-      { status: 429 }
-    );
+  } catch (error) {
+    if (error instanceof RateLimitError) {
+      return NextResponse.json(
+        { error: "Zu viele Anfragen. Bitte warte kurz und versuche es erneut." },
+        { status: 429 }
+      );
+    }
+
+    throw error;
   }
 
   const now = new Date();
@@ -487,9 +467,12 @@ export async function POST(req: Request) {
     parameters: toolSchema,
   });
 
+  if (toolResult.error) {
+    return NextResponse.json({ error: toolResult.error }, { status: 503 });
+  }
+
   let structured: ThinkingPartnerResponse | null = null;
   let replyText = "";
-  let fallback = Boolean(toolResult.isFallback);
 
   if (toolResult.toolArgumentsJson) {
     const parsed = thinkingPartnerResponseSchema.safeParse(
@@ -497,19 +480,23 @@ export async function POST(req: Request) {
     );
     if (parsed.success) {
       structured = parsed.data;
-      replyText = formatStructuredAsText(parsed.data);
+      replyText = formatThinkingPartnerResponse(parsed.data, "Powermove");
     } else {
       const response = await generateChatCompletion(messages);
-      fallback = true;
+      if (response.error) {
+        return NextResponse.json({ error: response.error }, { status: 503 });
+      }
       replyText = response.content;
     }
   } else {
     const response = await generateChatCompletion(messages);
-    fallback = Boolean(response.isFallback);
+    if (response.error) {
+      return NextResponse.json({ error: response.error }, { status: 503 });
+    }
     replyText = response.content;
   }
 
-  const actions: Array<{ type: string; label: string }> = [
+  const actions: ThinkingPartnerAction[] = [
     { type: "OPEN_THINKING_PARTNER", label: "Im OKR-Coach vertiefen" },
   ];
 
@@ -536,6 +523,5 @@ export async function POST(req: Request) {
       topics: snippet.topics ?? null,
     })),
     actions,
-    fallback,
   });
 }

@@ -1,3 +1,5 @@
+import type { Prisma } from "@prisma/client";
+
 import { prisma } from "@/lib/db";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,15 +16,11 @@ function formatDate(value: Date | string | null | undefined) {
   return dateFormatter.format(new Date(value));
 }
 
-function formatMetadata(value: unknown) {
-  if (!value) return "—";
+function formatMetadata(value: Prisma.JsonValue | null | undefined) {
+  if (value == null) return "—";
 
-  try {
-    const raw = JSON.stringify(value);
-    return raw.length > 160 ? `${raw.slice(0, 160)}…` : raw;
-  } catch {
-    return "—";
-  }
+  const raw = JSON.stringify(value);
+  return raw.length > 160 ? `${raw.slice(0, 160)}…` : raw;
 }
 
 export default async function AdminAuditPage({
@@ -143,4 +141,3 @@ export default async function AdminAuditPage({
     </div>
   );
 }
-

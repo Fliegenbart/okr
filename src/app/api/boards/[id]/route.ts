@@ -1,32 +1,27 @@
 import { NextResponse } from "next/server";
 
-import { requireUserWithCouple } from "@/actions/utils";
+import { getAuthenticatedViewer } from "@/lib/active-couple";
 import { getBoardForCoupleById, serializeBoard } from "@/lib/boards";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(
-  _request: Request,
-  context: { params: Promise<{ id: string }> }
-) {
-  try {
-    const user = await requireUserWithCouple();
-    const { id } = await context.params;
+export async function GET(_request: Request, context: { params: Promise<{ id: string }> }) {
+  const viewer = await getAuthenticatedViewer();
 
-    const board = await getBoardForCoupleById(id, user.coupleId);
-
-    if (!board) {
-      return NextResponse.json({ error: "Board nicht gefunden." }, { status: 404 });
-    }
-
-    return NextResponse.json(serializeBoard(board));
-  } catch (error) {
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error ? error.message : "Board konnte nicht geladen werden.",
-      },
-      { status: 401 }
-    );
+  if (!viewer) {
+    return NextResponse.json({ error: "Bitte melde dich an." }, { status: 401 });
   }
+
+  if (!viewer.activeCoupleId) {
+    return NextResponse.json({ error: "Du hast noch kein Couple." }, { status: 404 });
+  }
+
+  const { id } = await context.params;
+  const board = await getBoardForCoupleById(id, viewer.activeCoupleId);
+
+  if (!board) {
+    return NextResponse.json({ error: "Board nicht gefunden." }, { status: 404 });
+  }
+
+  return NextResponse.json(serializeBoard(board));
 }

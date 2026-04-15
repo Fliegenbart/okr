@@ -7,22 +7,16 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  type PowerMoveApiResponse,
+  type ThinkingPartnerAction,
+  type ThinkingPartnerSource,
+  type ThinkingPartnerStructuredAnswer,
+} from "@/lib/thinking-partner-types";
 
-type StructuredAnswer = {
-  summary: string;
-  impulses: string[];
-  nextStep: string;
-  questions: string[];
-  miniRitual?: { title: string; steps: string[] };
-};
-
-type Action = { type: string; label: string };
-
-type Source = {
-  title: string;
-  excerpt: string;
-  topics?: unknown;
-};
+type StructuredAnswer = ThinkingPartnerStructuredAnswer;
+type Action = ThinkingPartnerAction;
+type Source = ThinkingPartnerSource;
 
 export type PowerMoveCardProps = {
   quarterId: string | null;
@@ -48,7 +42,9 @@ export function PowerMoveCard({ quarterId, quarterTitle, hasObjectives }: PowerM
         body: JSON.stringify({ quarterId }),
       });
 
-      const data = await response.json();
+      const data = (await response.json()) as Partial<PowerMoveApiResponse> & {
+        error?: string;
+      };
 
       if (!response.ok) {
         toast.error("Vorschlag konnte gerade nicht geladen werden", {
@@ -57,13 +53,10 @@ export function PowerMoveCard({ quarterId, quarterTitle, hasObjectives }: PowerM
         return;
       }
 
-      const nextStructured =
-        data?.structured && typeof data.structured === "object"
-          ? (data.structured as StructuredAnswer)
-          : null;
-      const nextActions = Array.isArray(data?.actions) ? (data.actions as Action[]) : [];
-      const nextSources = Array.isArray(data?.sources) ? (data.sources as Source[]) : [];
-      const nextReply = typeof data?.reply === "string" ? data.reply : null;
+      const nextStructured = data.structured ?? null;
+      const nextActions = data.actions ?? [];
+      const nextSources = data.sources ?? [];
+      const nextReply = data.reply ?? null;
 
       setStructured(nextStructured);
       setActions(nextActions);

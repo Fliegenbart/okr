@@ -1,6 +1,7 @@
-import { calculateKeyResultProgress, type KeyResultLike } from "@/lib/key-results";
-
-type ProgressItem = KeyResultLike;
+import {
+  calculateKeyResultProgress,
+  type KeyResultProgressInput,
+} from "@/lib/key-results";
 
 export function formatProgressPercent(value: number | null | undefined) {
   if (typeof value !== "number" || Number.isNaN(value)) {
@@ -13,7 +14,7 @@ export function formatProgressPercent(value: number | null | undefined) {
   }).format(value);
 }
 
-export function calculateProgress(items: ProgressItem[]) {
+export function calculateProgress(items: ReadonlyArray<KeyResultProgressInput>) {
   if (!items.length) return 0;
 
   const ratios = items.map((item) => calculateKeyResultProgress(item) / 100);

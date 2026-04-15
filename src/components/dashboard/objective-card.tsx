@@ -26,27 +26,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useObjectiveProgress } from "@/hooks/use-objective-progress";
 import {
   calculateKeyResultProgress,
-  type KeyResultDirection,
-  type KeyResultType,
+  type KeyResultSummary,
 } from "@/lib/key-results";
 import type { ObjectiveQuarterProgressSeries } from "@/lib/quarter-progress";
 import { calculateProgress, formatProgressPercent } from "@/lib/progress";
 
 const dateFormatter = new Intl.DateTimeFormat("de-DE", { dateStyle: "medium" });
-
-export type KeyResultSummary = {
-  id: string;
-  title: string;
-  currentValue: number;
-  targetValue: number;
-  startValue: number;
-  type: KeyResultType;
-  direction: KeyResultDirection;
-  redThreshold?: number | null;
-  yellowThreshold?: number | null;
-  greenThreshold?: number | null;
-  unit?: string | null;
-};
 
 type ObjectiveCardProps = {
   objectiveId: string;

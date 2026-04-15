@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { createInvite } from "@/actions/invite";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { buildJoinUrl } from "@/lib/invite";
 
 export type InvitePartnerCardProps = {
   latestInvite?: {
@@ -37,8 +38,7 @@ export function InvitePartnerCard({
   const baseUrl = (appUrl ?? "").replace(/\/$/, "");
 
   const inviteUrl = useMemo(() => {
-    if (!invite || !baseUrl) return "";
-    return `${baseUrl}/join?token=${invite.token}`;
+    return invite ? buildJoinUrl(baseUrl, "token", invite.token) : "";
   }, [invite, baseUrl]);
 
   const createAction = useAction(createInvite, {
