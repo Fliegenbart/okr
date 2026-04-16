@@ -16,6 +16,8 @@
 /test-results/
 /test-results*/
 .playwright/
+.superpowers/
+.worktrees/
 
 # next.js
 /.next/
