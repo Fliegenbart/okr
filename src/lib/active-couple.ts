@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getAuthSession } from "@/auth";
 import { isAdminEmail } from "@/lib/admin-access";
 import { prisma } from "@/lib/db";
+import type { KeyResultSortOption, ObjectiveSortOption } from "@/lib/sorting";
 
 export const ADMIN_PREVIEW_COUPLE_COOKIE = "okr_admin_preview_couple";
 const ADMIN_PREVIEW_MAX_AGE_SECONDS = 60 * 60 * 8;
@@ -22,6 +23,9 @@ export type AuthViewer = {
   activeCoupleId: string | null;
   previewCoupleId: string | null;
   isPreviewingCouple: boolean;
+  preferredQuarterId: string | null;
+  preferredObjectiveSort: ObjectiveSortOption;
+  preferredKeyResultSort: KeyResultSortOption;
 };
 
 export function sanitizeInternalPath(value?: string | null, fallback = "/dashboard") {
@@ -82,6 +86,9 @@ export async function getAuthenticatedViewer(): Promise<AuthViewer | null> {
       name: true,
       role: true,
       coupleId: true,
+      preferredQuarterId: true,
+      preferredObjectiveSort: true,
+      preferredKeyResultSort: true,
     },
   });
 
@@ -103,6 +110,9 @@ export async function getAuthenticatedViewer(): Promise<AuthViewer | null> {
     activeCoupleId,
     previewCoupleId,
     isPreviewingCouple: Boolean(previewCoupleId && previewCoupleId !== user.coupleId),
+    preferredQuarterId: user.preferredQuarterId,
+    preferredObjectiveSort: user.preferredObjectiveSort,
+    preferredKeyResultSort: user.preferredKeyResultSort,
   };
 }
 

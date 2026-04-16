@@ -67,12 +67,12 @@ export const createObjective = action
 
     const keyResults = parsedInput.keyResults.filter((keyResult) => keyResult.title.trim());
 
-    if (keyResults.length < 2) {
-      throw new Error("Bitte gib mindestens zwei Key Results an.");
+    if (keyResults.length < 1) {
+      throw new Error("Bitte gib mindestens ein Key Result an.");
     }
 
-    if (keyResults.length > 6) {
-      throw new Error("Maximal 6 Key Results pro Objective.");
+    if (keyResults.length > 5) {
+      throw new Error("Maximal 5 Key Results pro Objective.");
     }
 
     const objective = await prisma.objective.create({

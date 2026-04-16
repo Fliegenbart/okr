@@ -33,7 +33,7 @@ export default async function ObjectiveEditPage({ params }: { params: Promise<{ 
 
   const activeKeyResults = objective?.keyResults.filter((keyResult) => !keyResult.archivedAt);
   const archivedKeyResults = objective?.keyResults.filter((keyResult) => keyResult.archivedAt);
-  const keyResultLimitReached = (activeKeyResults?.length ?? 0) >= 6;
+  const keyResultLimitReached = (activeKeyResults?.length ?? 0) >= 5;
 
   if (!couple) {
     redirectForMissingCouple(viewer);
@@ -85,7 +85,7 @@ export default async function ObjectiveEditPage({ params }: { params: Promise<{ 
               <KeyResultCreateForm
                 objectiveId={objective.id}
                 disabled={keyResultLimitReached}
-                disabledReason="Maximal 6 Key Results pro Objective."
+                disabledReason="Maximal 5 Key Results pro Objective."
               />
             </CardContent>
           </Card>

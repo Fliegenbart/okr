@@ -3,10 +3,19 @@ import Link from "next/link";
 import { CommitmentForm } from "@/components/dashboard/commitment-form";
 import { CheckInComposer } from "@/components/dashboard/check-in-composer";
 import { CommitmentStatusActions } from "@/components/dashboard/commitment-status-actions";
+import { KeyResultQuickUpdateDialog } from "@/components/dashboard/key-result-quick-update-dialog";
+import {
+  KeyResultSortSelect,
+  ObjectiveSortSelect,
+} from "@/components/dashboard/sort-preference-select";
+import { TrafficLightChip } from "@/components/dashboard/traffic-light-chip";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { conversationTemplates } from "@/lib/couple-engagement";
 import { redirectForMissingCouple, requireDashboardSubpageAccess } from "@/lib/dashboard-access";
 import { prisma } from "@/lib/db";
+import { calculateKeyResultProgress } from "@/lib/key-results";
+import { formatProgressPercent } from "@/lib/progress";
+import { sortKeyResults, sortObjectives } from "@/lib/sorting";
 
 const dateTimeFormatter = new Intl.DateTimeFormat("de-DE", {
   dateStyle: "medium",
@@ -36,8 +45,21 @@ export default async function CheckInPage({
       users: { select: { id: true, name: true, email: true } },
       objectives: {
         where: { archivedAt: null },
-        select: { id: true, title: true },
-        orderBy: { updatedAt: "desc" },
+        include: {
+          keyResults: {
+            where: { archivedAt: null },
+            include: {
+              updates: {
+                select: {
+                  createdAt: true,
+                },
+                orderBy: { createdAt: "asc" },
+              },
+            },
+            orderBy: { createdAt: "asc" },
+          },
+        },
+        orderBy: { createdAt: "asc" },
       },
       quarters: {
         orderBy: { startsAt: "desc" },
@@ -79,6 +101,7 @@ export default async function CheckInPage({
   const scheduleEnabled = Boolean(
     couple.checkInWeekday && couple.checkInTime && couple.checkInDurationMinutes
   );
+  const sortedObjectives = sortObjectives(couple.objectives, viewer.preferredObjectiveSort);
 
   return (
     <div className="min-h-screen bg-background">
@@ -99,6 +122,108 @@ export default async function CheckInPage({
             Hier haltet ihr fest, wie eure Woche war, was offen ist und was ihr als Nächstes tun wollt.
           </p>
         </div>
+
+        <section className="mt-8 space-y-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="space-y-2">
+              <p className="dashboard-kicker text-[10px] font-extrabold text-primary">Scoring First</p>
+              <h2 className="font-display text-3xl font-extrabold tracking-[-0.05em] text-foreground">
+                Scoring diese Woche
+              </h2>
+              <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
+                Scoret zuerst eure Objectives und Key Results. Die Reflexion bleibt direkt darunter.
+              </p>
+            </div>
+            <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+              <ObjectiveSortSelect value={viewer.preferredObjectiveSort} />
+              <KeyResultSortSelect value={viewer.preferredKeyResultSort} />
+            </div>
+          </div>
+
+          {sortedObjectives.length ? (
+            <div className="space-y-4">
+              {sortedObjectives.map((objective) => {
+                const sortedKeyResults = sortKeyResults(
+                  objective.keyResults,
+                  viewer.preferredKeyResultSort
+                );
+                const objectiveProgress = sortedKeyResults.length
+                  ? Math.round(
+                      sortedKeyResults.reduce(
+                        (sum, keyResult) => sum + calculateKeyResultProgress(keyResult),
+                        0
+                      ) / sortedKeyResults.length
+                    )
+                  : 0;
+
+                return (
+                  <Card key={objective.id} className="rounded-[2rem] border-white/70">
+                    <CardContent className="space-y-5 p-6">
+                      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                        <div className="space-y-2">
+                          <p className="text-xl font-semibold text-foreground">{objective.title}</p>
+                          <p className="text-sm text-muted-foreground">
+                            Objective-Stand: {formatProgressPercent(objectiveProgress)}%
+                          </p>
+                        </div>
+                        <Link
+                          href={`/dashboard/objectives/${objective.id}`}
+                          className="text-xs font-semibold uppercase tracking-[0.2em] text-primary"
+                        >
+                          Objective öffnen
+                        </Link>
+                      </div>
+
+                      <div className="space-y-3">
+                        {sortedKeyResults.map((keyResult) => {
+                          const progress = calculateKeyResultProgress(keyResult);
+
+                          return (
+                            <div
+                              key={keyResult.id}
+                              className="flex flex-col gap-3 rounded-[1.5rem] border border-white/80 bg-white/90 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] sm:flex-row sm:items-center sm:justify-between"
+                            >
+                              <div className="space-y-2">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <p className="text-sm font-semibold text-foreground">
+                                    {keyResult.title}
+                                  </p>
+                                  <TrafficLightChip keyResult={keyResult} />
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                  {keyResult.currentValue} / {keyResult.targetValue}
+                                  {keyResult.unit ? ` ${keyResult.unit}` : ""} ·{" "}
+                                  {formatProgressPercent(progress)}%
+                                </p>
+                              </div>
+                              <KeyResultQuickUpdateDialog
+                                keyResultId={keyResult.id}
+                                title={keyResult.title}
+                                currentValue={keyResult.currentValue}
+                                type={keyResult.type}
+                                unit={keyResult.unit}
+                                buttonSize="sm"
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          ) : (
+            <Card className="rounded-[2rem] border-white/70">
+              <CardContent className="space-y-3 p-6">
+                <p className="text-lg font-semibold text-foreground">Noch keine Objectives</p>
+                <p className="text-sm text-muted-foreground">
+                  Legt zuerst ein Objective an, damit ihr euren Wochen-Check direkt mit dem Scoring starten könnt.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </section>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-[1.2fr,0.8fr]">
           <Card className="rounded-[2rem] border-white/70">

@@ -39,26 +39,16 @@ export type KeyResultSummary = KeyResultLike & {
 
 export type ObjectiveTrafficLightStatus = "green" | "yellow" | "red";
 
-function getFallbackObjectiveTrafficLightStatus(
-  keyResults: KeyResultProgressInput[]
-): ObjectiveTrafficLightStatus | null {
-  if (!keyResults.length) return null;
-
-  const progressValues = keyResults.map((keyResult) => calculateKeyResultProgress(keyResult));
-  const averageProgress =
-    progressValues.reduce((sum, value) => sum + value, 0) / progressValues.length;
-  const lowProgressCount = progressValues.filter((value) => value < 35).length;
-  const strongProgressCount = progressValues.filter((value) => value >= 70).length;
-
-  if (lowProgressCount >= Math.ceil(progressValues.length / 2) || averageProgress < 35) {
-    return "red";
-  }
-
-  if (strongProgressCount === progressValues.length || averageProgress >= 75) {
+export function getProgressSignalStatus(progress: number): ObjectiveTrafficLightStatus {
+  if (progress >= 70) {
     return "green";
   }
 
-  return "yellow";
+  if (progress >= 40) {
+    return "yellow";
+  }
+
+  return "red";
 }
 
 export function getKeyResultTypeLabel(type?: KeyResultType | null) {
@@ -162,6 +152,10 @@ export function getKeyResultSummaryText(keyResult: KeyResultLike & { unit?: stri
   }
 }
 
+export function getKeyResultSignalStatus(keyResult: KeyResultProgressInput) {
+  return getProgressSignalStatus(calculateKeyResultProgress(keyResult));
+}
+
 export function getTrafficLightStatus(keyResult: KeyResultProgressInput) {
   if ((keyResult.type ?? "INCREASE_TO") !== "TRAFFIC_LIGHT") return null;
 
@@ -187,22 +181,9 @@ export function getObjectiveTrafficLightStatus(
 ): ObjectiveTrafficLightStatus | null {
   if (!keyResults.length) return null;
 
-  const trafficKeyResults = keyResults.filter(
-    (keyResult) => (keyResult.type ?? "INCREASE_TO") === "TRAFFIC_LIGHT"
-  );
-  const nonTrafficKeyResults = keyResults.filter(
-    (keyResult) => (keyResult.type ?? "INCREASE_TO") !== "TRAFFIC_LIGHT"
-  );
-  const trafficStatuses = trafficKeyResults
-    .map((keyResult) => getTrafficLightStatus(keyResult))
-    .filter((status): status is ObjectiveTrafficLightStatus => status !== null);
+  const averageProgress =
+    keyResults.reduce((sum, keyResult) => sum + calculateKeyResultProgress(keyResult), 0) /
+    keyResults.length;
 
-  if (trafficStatuses.includes("red")) return "red";
-  if (trafficStatuses.includes("yellow")) return "yellow";
-  if (trafficStatuses.length && trafficStatuses.every((status) => status === "green")) {
-    const nonTrafficStatus = getFallbackObjectiveTrafficLightStatus(nonTrafficKeyResults);
-    return nonTrafficStatus === "red" ? "yellow" : nonTrafficStatus ?? "green";
-  }
-
-  return getFallbackObjectiveTrafficLightStatus(keyResults);
+  return getProgressSignalStatus(averageProgress);
 }

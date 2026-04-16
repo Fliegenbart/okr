@@ -74,6 +74,21 @@ enum KeyResultDirection {
   LOWER_IS_BETTER
 }
 
+enum ObjectiveSortOption {
+  CREATED_ASC
+  ALPHABETICAL_ASC
+  PROGRESS_ASC
+  PROGRESS_DESC
+}
+
+enum KeyResultSortOption {
+  CREATED_ASC
+  ALPHABETICAL_ASC
+  PROGRESS_ASC
+  PROGRESS_DESC
+  STALEST_FIRST
+}
+
 model User {
   id                    String            @id @default(cuid())
   name                  String?
@@ -83,6 +98,8 @@ model User {
   role                  UserRole          @default(USER)
   coupleId              String?
   preferredQuarterId    String?
+  preferredObjectiveSort ObjectiveSortOption @default(CREATED_ASC)
+  preferredKeyResultSort KeyResultSortOption @default(CREATED_ASC)
   couple                Couple?           @relation(fields: [coupleId], references: [id])
   preferredQuarter      Quarter?          @relation("PreferredQuarter", fields: [preferredQuarterId], references: [id])
   accounts              Account[]

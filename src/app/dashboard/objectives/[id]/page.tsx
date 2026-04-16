@@ -7,6 +7,7 @@ import {
   requireDashboardSubpageAccess,
 } from "@/lib/dashboard-access";
 import { prisma } from "@/lib/db";
+import { sortKeyResults } from "@/lib/sorting";
 
 export default async function ObjectiveDetailPage({
   params,
@@ -28,6 +29,14 @@ export default async function ObjectiveDetailPage({
       },
       keyResults: {
         where: { archivedAt: null },
+        include: {
+          updates: {
+            select: {
+              createdAt: true,
+            },
+            orderBy: { createdAt: "asc" },
+          },
+        },
         orderBy: { createdAt: "asc" },
       },
     },
@@ -46,6 +55,11 @@ export default async function ObjectiveDetailPage({
     return notFound();
   }
 
+  const sortedKeyResults = sortKeyResults(
+    objective.keyResults,
+    viewer.preferredKeyResultSort
+  );
+
   return (
     <div className="min-h-screen bg-background">
       <div className="dashboard-shell mx-auto w-full max-w-[1300px] px-6 py-10">
@@ -63,7 +77,8 @@ export default async function ObjectiveDetailPage({
             description={objective.description}
             quarterTitle={objective.quarter.title}
             nextAction={objective.nextAction}
-            keyResults={objective.keyResults.map((keyResult) => ({
+            keyResultSort={viewer.preferredKeyResultSort}
+            keyResults={sortedKeyResults.map((keyResult) => ({
               id: keyResult.id,
               title: keyResult.title,
               currentValue: keyResult.currentValue,

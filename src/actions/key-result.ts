@@ -94,8 +94,8 @@ export const createKeyResult = action
       where: { objectiveId: objective.id, archivedAt: null },
     });
 
-    if (activeCount >= 6) {
-      throw new Error("Maximal 6 Key Results pro Objective.");
+    if (activeCount >= 5) {
+      throw new Error("Maximal 5 Key Results pro Objective.");
     }
 
     const keyResult = await prisma.keyResult.create({
@@ -256,8 +256,8 @@ export const archiveKeyResult = action
       where: { objectiveId: keyResult.objectiveId, archivedAt: null },
     });
 
-    if (activeCount <= 2) {
-      throw new Error("Ein Objective braucht mindestens zwei Key Results.");
+    if (activeCount <= 1) {
+      throw new Error("Ein Objective braucht mindestens ein Key Result.");
     }
 
     await prisma.keyResult.update({
@@ -287,6 +287,17 @@ export const restoreKeyResult = action
 
     if (!keyResult) {
       throw new Error("Key Result nicht gefunden.");
+    }
+
+    const activeCount = await prisma.keyResult.count({
+      where: {
+        objectiveId: keyResult.objectiveId,
+        archivedAt: null,
+      },
+    });
+
+    if (activeCount >= 5) {
+      throw new Error("Maximal 5 Key Results pro Objective.");
     }
 
     await prisma.keyResult.update({

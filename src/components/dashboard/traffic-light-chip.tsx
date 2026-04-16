@@ -1,15 +1,13 @@
 "use client";
 
-import { getTrafficLightStatus, type KeyResultLike } from "@/lib/key-results";
+import { getKeyResultSignalStatus, type KeyResultLike } from "@/lib/key-results";
 
 type TrafficLightChipProps = {
   keyResult: KeyResultLike;
 };
 
 export function TrafficLightChip({ keyResult }: TrafficLightChipProps) {
-  const status = getTrafficLightStatus(keyResult);
-
-  if (!status) return null;
+  const status = getKeyResultSignalStatus(keyResult);
 
   const tone =
     status === "green"

@@ -12,18 +12,26 @@ const optionalText = z.preprocess(
 );
 
 export const createObjectiveSchema = z.object({
-  title: z.string().trim().min(2, "Bitte gib ein Objective an.").max(120),
+  title: z
+    .string()
+    .trim()
+    .min(2, "Bitte gib ein Objective an.")
+    .max(120, "Objective ist zu lang. Maximal 120 Zeichen."),
   description: optionalText,
   quarterId: z.string().trim().optional(),
   keyResults: z
     .array(objectiveKeyResultSchema)
-    .min(2, "Bitte gib mindestens zwei Key Results an.")
-    .max(6, "Maximal 6 Key Results pro Objective."),
+    .min(1, "Bitte gib mindestens ein Key Result an.")
+    .max(5, "Maximal 5 Key Results pro Objective."),
 });
 
 export const updateObjectiveSchema = z.object({
   objectiveId: z.string().min(1),
-  title: z.string().trim().min(2, "Bitte gib ein Objective an.").max(120),
+  title: z
+    .string()
+    .trim()
+    .min(2, "Bitte gib ein Objective an.")
+    .max(120, "Objective ist zu lang. Maximal 120 Zeichen."),
   description: optionalText,
   quarterId: z.string().trim().optional(),
 });

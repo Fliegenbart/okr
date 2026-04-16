@@ -44,6 +44,14 @@ export function ObjectiveForm({ quarters, defaultQuarterId }: ObjectiveFormProps
       id: crypto.randomUUID(),
       ...createEmptyKeyResultDraft(),
     },
+    {
+      id: crypto.randomUUID(),
+      ...createEmptyKeyResultDraft(),
+    },
+    {
+      id: crypto.randomUUID(),
+      ...createEmptyKeyResultDraft(),
+    },
   ]);
 
   const createAction = useAction(createObjective, {
@@ -71,8 +79,8 @@ export function ObjectiveForm({ quarters, defaultQuarterId }: ObjectiveFormProps
     | undefined;
 
   const handleAddKeyResult = () => {
-    if (keyResults.length >= 6) {
-      toast.error("Maximal 6 Key Results pro Objective.");
+    if (keyResults.length >= 5) {
+      toast.error("Maximal 5 Key Results pro Objective.");
       return;
     }
     setKeyResults((prev) => [
@@ -85,7 +93,7 @@ export function ObjectiveForm({ quarters, defaultQuarterId }: ObjectiveFormProps
   };
 
   const handleRemoveKeyResult = (id: string) => {
-    setKeyResults((prev) => (prev.length > 2 ? prev.filter((item) => item.id !== id) : prev));
+    setKeyResults((prev) => (prev.length > 1 ? prev.filter((item) => item.id !== id) : prev));
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -106,13 +114,13 @@ export function ObjectiveForm({ quarters, defaultQuarterId }: ObjectiveFormProps
       }))
       .filter((item) => item.title);
 
-    if (payloadKeyResults.length < 2) {
-      toast.error("Bitte gib mindestens zwei Key Results an.");
+    if (payloadKeyResults.length < 1) {
+      toast.error("Bitte gib mindestens ein Key Result an.");
       return;
     }
 
-    if (payloadKeyResults.length > 6) {
-      toast.error("Maximal 6 Key Results pro Objective.");
+    if (payloadKeyResults.length > 5) {
+      toast.error("Maximal 5 Key Results pro Objective.");
       return;
     }
 
@@ -177,7 +185,7 @@ export function ObjectiveForm({ quarters, defaultQuarterId }: ObjectiveFormProps
             className="rounded-2xl"
             onClick={handleAddKeyResult}
           >
-            + Key Result
+            Weiteres KR erfassen
           </Button>
         </div>
 

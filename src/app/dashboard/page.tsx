@@ -7,6 +7,7 @@ import { OnboardingCard } from "@/components/dashboard/onboarding-card";
 import { PowerMoveCard } from "@/components/dashboard/power-move-card";
 import { QuarterProgressChart } from "@/components/dashboard/quarter-progress-chart";
 import { QuarterFilter } from "@/components/dashboard/quarter-filter";
+import { ObjectiveSortSelect } from "@/components/dashboard/sort-preference-select";
 import { VisionHeader } from "@/components/dashboard/vision-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { getAuthenticatedViewer } from "@/lib/active-couple";
@@ -15,6 +16,7 @@ import { prisma } from "@/lib/db";
 import { getObjectiveInsights } from "@/lib/insights";
 import { calculateProgress } from "@/lib/progress";
 import { buildQuarterProgressSnapshot } from "@/lib/quarter-progress";
+import { sortKeyResults, sortObjectives } from "@/lib/sorting";
 
 const dateFormatter = new Intl.DateTimeFormat("de-DE", { dateStyle: "medium" });
 
@@ -66,50 +68,45 @@ export default async function DashboardPage({
     );
   }
 
-  const [couple, userPreferences] = await Promise.all([
-    prisma.couple.findUnique({
-      where: { id: viewer.activeCoupleId },
-      include: {
-        users: {
-          select: { id: true },
+  const couple = await prisma.couple.findUnique({
+    where: { id: viewer.activeCoupleId },
+    include: {
+      users: {
+        select: { id: true },
+      },
+      invites: {
+        where: {
+          acceptedAt: null,
+          revokedAt: null,
+          expiresAt: { gt: now },
         },
-        invites: {
-          where: {
-            acceptedAt: null,
-            revokedAt: null,
-            expiresAt: { gt: now },
-          },
-          orderBy: { createdAt: "desc" },
-        },
-        objectives: {
-          where: { archivedAt: null },
-          include: {
-            keyResults: {
-              where: { archivedAt: null },
-              include: {
-                updates: {
-                  select: {
-                    value: true,
-                    previousValue: true,
-                    createdAt: true,
-                  },
-                  orderBy: { createdAt: "asc" },
+        orderBy: { createdAt: "desc" },
+      },
+      objectives: {
+        where: { archivedAt: null },
+        include: {
+          keyResults: {
+            where: { archivedAt: null },
+            include: {
+              updates: {
+                select: {
+                  value: true,
+                  previousValue: true,
+                  createdAt: true,
                 },
+                orderBy: { createdAt: "asc" },
               },
             },
+            orderBy: { createdAt: "asc" },
           },
-          orderBy: { createdAt: "desc" },
         },
-        quarters: {
-          orderBy: { startsAt: "desc" },
-        },
+        orderBy: { createdAt: "asc" },
       },
-    }),
-    prisma.user.findUnique({
-      where: { id: viewer.id },
-      select: { preferredQuarterId: true },
-    }),
-  ]);
+      quarters: {
+        orderBy: { startsAt: "desc" },
+      },
+    },
+  });
 
   if (!couple) {
     if (viewer.role === "ADMIN") {
@@ -124,13 +121,16 @@ export default async function DashboardPage({
     couple.quarters[0];
   const preferredQuarterId =
     viewer.userCoupleId === viewer.activeCoupleId
-      ? (userPreferences?.preferredQuarterId ?? null)
+      ? (viewer.preferredQuarterId ?? null)
       : null;
+  const objectiveSort = viewer.preferredObjectiveSort;
+  const keyResultSort = viewer.preferredKeyResultSort;
   const selectedQuarterId = resolvedSearchParams?.quarter ?? preferredQuarterId ?? "all";
   const filteredObjectives =
     selectedQuarterId === "all"
       ? couple.objectives
       : couple.objectives.filter((objective) => objective.quarterId === selectedQuarterId);
+  const sortedObjectives = sortObjectives(filteredObjectives, objectiveSort);
 
   const selectedQuarter =
     selectedQuarterId === "all"
@@ -190,7 +190,8 @@ export default async function DashboardPage({
       )
     : 0;
 
-  const objectiveCards = filteredObjectives.map((objective) => {
+  const objectiveCards = sortedObjectives.map((objective) => {
+    const sortedKeyResults = sortKeyResults(objective.keyResults, keyResultSort);
     const insights = getObjectiveInsights(
       objective.keyResults.flatMap((keyResult) => keyResult.updates)
     );
@@ -202,7 +203,7 @@ export default async function DashboardPage({
       title: objective.title,
       description: objective.description,
       nextAction: objective.nextAction,
-      keyResults: objective.keyResults.map((keyResult) => ({
+      keyResults: sortedKeyResults.map((keyResult) => ({
         id: keyResult.id,
         title: keyResult.title,
         currentValue: keyResult.currentValue,
@@ -432,13 +433,16 @@ export default async function DashboardPage({
                 Eure Objectives
               </h2>
             </div>
-            <QuarterFilter
-              selectedId={selectedQuarterId}
-              options={couple.quarters.map((quarter) => ({
-                id: quarter.id,
-                title: quarter.title,
-              }))}
-            />
+            <div className="flex flex-col items-end gap-3">
+              <ObjectiveSortSelect value={objectiveSort} />
+              <QuarterFilter
+                selectedId={selectedQuarterId}
+                options={couple.quarters.map((quarter) => ({
+                  id: quarter.id,
+                  title: quarter.title,
+                }))}
+              />
+            </div>
           </div>
 
           {objectiveCards.length ? (

@@ -8,6 +8,7 @@ import { CelebrationOverlay } from "@/components/dashboard/celebration-overlay";
 import { CommitmentStatusActions } from "@/components/dashboard/commitment-status-actions";
 import { KeyResultQuickUpdateDialog } from "@/components/dashboard/key-result-quick-update-dialog";
 import { ObjectiveTrafficLightChip } from "@/components/dashboard/objective-traffic-light-chip";
+import { KeyResultSortSelect } from "@/components/dashboard/sort-preference-select";
 import { TrafficLightChip } from "@/components/dashboard/traffic-light-chip";
 import { Card, CardContent } from "@/components/ui/card";
 import { useObjectiveProgress } from "@/hooks/use-objective-progress";
@@ -16,6 +17,7 @@ import {
   type KeyResultSummary,
 } from "@/lib/key-results";
 import { calculateProgress, formatProgressPercent } from "@/lib/progress";
+import type { KeyResultSortOption } from "@/lib/sorting";
 
 export type ObjectiveDetailProps = {
   objectiveId: string;
@@ -23,6 +25,7 @@ export type ObjectiveDetailProps = {
   description?: string | null;
   quarterTitle: string;
   nextAction?: string | null;
+  keyResultSort: KeyResultSortOption;
   keyResults: KeyResultSummary[];
   commitments?: {
     id: string;
@@ -41,6 +44,7 @@ export function ObjectiveDetail({
   description,
   quarterTitle,
   nextAction,
+  keyResultSort,
   keyResults,
   commitments = [],
 }: ObjectiveDetailProps) {
@@ -142,12 +146,15 @@ export function ObjectiveDetail({
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold text-foreground">Key Results</h2>
-          <Link
-            href={`/dashboard/objectives/${objectiveId}/edit`}
-            className="text-xs uppercase tracking-[0.2em] text-primary"
-          >
-            Key Result ergänzen
-          </Link>
+          <div className="flex flex-col items-end gap-3 sm:flex-row sm:items-center">
+            <KeyResultSortSelect value={keyResultSort} />
+            <Link
+              href={`/dashboard/objectives/${objectiveId}/edit`}
+              className="text-xs uppercase tracking-[0.2em] text-primary"
+            >
+              Key Result ergänzen
+            </Link>
+          </div>
         </div>
 
         <div className="space-y-4">
