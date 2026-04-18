@@ -8,13 +8,21 @@ export default async function middleware(req: NextRequest) {
     secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET,
   });
 
+  const { pathname, search } = req.nextUrl;
+
   if (!token) {
-    return NextResponse.redirect(new URL("/", req.nextUrl));
+    const signInUrl = new URL("/auth/signin", req.nextUrl);
+    signInUrl.searchParams.set("callbackUrl", `${pathname}${search}`);
+    return NextResponse.redirect(signInUrl);
+  }
+
+  if (pathname.startsWith("/admin") && token.role !== "ADMIN") {
+    return NextResponse.redirect(new URL("/dashboard", req.nextUrl));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  matcher: ["/dashboard/:path*", "/admin/:path*"],
 };

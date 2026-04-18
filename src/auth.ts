@@ -7,6 +7,7 @@ import EmailProvider from "next-auth/providers/email";
 import { canEmailSignIn } from "@/lib/beta-access";
 import { isAdminEmail } from "@/lib/admin-access";
 import { prisma } from "@/lib/db";
+import "@/lib/env";
 import { claimInviteByToken } from "@/lib/invite-access";
 import { isEmailConfigured, sendLoginLinkEmail } from "@/lib/email";
 import { logEvent } from "@/lib/monitoring";
@@ -272,39 +273,45 @@ export const authOptions: NextAuthOptions = {
 
       return true;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
-        if (isAdminEmail(user.email)) {
+        const currentRole = (user as { role?: "USER" | "ADMIN" }).role ?? "USER";
+        const shouldBeAdmin = isAdminEmail(user.email);
+
+        if (shouldBeAdmin && currentRole !== "ADMIN") {
           await prisma.user.update({
             where: { id: user.id },
             data: { role: "ADMIN" },
           });
+          logEvent("info", "auth_admin_role_granted", { userId: user.id, email: user.email });
         }
 
         token.sub = user.id;
         token.coupleId = user.coupleId ?? null;
-        token.role = isAdminEmail(user.email)
-          ? "ADMIN"
-          : ((user as { role?: "USER" | "ADMIN" }).role ?? "USER");
+        token.role = shouldBeAdmin ? "ADMIN" : currentRole;
+        return token;
       }
+
+      // Backfill for sessions issued before coupleId/role were stored in the JWT.
+      // Runs at most once per legacy session; new sessions hit the branch above.
+      const hasCoupleId = Object.prototype.hasOwnProperty.call(token, "coupleId");
+      const hasRole = Object.prototype.hasOwnProperty.call(token, "role");
+      if (token.sub && (!hasCoupleId || !hasRole || trigger === "update")) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.sub },
+          select: { coupleId: true, role: true },
+        });
+        token.coupleId = dbUser?.coupleId ?? null;
+        token.role = dbUser?.role ?? "USER";
+      }
+
       return token;
     },
-    async session({ session, token, user }) {
-      if (session.user) {
-        const dbUser = token?.sub
-          ? await prisma.user.findUnique({
-              where: { id: token.sub },
-              select: {
-                coupleId: true,
-                role: true,
-              },
-            })
-          : null;
-
-        session.user.id = user?.id ?? token?.sub ?? session.user.id ?? "";
-        session.user.coupleId =
-          user?.coupleId ?? dbUser?.coupleId ?? (token?.coupleId as string | null) ?? null;
-        session.user.role = dbUser?.role ?? (token?.role as "USER" | "ADMIN" | undefined) ?? "USER";
+    async session({ session, token }) {
+      if (session.user && token) {
+        session.user.id = (token.sub as string | undefined) ?? "";
+        session.user.coupleId = (token.coupleId as string | null | undefined) ?? null;
+        session.user.role = (token.role as "USER" | "ADMIN" | undefined) ?? "USER";
       }
       return session;
     },
