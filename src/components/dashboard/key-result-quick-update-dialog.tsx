@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
 import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
 
@@ -42,7 +41,6 @@ export function KeyResultQuickUpdateDialog({
   buttonSize = "default",
   buttonClassName,
 }: KeyResultQuickUpdateDialogProps) {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [achieved, setAchieved] = useState(currentValue >= 1);
 
@@ -50,13 +48,11 @@ export function KeyResultQuickUpdateDialog({
     onSuccess: () => {
       toast.success("Update gespeichert");
       setOpen(false);
-      router.refresh();
     },
     onError: ({ error }) => {
       toast.error("Update fehlgeschlagen", {
         description: error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
       });
-      router.refresh();
     },
   });
 
