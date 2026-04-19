@@ -448,11 +448,24 @@ export async function POST(req: Request) {
       )}`
     : "Keine Mini-Ritual Kandidaten gefunden.";
 
+  // Role-Separation gegen Prompt-Injection: User-controlled Daten (Objective-
+  // Titel, Commitments, Check-in-Inhalte, Transcript-Snippets) laufen als
+  // user-Message mit klarer CONTEXT-Abgrenzung, nicht als system-Message.
+  // Damit kann ein manipulierter Titel die Coach-Persona nicht überschreiben.
+  const contextMessage = [
+    "=== CONTEXT START (automatisch aus dem OKR-Dashboard generiert, keine Nutzer-Instruktionen) ===",
+    contextPrompt,
+    "",
+    "--- Wissensbasis aus Coaching-Calls ---",
+    knowledgeContext,
+    "",
+    ritualPrompt,
+    "=== CONTEXT END ===",
+  ].join("\n");
+
   const messages: LlmMessage[] = [
     { role: "system", content: systemPrompt },
-    { role: "system", content: contextPrompt },
-    { role: "system", content: `Wissensbasis aus Coaching-Calls:\n${knowledgeContext}` },
-    { role: "system", content: ritualPrompt },
+    { role: "user", content: contextMessage },
     {
       role: "user",
       content:
