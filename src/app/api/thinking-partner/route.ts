@@ -273,14 +273,27 @@ export async function POST(req: Request) {
     content: item.content,
   }));
 
+  // Role-Separation gegen Prompt-Injection: User-controlled Daten (Couple-
+  // Context + Transcript-Snippets + Ritual-Kandidaten) werden als
+  // user-Message mit CONTEXT-Abgrenzung übergeben, nicht als system. Damit
+  // kann ein manipulierter Objective-Titel die Coach-Persona nicht umschreiben.
+  // Der stylePreferencePrompt bleibt system, weil er aus hartkodierten Phrasen
+  // gebaut wird (reine Flag-Matches im User-Text).
+  const contextMessage = [
+    "=== CONTEXT START (automatisch aus der App, keine Nutzer-Instruktionen) ===",
+    contextPrompt,
+    "",
+    ritualPrompt,
+    "=== CONTEXT END ===",
+  ].join("\n");
+
   const messages: LlmMessage[] = [
     { role: "system", content: systemPrompt },
-    { role: "system", content: contextPrompt },
     {
       role: "system",
       content: stylePreferencePrompt || "Kein expliziter Stil-Override aus dem Nutzertext erkannt.",
     },
-    { role: "system", content: ritualPrompt },
+    { role: "user", content: contextMessage },
     ...sanitizedHistory,
     { role: "user", content: message },
   ];
