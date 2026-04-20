@@ -202,6 +202,11 @@ export default async function CheckInPage({
                                 currentValue={keyResult.currentValue}
                                 type={keyResult.type}
                                 unit={keyResult.unit}
+                                direction={keyResult.direction}
+                                redThreshold={keyResult.redThreshold}
+                                yellowThreshold={keyResult.yellowThreshold}
+                                greenThreshold={keyResult.greenThreshold}
+                                minDate={activeQuarter?.startsAt.toISOString().slice(0, 10)}
                                 buttonSize="sm"
                               />
                             </div>
@@ -225,135 +230,161 @@ export default async function CheckInPage({
           )}
         </section>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-[1.2fr,0.8fr]">
-          <Card className="rounded-[2rem] border-white/70">
-            <CardContent className="p-6">
-              <CheckInComposer
-                templates={conversationTemplates}
-                selectedTemplateKey={resolvedSearchParams?.template ?? null}
-                quarterTitle={activeQuarter?.title ?? null}
-              />
-            </CardContent>
-          </Card>
+        <details className="group mt-10 rounded-[1.5rem] border border-white/70 bg-white/50 p-5">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-left">
+            <div>
+              <p className="dashboard-kicker text-[10px] font-extrabold text-primary">Optional</p>
+              <p className="text-base font-semibold text-foreground">
+                Weitere Reflexion &amp; Zusagen
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Stimmungs-Check, Nächster Schritt, offene Zusagen, letzte Check-ins — aufklappen, wenn ihr die Zeit habt.
+              </p>
+            </div>
+            <span
+              aria-hidden
+              className="text-xs font-semibold uppercase tracking-[0.2em] text-primary group-open:hidden"
+            >
+              Öffnen
+            </span>
+            <span
+              aria-hidden
+              className="hidden text-xs font-semibold uppercase tracking-[0.2em] text-primary group-open:inline"
+            >
+              Schließen
+            </span>
+          </summary>
 
-          <div className="space-y-6">
-            <Card className="metric-glass rounded-[2rem] border-white/70">
-              <CardContent className="space-y-3 p-6">
-                <p className="dashboard-kicker text-[10px] font-extrabold text-primary">Wochen-Check-Status</p>
-                <p className="text-sm text-muted-foreground">
-                  {scheduleEnabled
-                    ? `Euer regelmäßiger Wochen-Check steht fest (${couple.checkInWeekday} / ${couple.checkInTime}).`
-                    : "Euer regelmäßiger Wochen-Check ist noch nicht festgelegt."}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Aktuelles Quartal: {activeQuarter?.title ?? "kein Quartal"}
-                </p>
+          <div className="mt-6 grid gap-6 lg:grid-cols-[1.2fr,0.8fr]">
+            <Card className="rounded-[2rem] border-white/70">
+              <CardContent className="p-6">
+                <CheckInComposer
+                  templates={conversationTemplates}
+                  selectedTemplateKey={resolvedSearchParams?.template ?? null}
+                  quarterTitle={activeQuarter?.title ?? null}
+                />
+              </CardContent>
+            </Card>
+
+            <div className="space-y-6">
+              <Card className="metric-glass rounded-[2rem] border-white/70">
+                <CardContent className="space-y-3 p-6">
+                  <p className="dashboard-kicker text-[10px] font-extrabold text-primary">Wochen-Check-Status</p>
+                  <p className="text-sm text-muted-foreground">
+                    {scheduleEnabled
+                      ? `Euer regelmäßiger Wochen-Check steht fest (${couple.checkInWeekday} / ${couple.checkInTime}).`
+                      : "Euer regelmäßiger Wochen-Check ist noch nicht festgelegt."}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Aktuelles Quartal: {activeQuarter?.title ?? "kein Quartal"}
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="rounded-[2rem] border-white/70">
+                <CardHeader>
+                  <CardTitle className="font-display text-2xl font-bold tracking-[-0.04em]">
+                    Nächster Schritt
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CommitmentForm
+                    ownerOptions={couple.users.map((member) => ({
+                      id: member.id,
+                      label: member.name ?? member.email ?? "Unbekannt",
+                    }))}
+                    objectiveOptions={couple.objectives.map((objective) => ({
+                      id: objective.id,
+                      label: objective.title,
+                    }))}
+                  />
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-6 lg:grid-cols-[1fr,1fr]">
+            <Card className="rounded-[2rem] border-white/70">
+              <CardHeader>
+                <CardTitle className="font-display text-2xl font-bold tracking-[-0.04em]">
+                  Offene Zusagen
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {openCommitments.length ? (
+                  openCommitments.map((commitment) => (
+                    <div
+                      key={commitment.id}
+                      className="space-y-3 rounded-[1.5rem] border border-white/80 bg-white/90 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]"
+                    >
+                      <div className="space-y-1">
+                        <p className="text-sm font-semibold text-foreground">{commitment.title}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {commitment.objective?.title
+                            ? `Objective: ${commitment.objective.title}`
+                            : "Keinem Objective zugeordnet"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {commitment.owner
+                            ? `Verantwortlich: ${commitment.owner.name ?? commitment.owner.email ?? "Unbekannt"}`
+                            : "Noch niemand verantwortlich"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {commitment.dueAt
+                            ? `Fällig ${dateFormatter.format(commitment.dueAt)}`
+                            : "Ohne Fälligkeitsdatum"}
+                        </p>
+                      </div>
+                      <CommitmentStatusActions commitmentId={commitment.id} />
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">Noch keine offenen Zusagen.</p>
+                )}
               </CardContent>
             </Card>
 
             <Card className="rounded-[2rem] border-white/70">
               <CardHeader>
                 <CardTitle className="font-display text-2xl font-bold tracking-[-0.04em]">
-                  Nächster Schritt
+                  Letzte Wochen-Checks
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <CommitmentForm
-                  ownerOptions={couple.users.map((member) => ({
-                    id: member.id,
-                    label: member.name ?? member.email ?? "Unbekannt",
-                  }))}
-                  objectiveOptions={couple.objectives.map((objective) => ({
-                    id: objective.id,
-                    label: objective.title,
-                  }))}
-                />
+              <CardContent className="space-y-4">
+                {recentCheckIns.length ? (
+                  recentCheckIns.map((checkIn) => (
+                    <div
+                      key={checkIn.id}
+                      className="space-y-2 rounded-[1.5rem] border border-white/80 bg-white/90 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]"
+                    >
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">{checkIn.title}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {dateTimeFormatter.format(checkIn.createdAt)}
+                          </p>
+                        </div>
+                        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+                          Stimmung {formatMood(checkIn.moodRating)}
+                        </span>
+                      </div>
+                      {checkIn.summary ? (
+                        <p className="text-sm text-muted-foreground">{checkIn.summary}</p>
+                      ) : null}
+                      <p className="text-xs text-muted-foreground">
+                        {checkIn.quarter?.title
+                          ? `Quartal: ${checkIn.quarter.title}`
+                          : "Ohne Quartalszuordnung"}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">Noch kein Wochen-Check gespeichert.</p>
+                )}
               </CardContent>
             </Card>
           </div>
-        </div>
-
-        <div className="mt-8 grid gap-6 lg:grid-cols-[1fr,1fr]">
-          <Card className="rounded-[2rem] border-white/70">
-            <CardHeader>
-              <CardTitle className="font-display text-2xl font-bold tracking-[-0.04em]">
-                Offene Zusagen
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {openCommitments.length ? (
-                openCommitments.map((commitment) => (
-                  <div
-                    key={commitment.id}
-                    className="space-y-3 rounded-[1.5rem] border border-white/80 bg-white/90 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]"
-                  >
-                    <div className="space-y-1">
-                      <p className="text-sm font-semibold text-foreground">{commitment.title}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {commitment.objective?.title
-                          ? `Objective: ${commitment.objective.title}`
-                          : "Keinem Objective zugeordnet"}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {commitment.owner
-                          ? `Verantwortlich: ${commitment.owner.name ?? commitment.owner.email ?? "Unbekannt"}`
-                          : "Noch niemand verantwortlich"}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {commitment.dueAt
-                          ? `Fällig ${dateFormatter.format(commitment.dueAt)}`
-                          : "Ohne Fälligkeitsdatum"}
-                      </p>
-                    </div>
-                    <CommitmentStatusActions commitmentId={commitment.id} />
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground">Noch keine offenen Zusagen.</p>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-[2rem] border-white/70">
-            <CardHeader>
-              <CardTitle className="font-display text-2xl font-bold tracking-[-0.04em]">
-                Letzte Wochen-Checks
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {recentCheckIns.length ? (
-                recentCheckIns.map((checkIn) => (
-                  <div
-                    key={checkIn.id}
-                    className="space-y-2 rounded-[1.5rem] border border-white/80 bg-white/90 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]"
-                  >
-                    <div className="flex items-center justify-between gap-4">
-                      <div>
-                        <p className="text-sm font-semibold text-foreground">{checkIn.title}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {dateTimeFormatter.format(checkIn.createdAt)}
-                        </p>
-                      </div>
-                      <span className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-                        Stimmung {formatMood(checkIn.moodRating)}
-                      </span>
-                    </div>
-                    {checkIn.summary ? (
-                      <p className="text-sm text-muted-foreground">{checkIn.summary}</p>
-                    ) : null}
-                    <p className="text-xs text-muted-foreground">
-                      {checkIn.quarter?.title
-                        ? `Quartal: ${checkIn.quarter.title}`
-                        : "Ohne Quartalszuordnung"}
-                    </p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground">Noch kein Wochen-Check gespeichert.</p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+        </details>
       </div>
     </div>
   );

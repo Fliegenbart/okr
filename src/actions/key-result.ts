@@ -44,6 +44,12 @@ export const updateKeyResult = action
         ? getBinaryValue(parsedInput.achieved ? 1 : 0)
         : Number(parsedInput.value);
 
+    // Backdated scoring: if the user picked a date in the quick-update dialog,
+    // we keep createdAt = now (audit trail for when the DB row was written) and
+    // store the user-provided date separately as occurredAt. Read paths that
+    // sort / filter by "when did it happen" should prefer occurredAt ?? createdAt.
+    const occurredAt = parsedInput.occurredAt ?? null;
+
     await prisma.$transaction([
       prisma.keyResult.update({
         where: { id: keyResult.id },
@@ -58,6 +64,7 @@ export const updateKeyResult = action
           value: normalizedValue,
           note: parsedInput.note ?? null,
           updatedById: user.id,
+          occurredAt,
         },
       }),
     ]);

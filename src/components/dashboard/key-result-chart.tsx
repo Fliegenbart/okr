@@ -175,14 +175,14 @@ export function KeyResultChart({
               trafficLightStatus === "green"
                 ? "text-emerald-600"
                 : trafficLightStatus === "yellow"
-                  ? "text-amber-600"
+                  ? "text-sky-600"
                   : "text-rose-600"
             }
           >
             {trafficLightStatus === "green"
               ? "Grün"
               : trafficLightStatus === "yellow"
-                ? "Gelb"
+                ? "Blau"
                 : "Rot"}
           </span>
         </p>
@@ -250,7 +250,7 @@ export function KeyResultChart({
                   <ReferenceArea
                     y1={greenThreshold}
                     y2={yellowThreshold}
-                    fill="#fef3c7"
+                    fill="#e0f2fe"
                     fillOpacity={0.7}
                   />
                   <ReferenceArea y1={yellowThreshold} y2={yMax} fill="#ffe1e6" fillOpacity={0.8} />
@@ -261,7 +261,7 @@ export function KeyResultChart({
                   <ReferenceArea
                     y1={redThreshold}
                     y2={yellowThreshold}
-                    fill="#fef3c7"
+                    fill="#e0f2fe"
                     fillOpacity={0.7}
                   />
                   <ReferenceArea y1={yellowThreshold} y2={yMax} fill="#dcfce7" fillOpacity={0.7} />

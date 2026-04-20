@@ -336,6 +336,10 @@ export function ObjectiveCard({
                       currentValue={keyResult.currentValue}
                       type={keyResult.type}
                       unit={keyResult.unit}
+                      direction={keyResult.direction}
+                      redThreshold={keyResult.redThreshold}
+                      yellowThreshold={keyResult.yellowThreshold}
+                      greenThreshold={keyResult.greenThreshold}
                       buttonSize="sm"
                       buttonClassName="text-xs"
                       onOptimisticUpdate={(value) => handleOptimisticUpdate(keyResult.id, value)}

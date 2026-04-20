@@ -61,9 +61,16 @@ export function ObjectiveForm({ quarters, defaultQuarterId }: ObjectiveFormProps
       router.refresh();
     },
     onError: ({ error }) => {
-      toast.error("Objective konnte nicht erstellt werden", {
-        description: error.serverError ?? error.validationErrors?.formErrors?.[0] ?? "",
-      });
+      const fieldErrors = error.validationErrors?.fieldErrors;
+      const collected = [
+        ...(fieldErrors?.title ?? []),
+        ...(fieldErrors?.description ?? []),
+        ...(fieldErrors?.keyResults ?? []),
+        ...(error.validationErrors?.formErrors ?? []),
+      ];
+      const description =
+        error.serverError ?? collected[0] ?? "Bitte prüft die markierten Felder.";
+      toast.error("Objective konnte nicht erstellt werden", { description });
     },
   });
 
@@ -155,6 +162,9 @@ export function ObjectiveForm({ quarters, defaultQuarterId }: ObjectiveFormProps
           onChange={(event) => setDescription(event.target.value)}
           placeholder="Warum ist dieses Objective gerade wichtig?"
         />
+        {validationErrors?.fieldErrors?.description?.[0] ? (
+          <p className="text-sm text-primary">{validationErrors.fieldErrors.description[0]}</p>
+        ) : null}
       </div>
 
       {quarters.length ? (
