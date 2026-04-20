@@ -21,6 +21,20 @@ const optionalValue = z.preprocess(
   z.number({ message: "Bitte gib einen gültigen Wert ein." }).min(0, "Der Wert muss positiv sein.").optional()
 );
 
+// Accepts ISO date string (from <input type="date">) or Date.
+// Empty string / undefined / null collapse to undefined so the caller may
+// omit the field entirely and the server falls back to createdAt = now().
+const optionalDate = z
+  .union([z.date(), z.string(), z.null()])
+  .optional()
+  .transform((value): Date | undefined => {
+    if (value === undefined || value === null) return undefined;
+    if (value instanceof Date) return Number.isNaN(value.getTime()) ? undefined : value;
+    if (typeof value === "string" && value.trim() === "") return undefined;
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+  });
+
 export const updateKeyResultSchema = z
   .object({
     keyResultId: z.string().min(1),
@@ -28,6 +42,7 @@ export const updateKeyResultSchema = z
     value: optionalValue,
     achieved: z.boolean().optional(),
     note: optionalNote,
+    occurredAt: optionalDate,
   })
   .superRefine((value, ctx) => {
     if (value.type === "BINARY") {

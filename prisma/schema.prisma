@@ -381,6 +381,7 @@ model KeyResultUpdate {
   note          String?
   updatedById   String?
   updatedBy     User?     @relation("UserKeyResultUpdates", fields: [updatedById], references: [id])
+  occurredAt    DateTime?
   createdAt     DateTime  @default(now())
 }
 

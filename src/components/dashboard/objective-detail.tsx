@@ -188,6 +188,10 @@ export function ObjectiveDetail({
                         currentValue={keyResult.currentValue}
                         type={keyResult.type}
                         unit={keyResult.unit}
+                        direction={keyResult.direction}
+                        redThreshold={keyResult.redThreshold}
+                        yellowThreshold={keyResult.yellowThreshold}
+                        greenThreshold={keyResult.greenThreshold}
                         onOptimisticUpdate={(value) => handleOptimisticUpdate(keyResult.id, value)}
                       />
                     </div>

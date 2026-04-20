@@ -15,10 +15,10 @@ export function ObjectiveTrafficLightChip({ keyResults }: ObjectiveTrafficLightC
     status === "green"
       ? "bg-emerald-100 text-emerald-700"
       : status === "yellow"
-        ? "bg-amber-100 text-amber-700"
+        ? "bg-sky-100 text-sky-700"
         : "bg-rose-100 text-rose-700";
 
-  const label = status === "green" ? "Grün" : status === "yellow" ? "Gelb" : "Rot";
+  const label = status === "green" ? "Grün" : status === "yellow" ? "Blau" : "Rot";
 
   return (
     <span
