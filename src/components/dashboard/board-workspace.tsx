@@ -98,6 +98,19 @@ type PanState = {
   viewportStartY: number;
 };
 
+type PinchState = {
+  // Distance between the two touch points when the gesture started, in CSS
+  // pixels. Ratio of current distance vs. this yields the scale delta.
+  startDistance: number;
+  // Viewport scale at gesture start. We always compute the next scale from
+  // here so the pinch feels like one continuous gesture (not cumulative).
+  startScale: number;
+  // Midpoint of the two touches relative to the viewport element; used as
+  // the zoom origin so the canvas visually stays under the user's fingers.
+  originX: number;
+  originY: number;
+};
+
 type ResizeState = {
   elementId: string;
   pointerStartX: number;
@@ -336,6 +349,11 @@ export function BoardWorkspace({ initialBoard }: BoardWorkspaceProps) {
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const dragStateRef = useRef<DragState | null>(null);
   const panStateRef = useRef<PanState | null>(null);
+  const pinchStateRef = useRef<PinchState | null>(null);
+  // Tracks every pointer currently pressing the canvas (mouse or touch). Used
+  // to detect pinch-zoom: when the map size crosses from 1 → 2 we switch the
+  // interaction from pan to pinch; 2 → 1 ends the pinch gracefully.
+  const activePointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
   const resizeStateRef = useRef<ResizeState | null>(null);
   const viewportStateRef = useRef<ViewportState>(INITIAL_VIEWPORT);
   const viewportSizeRef = useRef<ViewportSize>({ width: 1200, height: 720 });
@@ -760,7 +778,7 @@ export function BoardWorkspace({ initialBoard }: BoardWorkspaceProps) {
     setViewportConstrained(INITIAL_VIEWPORT);
   };
 
-  const zoomAt = (nextScale: number, origin?: { x: number; y: number }) => {
+  const zoomAt = (nextScale: number, origin?: { x: number; y: number }): void => {
     const safeScale = clamp(nextScale, MIN_SCALE, MAX_SCALE);
     const fallbackOrigin = {
       x: viewportSizeRef.current.width / 2,
@@ -777,6 +795,13 @@ export function BoardWorkspace({ initialBoard }: BoardWorkspaceProps) {
       viewportStateRef.current.scale + (direction === "in" ? 0.15 : -0.15);
     zoomAt(nextScale);
   };
+
+  // useEffectEvent wraps zoomAt so the global pointermove handler (which
+  // lives in a useEffect with stable deps) can always call the latest
+  // closure without tripping react-hooks/exhaustive-deps.
+  const handlePinchZoom = useEffectEvent((nextScale: number, origin: { x: number; y: number }) => {
+    zoomAt(nextScale, origin);
+  });
 
   const clearSelection = () => {
     setSelectedElementIds([]);
@@ -933,6 +958,35 @@ export function BoardWorkspace({ initialBoard }: BoardWorkspaceProps) {
       return;
     }
 
+    // Track pointer only for pointer events (mouse events don't carry pointerId).
+    // Mouse interaction stays on the classic single-pointer pan path.
+    const pointerId = "pointerId" in event ? event.pointerId : null;
+    if (pointerId !== null) {
+      activePointersRef.current.set(pointerId, {
+        x: event.clientX,
+        y: event.clientY,
+      });
+    }
+
+    // Two-finger pinch: cancel any active pan and compute start geometry.
+    if (activePointersRef.current.size === 2) {
+      panStateRef.current = null;
+      const points = Array.from(activePointersRef.current.values());
+      const dx = points[0].x - points[1].x;
+      const dy = points[0].y - points[1].y;
+      const rect = viewportRef.current?.getBoundingClientRect();
+      if (rect) {
+        pinchStateRef.current = {
+          startDistance: Math.hypot(dx, dy),
+          startScale: viewportStateRef.current.scale,
+          originX: (points[0].x + points[1].x) / 2 - rect.left,
+          originY: (points[0].y + points[1].y) / 2 - rect.top,
+        };
+      }
+      setIsInteracting(true);
+      return;
+    }
+
     clearSelection();
 
     panStateRef.current = {
@@ -1028,6 +1082,29 @@ export function BoardWorkspace({ initialBoard }: BoardWorkspaceProps) {
         return;
       }
 
+      // Pinch-zoom: if two fingers are still down, update scale from distance.
+      // We call through a ref so the outer useEffect can keep its empty deps
+      // array without triggering the exhaustive-deps lint rule.
+      if (pinchStateRef.current && "pointerId" in event) {
+        activePointersRef.current.set(event.pointerId, {
+          x: event.clientX,
+          y: event.clientY,
+        });
+        if (activePointersRef.current.size >= 2) {
+          const points = Array.from(activePointersRef.current.values()).slice(0, 2);
+          const dx = points[0].x - points[1].x;
+          const dy = points[0].y - points[1].y;
+          const distance = Math.hypot(dx, dy);
+          const pinch = pinchStateRef.current;
+          if (pinch.startDistance > 0) {
+            const ratio = distance / pinch.startDistance;
+            const nextScale = pinch.startScale * ratio;
+            handlePinchZoom(nextScale, { x: pinch.originX, y: pinch.originY });
+          }
+        }
+        return;
+      }
+
       if (panStateRef.current) {
         setViewportConstrained((currentViewport) => ({
           ...currentViewport,
@@ -1041,7 +1118,16 @@ export function BoardWorkspace({ initialBoard }: BoardWorkspaceProps) {
       }
     };
 
-    const handleUp = () => {
+    const handleUp = (event: MouseEvent | PointerEvent) => {
+      // Remove just this pointer from the active set. Pinch stays armed until
+      // both fingers leave; a leftover single pointer simply becomes inert.
+      if ("pointerId" in event) {
+        activePointersRef.current.delete(event.pointerId);
+      }
+      if (activePointersRef.current.size < 2) {
+        pinchStateRef.current = null;
+      }
+
       const activeDrag = dragStateRef.current;
       const activeResize = resizeStateRef.current;
 
@@ -1464,7 +1550,7 @@ export function BoardWorkspace({ initialBoard }: BoardWorkspaceProps) {
             </div>
           </div>
 
-          <div className="pointer-events-none absolute bottom-4 left-4 z-20 flex max-w-[70%] flex-wrap gap-2">
+          <div className="pointer-events-none absolute bottom-4 left-4 z-20 hidden max-w-[70%] flex-wrap gap-2 lg:flex">
             <span className="rounded-full border border-white/90 bg-white/92 px-3 py-1.5 text-[11px] font-semibold text-[#5f708f] shadow-sm">
               Doppelklick auf freie Fläche = neue Notiz
             </span>
@@ -1480,6 +1566,55 @@ export function BoardWorkspace({ initialBoard }: BoardWorkspaceProps) {
             <span className="rounded-full border border-white/90 bg-white/92 px-3 py-1.5 text-[11px] font-semibold text-[#5f708f] shadow-sm">
               C verbindet zwei ausgewählte Karten
             </span>
+          </div>
+
+          {/* Mobile-only tool bar: replaces the hidden left sidebar on small
+              screens. Sits at the bottom with safe-area padding so it clears
+              the iOS home indicator. */}
+          <div className="pointer-events-none absolute bottom-3 left-1/2 z-20 -translate-x-1/2 pb-safe lg:hidden">
+            <div className="pointer-events-auto flex items-center gap-1 rounded-full border border-white/90 bg-white/96 px-2 py-2 shadow-[0_16px_45px_rgba(20,20,20,0.18)] backdrop-blur-sm">
+              <button
+                type="button"
+                onClick={() => handleDuplicateCreate("NOTE")}
+                disabled={!isHydrated}
+                className="flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold text-foreground transition active:bg-[#f3f6fb] disabled:opacity-50"
+                aria-label="Notiz hinzufügen"
+              >
+                <StickyNote className="h-4 w-4 text-[#f59e0b]" />
+                Note
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDuplicateCreate("TEXT")}
+                disabled={!isHydrated}
+                className="flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold text-foreground transition active:bg-[#f3f6fb] disabled:opacity-50"
+                aria-label="Text hinzufügen"
+              >
+                <CaseSensitive className="h-4 w-4 text-[#2563eb]" />
+                Text
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDuplicateCreate("FRAME")}
+                disabled={!isHydrated}
+                className="flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold text-foreground transition active:bg-[#f3f6fb] disabled:opacity-50"
+                aria-label="Frame hinzufügen"
+              >
+                <Frame className="h-4 w-4 text-[#475569]" />
+                Frame
+              </button>
+              <div className="mx-1 h-6 w-px bg-border/70" />
+              <button
+                type="button"
+                onClick={fitBoardToViewport}
+                disabled={!isHydrated}
+                className="flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold text-foreground transition active:bg-[#f3f6fb] disabled:opacity-50"
+                aria-label="An Ansicht anpassen"
+              >
+                <ScanSearch className="h-4 w-4 text-[#64748b]" />
+                Fit
+              </button>
+            </div>
           </div>
 
           {selectedElements.length > 0 && selectedToolbarStyle ? (
@@ -1566,7 +1701,7 @@ export function BoardWorkspace({ initialBoard }: BoardWorkspaceProps) {
             ref={viewportRef}
             data-testid="board-canvas"
             className={cn(
-              "relative h-[78vh] min-h-[700px] overflow-hidden",
+              "touch-none-canvas relative h-[72dvh] min-h-[520px] overflow-hidden md:h-[78vh] md:min-h-[700px]",
               !isHydrated
                 ? "pointer-events-none opacity-80"
                 : isInteracting
