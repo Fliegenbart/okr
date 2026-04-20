@@ -185,6 +185,31 @@
     animation: chevronNudge 8.2s ease-in-out infinite;
     will-change: transform;
   }
+  /* Safe-area helpers for iOS with viewport-fit=cover. Use these on sticky
+     navs or edge-to-edge content that would otherwise sit under the notch
+     or home indicator. Combines with existing padding utilities. */
+  .pb-safe {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+  .pt-safe {
+    padding-top: max(0.5rem, env(safe-area-inset-top));
+  }
+  .pl-safe {
+    padding-left: max(0.5rem, env(safe-area-inset-left));
+  }
+  .pr-safe {
+    padding-right: max(0.5rem, env(safe-area-inset-right));
+  }
+  .px-safe {
+    padding-left: max(0.5rem, env(safe-area-inset-left));
+    padding-right: max(0.5rem, env(safe-area-inset-right));
+  }
+  /* Canvas surfaces (Board) should swallow native gestures so our custom
+     pan/pinch logic has exclusive control. Without this, iOS interprets
+     two-finger pinch as page-zoom instead of canvas-zoom. */
+  .touch-none-canvas {
+    touch-action: none;
+  }
   .glass-card {
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);

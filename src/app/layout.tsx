@@ -37,6 +37,11 @@ export const metadata: Metadata = {
 
 export const viewport = {
   themeColor: "#F20080",
+  width: "device-width",
+  initialScale: 1,
+  // `viewport-fit=cover` lets the app extend under the iOS notch and home
+  // indicator. Pages still respect safe-area insets via CSS utilities.
+  viewportFit: "cover" as const,
 };
 
 export default function RootLayout({
